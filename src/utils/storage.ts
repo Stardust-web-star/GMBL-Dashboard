@@ -1,0 +1,266 @@
+import { INITIAL_METERS, INITIAL_USERS } from "../data/initialData";
+import { ExcelSyncConfig, MeterRecord, UserAccount } from "../types";
+import { sanitizeAndRepairMeters } from "./csvParser";
+
+const METERS_STORAGE_KEY = "gmbl_meters_data_v1";
+const USERS_STORAGE_KEY = "gmbl_users_data_v1";
+const AUTH_STORAGE_KEY = "gmbl_current_user_v1";
+const SHEET_CONFIG_KEY = "gmbl_sheet_config_v1";
+
+// Meter Records API
+export function getStoredMeters(): MeterRecord[] {
+  try {
+    const data = localStorage.getItem(METERS_STORAGE_KEY);
+    if (!data) {
+      localStorage.setItem(METERS_STORAGE_KEY, JSON.stringify(INITIAL_METERS));
+      return INITIAL_METERS;
+    }
+    const parsed = JSON.parse(data);
+    const repaired = sanitizeAndRepairMeters(parsed);
+    saveStoredMeters(repaired);
+    return repaired;
+  } catch (err) {
+    console.error("Failed to read meters from localStorage:", err);
+    return INITIAL_METERS;
+  }
+}
+
+export function saveStoredMeters(meters: MeterRecord[]): void {
+  try {
+    localStorage.setItem(METERS_STORAGE_KEY, JSON.stringify(meters));
+  } catch (err) {
+    console.error("Failed to save meters to localStorage:", err);
+  }
+}
+
+export function addMeterRecord(record: Omit<MeterRecord, "id">): MeterRecord {
+  const meters = getStoredMeters();
+  const newRecord: MeterRecord = {
+    ...record,
+    id: `mtr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    updatedAt: new Date().toISOString(),
+  };
+  const updated = [newRecord, ...meters];
+  saveStoredMeters(updated);
+  return newRecord;
+}
+
+export function updateMeterRecord(id: string, updates: Partial<MeterRecord>): MeterRecord | null {
+  const meters = getStoredMeters();
+  let updatedRecord: MeterRecord | null = null;
+  const updated = meters.map((m) => {
+    if (m.id === id) {
+      updatedRecord = {
+        ...m,
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+      return updatedRecord;
+    }
+    return m;
+  });
+  saveStoredMeters(updated);
+  return updatedRecord;
+}
+
+export function deleteMeterRecord(id: string): void {
+  const meters = getStoredMeters();
+  const updated = meters.filter((m) => m.id !== id);
+  saveStoredMeters(updated);
+}
+
+export function resetMetersToDefault(): MeterRecord[] {
+  saveStoredMeters(INITIAL_METERS);
+  return INITIAL_METERS;
+}
+
+// User Accounts API
+export function getStoredUsers(): UserAccount[] {
+  try {
+    const data = localStorage.getItem(USERS_STORAGE_KEY);
+    if (!data) {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
+      return INITIAL_USERS;
+    }
+    const parsed: UserAccount[] = JSON.parse(data);
+    let filtered = parsed.filter(
+      (u) => u.email !== "supervisor.baguala@pln.co.id"
+    );
+
+    // Ensure muhammadnurbella20@gmail.com admin exists and is updated to Acho (super_admin)
+    let hasBella = false;
+    filtered = filtered.map((u) => {
+      if (u.email.toLowerCase() === "muhammadnurbella20@gmail.com") {
+        hasBella = true;
+        return {
+          ...u,
+          name: "Acho",
+          role: "super_admin",
+        };
+      }
+      return u;
+    });
+
+    if (!hasBella) {
+      filtered.push({
+        id: "usr-admin-02",
+        email: "muhammadnurbella20@gmail.com",
+        name: "Acho",
+        role: "super_admin",
+        status: "active",
+        createdAt: "2026-09-01",
+        lastLogin: "2026-09-01 17:00",
+        password: "admin",
+      });
+    }
+
+    saveStoredUsers(filtered);
+    return filtered;
+  } catch (err) {
+    console.error("Failed to read users from localStorage:", err);
+    return INITIAL_USERS;
+  }
+}
+
+export function saveStoredUsers(users: UserAccount[]): void {
+  try {
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  } catch (err) {
+    console.error("Failed to save users to localStorage:", err);
+  }
+}
+
+export function addUserAccount(
+  email: string,
+  name: string,
+  role: UserAccount["role"] = "admin",
+  password?: string
+): UserAccount {
+  const users = getStoredUsers();
+  const newUser: UserAccount = {
+    id: `usr-${Date.now()}`,
+    email: email.trim().toLowerCase(),
+    name: name || email.split("@")[0],
+    role,
+    status: "active",
+    createdAt: new Date().toISOString().split("T")[0],
+    password: password || "admin",
+  };
+  const updated = [...users, newUser];
+  saveStoredUsers(updated);
+  return newUser;
+}
+
+export function deleteUserAccount(id: string): void {
+  const users = getStoredUsers();
+  const updated = users.filter((u) => u.id !== id);
+  saveStoredUsers(updated);
+}
+
+// Auth Session Management (using sessionStorage for tab-scoped session)
+export function getCurrentSessionUser(): UserAccount | null {
+  try {
+    // Purge legacy localStorage auth key if present
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    const data = sessionStorage.getItem(AUTH_STORAGE_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error("Auth session read error:", err);
+  }
+  return null;
+}
+
+export function setCurrentSessionUser(user: UserAccount | null): void {
+  try {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    if (user) {
+      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    } else {
+      sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+  } catch (err) {
+    console.error("Auth session write error:", err);
+  }
+}
+
+// Excel Sync Config API
+export function getExcelSyncConfig(): ExcelSyncConfig {
+  try {
+    const data = localStorage.getItem(SHEET_CONFIG_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error("Excel config read error:", err);
+  }
+  return {
+    autoSync: false,
+  };
+}
+
+export function saveExcelSyncConfig(config: ExcelSyncConfig): void {
+  try {
+    localStorage.setItem(SHEET_CONFIG_KEY, JSON.stringify(config));
+  } catch (err) {
+    console.error("Excel config write error:", err);
+  }
+}
+
+// CSV Export & Import Helper for Google Sheet Syncing
+export function exportMetersToCSV(meters: MeterRecord[], decimalSeparator: "," | "." = ","): string {
+  const headers = [
+    "TANGGAL",
+    "ID PELANGGAN",
+    "NAMA PELANGGAN",
+    "TARIF",
+    "DAYA",
+    "NO METER LAMA",
+    "NO METER BARU",
+    "NO AGENDA",
+    "NO SN MATERIAL KWH METER",
+    "NO SN MATERIAL MCB",
+    "KABEL TW",
+    "SEGEL",
+    "STAND BONGKAR",
+    "JENIS",
+    "GANTI METER",
+    "PETUGAS",
+    "STATUS",
+    "PNJ / LOKASI",
+    "LATITUDE",
+    "LONGITUDE",
+  ];
+
+  const formatCoord = (val: number) => {
+    const s = String(val);
+    return decimalSeparator === "," ? s.replace(".", ",") : s;
+  };
+
+  const rows = meters.map((m) => [
+    m.tanggal,
+    `"${m.idPelanggan}"`,
+    `"${m.namaPelanggan.replace(/"/g, '""')}"`,
+    m.tarif,
+    m.daya,
+    `"${m.noMeterLama}"`,
+    `"${m.noMeterBaru}"`,
+    `"${m.noAgenda}"`,
+    `"${m.noSnMaterialKwhMeter}"`,
+    `"${m.noSnMaterialMcb}"`,
+    `"${m.kabelTw}"`,
+    `"${m.segel}"`,
+    `"${m.standBongkar}"`,
+    m.jenis,
+    m.gantiMeter,
+    m.petugas,
+    m.status,
+    `"${(m.pnj || "").replace(/"/g, '""')}"`,
+    formatCoord(m.latitude),
+    formatCoord(m.longitude),
+  ]);
+
+  const delimiter = decimalSeparator === "," ? ";" : ",";
+  return [headers.join(delimiter), ...rows.map((r) => r.join(delimiter))].join("\n");
+}
