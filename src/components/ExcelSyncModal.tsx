@@ -11,9 +11,17 @@ import {
   AlertCircle,
   Table,
   Sparkles,
+  RefreshCw,
 } from "lucide-react";
 import { MeterRecord } from "../types";
-import { saveStoredMeters } from "../utils/storage";
+import {
+  saveStoredMeters,
+  getMasterExcelMeta,
+  saveMasterExcelMeta,
+  saveMasterExcelBackup,
+  getMasterExcelBackup,
+  mergeMetersWithExisting,
+} from "../utils/storage";
 import { parseCsvToMeters } from "../utils/csvParser";
 import {
   parseExcelBuffer,
@@ -40,6 +48,8 @@ export const ExcelSyncModal: React.FC<Props> = ({
   const [syncMessage, setSyncMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const [previewMeters, setPreviewMeters] = useState<MeterRecord[] | null>(null);
   const [pasteInput, setPasteInput] = useState("");
+  const [mergeMode, setMergeMode] = useState<"smart" | "replace">("smart");
+  const [currentMeta, setCurrentMeta] = useState(() => getMasterExcelMeta());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -119,9 +129,32 @@ export const ExcelSyncModal: React.FC<Props> = ({
   const handleApplyData = () => {
     if (!previewMeters || previewMeters.length === 0) return;
 
-    saveStoredMeters(previewMeters);
-    onMetersUpdated(previewMeters);
-    showNotification(`Berhasil memperbarui ${previewMeters.length} data pelanggan ke master data GMBL!`, "success");
+    let finalMeters: MeterRecord[] = previewMeters;
+    if (mergeMode === "smart" && meters.length > 0) {
+      finalMeters = mergeMetersWithExisting(meters, previewMeters);
+    }
+
+    saveStoredMeters(finalMeters);
+    saveMasterExcelBackup(finalMeters);
+
+    const metaInfo = {
+      fileName: fileName || "Master_Data_Meter_Baguala.xlsx",
+      uploadedAt: new Date().toLocaleString("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+      totalRecords: finalMeters.length,
+      taggedCount: finalMeters.filter((m) => m.latitude && m.longitude && m.latitude !== 0).length,
+      source: "upload" as const,
+    };
+    saveMasterExcelMeta(metaInfo);
+    setCurrentMeta(metaInfo);
+
+    onMetersUpdated(finalMeters);
+    showNotification(
+      `Berhasil menyimpan ${finalMeters.length} data pelanggan Excel ke Master Data GMBL! (Terintegrasi dengan Tagging Peta & kWh Meter)`,
+      "success"
+    );
     setPreviewMeters(null);
     setFileName(null);
     setTimeout(() => {
@@ -138,10 +171,30 @@ export const ExcelSyncModal: React.FC<Props> = ({
     try {
       const parsedMeters = parseCsvToMeters(pasteInput);
       if (parsedMeters.length > 0) {
-        saveStoredMeters(parsedMeters);
-        onMetersUpdated(parsedMeters);
+        let finalMeters: MeterRecord[] = parsedMeters;
+        if (mergeMode === "smart" && meters.length > 0) {
+          finalMeters = mergeMetersWithExisting(meters, parsedMeters);
+        }
+
+        saveStoredMeters(finalMeters);
+        saveMasterExcelBackup(finalMeters);
+
+        const metaInfo = {
+          fileName: "Salinan_Tabel_Excel.xlsx",
+          uploadedAt: new Date().toLocaleString("id-ID", {
+            dateStyle: "medium",
+            timeStyle: "short",
+          }),
+          totalRecords: finalMeters.length,
+          taggedCount: finalMeters.filter((m) => m.latitude && m.longitude && m.latitude !== 0).length,
+          source: "paste" as const,
+        };
+        saveMasterExcelMeta(metaInfo);
+        setCurrentMeta(metaInfo);
+
+        onMetersUpdated(finalMeters);
         showNotification(
-          `Berhasil memproses ${parsedMeters.length} data pelanggan! Koordinat lokasi otomatis diproyeksikan presisi pada peta satelit Baguala.`,
+          `Berhasil memproses & menyimpan ${finalMeters.length} data pelanggan ke Master Data! Koordinat lokasi otomatis terintegrasi.`,
           "success"
         );
         setPasteInput("");
@@ -152,6 +205,18 @@ export const ExcelSyncModal: React.FC<Props> = ({
     } catch (err: any) {
       showNotification("Error memproses data: " + err.message, "error");
     }
+  };
+
+  const handleRestoreBackup = () => {
+    const backup = getMasterExcelBackup();
+    if (!backup || backup.length === 0) {
+      showNotification("Tidak ada cadangan master data Excel sebelumnya.", "error");
+      return;
+    }
+
+    saveStoredMeters(backup);
+    onMetersUpdated(backup);
+    showNotification(`Berhasil memulihkan ${backup.length} master data Excel pelanggan!`, "success");
   };
 
   return (
@@ -219,6 +284,70 @@ export const ExcelSyncModal: React.FC<Props> = ({
 
         {/* Modal Body */}
         <div className="p-6 space-y-6">
+          {/* Master Excel Data Active Info Banner */}
+          <div className="bg-gradient-to-r from-teal-900 via-emerald-900 to-slate-900 text-white p-4 rounded-2xl shadow-md border border-teal-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 bg-teal-500/20 rounded-xl border border-teal-400/30 shrink-0">
+                <FileSpreadsheet className="w-5 h-5 text-teal-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-sm font-bold text-teal-100">
+                    Master Data Excel Terintegrasi:
+                  </h4>
+                  <span className="px-2.5 py-0.5 rounded-full bg-teal-500/30 text-teal-200 border border-teal-400/30 text-[11px] font-mono font-bold">
+                    {currentMeta?.fileName || "Master_Data_Meter_Baguala.xlsx"}
+                  </span>
+                </div>
+                <p className="text-xs text-teal-200/80 mt-1">
+                  Tersimpan permanen untuk tagging lokasi, peta satelit, serta rekap informasi pelanggan & kWh meter. Total:{" "}
+                  <strong className="text-white">{meters.length} Pelanggan</strong> ({meters.filter((m) => m.latitude && m.longitude && m.latitude !== 0).length} Ter-tagging di Peta).
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleRestoreBackup}
+              className="px-3 py-1.5 bg-teal-800/80 hover:bg-teal-700 text-teal-100 border border-teal-600/40 rounded-xl text-xs font-semibold shrink-0 transition-colors flex items-center gap-1.5"
+              title="Pulihkan data dari cadangan master Excel terakhir"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-teal-300" />
+              Pulihkan Backup Master
+            </button>
+          </div>
+
+          {/* Merge Mode Selection */}
+          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <span className="font-bold text-slate-700 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              Mode Pengolahan Data Excel:
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setMergeMode("smart")}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                  mergeMode === "smart"
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                Smart Merge (Pertahankan Tagging Lokasi & Status)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMergeMode("replace")}
+                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                  mergeMode === "replace"
+                    ? "bg-amber-600 text-white shadow-sm"
+                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                Timpa Total Master
+              </button>
+            </div>
+          </div>
+
           {/* Notification Message */}
           {syncMessage && (
             <div

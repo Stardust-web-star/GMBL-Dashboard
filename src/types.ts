@@ -63,3 +63,11 @@ export interface ExcelSyncConfig {
   lastSyncTimestamp?: string;
   autoSync?: boolean;
 }
+
+export interface MasterExcelMeta {
+  fileName: string;
+  uploadedAt: string;
+  totalRecords: number;
+  taggedCount: number;
+  source: "upload" | "paste" | "default";
+}

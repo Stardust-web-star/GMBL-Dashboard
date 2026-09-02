@@ -1,11 +1,13 @@
 import { INITIAL_METERS, INITIAL_USERS } from "../data/initialData";
-import { ExcelSyncConfig, MeterRecord, UserAccount } from "../types";
+import { ExcelSyncConfig, MasterExcelMeta, MeterRecord, UserAccount } from "../types";
 import { sanitizeAndRepairMeters } from "./csvParser";
 
 const METERS_STORAGE_KEY = "gmbl_meters_data_v1";
 const USERS_STORAGE_KEY = "gmbl_users_data_v1";
 const AUTH_STORAGE_KEY = "gmbl_current_user_v1";
 const SHEET_CONFIG_KEY = "gmbl_sheet_config_v1";
+const MASTER_EXCEL_META_KEY = "gmbl_master_excel_meta_v1";
+const MASTER_EXCEL_BACKUP_KEY = "gmbl_master_excel_backup_v1";
 
 // Meter Records API
 export function getStoredMeters(): MeterRecord[] {
@@ -263,4 +265,102 @@ export function exportMetersToCSV(meters: MeterRecord[], decimalSeparator: "," |
 
   const delimiter = decimalSeparator === "," ? ";" : ",";
   return [headers.join(delimiter), ...rows.map((r) => r.join(delimiter))].join("\n");
+}
+
+// Master Excel Data Metadata & Backup API
+export function getMasterExcelMeta(): MasterExcelMeta | null {
+  try {
+    const data = localStorage.getItem(MASTER_EXCEL_META_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error("Master Excel metadata read error:", err);
+  }
+  return null;
+}
+
+export function saveMasterExcelMeta(meta: MasterExcelMeta): void {
+  try {
+    localStorage.setItem(MASTER_EXCEL_META_KEY, JSON.stringify(meta));
+  } catch (err) {
+    console.error("Master Excel metadata write error:", err);
+  }
+}
+
+export function saveMasterExcelBackup(meters: MeterRecord[]): void {
+  try {
+    localStorage.setItem(MASTER_EXCEL_BACKUP_KEY, JSON.stringify(meters));
+  } catch (err) {
+    console.error("Master Excel backup save error:", err);
+  }
+}
+
+export function getMasterExcelBackup(): MeterRecord[] | null {
+  try {
+    const data = localStorage.getItem(MASTER_EXCEL_BACKUP_KEY);
+    if (data) {
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error("Master Excel backup read error:", err);
+  }
+  return null;
+}
+
+/**
+ * Smart merge function that preserves user tagging (latitude/longitude),
+ * completed meter replacement statuses, and replacement hardware serial numbers
+ * when updated Excel sheets are imported.
+ */
+export function mergeMetersWithExisting(
+  existingMeters: MeterRecord[],
+  incomingMeters: MeterRecord[]
+): MeterRecord[] {
+  const existingMap = new Map<string, MeterRecord>();
+  existingMeters.forEach((m) => {
+    if (m.idPelanggan && m.idPelanggan.trim()) {
+      existingMap.set(m.idPelanggan.trim(), m);
+    }
+    if (m.noMeterLama && m.noMeterLama.trim()) {
+      existingMap.set(m.noMeterLama.trim(), m);
+    }
+  });
+
+  const mergedList: MeterRecord[] = incomingMeters.map((incoming) => {
+    const match =
+      (incoming.idPelanggan && existingMap.get(incoming.idPelanggan.trim())) ||
+      (incoming.noMeterLama && existingMap.get(incoming.noMeterLama.trim()));
+
+    if (!match) return incoming;
+
+    // Check coordinate validity
+    const existingHasValidCoords = Boolean(
+      match.latitude && match.longitude && match.latitude !== 0
+    );
+    const incomingHasValidCoords = Boolean(
+      incoming.latitude && incoming.longitude && incoming.latitude !== 0
+    );
+
+    return {
+      ...incoming,
+      id: match.id,
+      // Keep existing location tagging if incoming doesn't bring explicit valid custom coordinates
+      latitude: incomingHasValidCoords ? incoming.latitude : (existingHasValidCoords ? match.latitude : incoming.latitude),
+      longitude: incomingHasValidCoords ? incoming.longitude : (existingHasValidCoords ? match.longitude : incoming.longitude),
+      status: match.status === "SELESAI" ? "SELESAI" : incoming.status,
+      noMeterBaru: incoming.noMeterBaru || match.noMeterBaru || "",
+      noAgenda: incoming.noAgenda || match.noAgenda || "",
+      noSnMaterialKwhMeter: incoming.noSnMaterialKwhMeter || match.noSnMaterialKwhMeter || "",
+      noSnMaterialMcb: incoming.noSnMaterialMcb || match.noSnMaterialMcb || "",
+      kabelTw: incoming.kabelTw || match.kabelTw || "",
+      segel: incoming.segel || match.segel || "",
+      standBongkar: incoming.standBongkar || match.standBongkar || "",
+      petugas: match.status === "SELESAI" ? match.petugas : incoming.petugas,
+      tanggal: match.tanggal || incoming.tanggal,
+      updatedAt: new Date().toISOString(),
+    };
+  });
+
+  return mergedList;
 }

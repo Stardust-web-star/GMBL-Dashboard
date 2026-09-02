@@ -11,8 +11,8 @@ interface LoginProps {
 }
 
 export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice }) => {
-  const [email, setEmail] = useState("fikiilham56@gmail.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

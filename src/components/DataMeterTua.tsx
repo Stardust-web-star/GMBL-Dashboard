@@ -14,9 +14,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
+  FileSpreadsheet,
 } from "lucide-react";
 import { MeterRecord, PETUGAS_LIST } from "../types";
-import { exportMetersToCSV } from "../utils/storage";
+import { exportMetersToCSV, getMasterExcelMeta } from "../utils/storage";
 
 interface Props {
   meters: MeterRecord[];
@@ -35,6 +36,7 @@ export const DataMeterTua: React.FC<Props> = ({
   onOpenEditModal,
   onOpenAddNew,
 }) => {
+  const masterMeta = getMasterExcelMeta();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [filterJenis, setFilterJenis] = useState<string>("ALL");
@@ -95,12 +97,18 @@ export const DataMeterTua: React.FC<Props> = ({
       {/* Top Header & Overview Cards */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 flex items-center space-x-2">
-            <TableIcon className="h-5 w-5 text-blue-600" />
-            <span>Data Rekapan Meter Tua (GMBL)</span>
-          </h2>
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 flex items-center space-x-2">
+              <TableIcon className="h-5 w-5 text-blue-600" />
+              <span>Data Rekapan Meter Tua (GMBL)</span>
+            </h2>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-semibold">
+              <FileSpreadsheet className="h-3 w-3 text-emerald-600" />
+              Master Excel Active ({masterMeta?.fileName || "Baguala_Master_Data"})
+            </span>
+          </div>
           <p className="text-xs text-slate-500">
-            Rekapitulasi seluruh data penggantian kWh meter tua PLN JTC Transaksi Energi Baguala
+            Rekapitulasi seluruh data penggantian kWh meter tua PLN JTC Transaksi Energi Baguala • Tersimpan Permanen
           </p>
         </div>
 
