@@ -18,6 +18,12 @@ export function getStoredMeters(): MeterRecord[] {
       return INITIAL_METERS;
     }
     const parsed = JSON.parse(data);
+    if (Array.isArray(parsed) && parsed.length < 6246) {
+      console.log("Upgrading device local storage to full 6246 Master Dataset...");
+      const merged = mergeMetersWithExisting(parsed, INITIAL_METERS);
+      saveStoredMeters(merged);
+      return merged;
+    }
     const repaired = sanitizeAndRepairMeters(parsed);
     saveStoredMeters(repaired);
     return repaired;

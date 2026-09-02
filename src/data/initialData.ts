@@ -1,4 +1,4 @@
-import { MeterRecord, UserAccount } from "../types";
+import { MeterRecord, UserAccount, PETUGAS_LIST, JenisMeter } from "../types";
 
 export const INITIAL_USERS: UserAccount[] = [
   {
@@ -23,7 +23,7 @@ export const INITIAL_USERS: UserAccount[] = [
   },
 ];
 
-export const INITIAL_METERS: MeterRecord[] = [
+const INITIAL_32_METERS: MeterRecord[] = [
   {
     id: "mtr-001",
     tanggal: "2026-08-01",
@@ -182,8 +182,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "HANS",
     status: "BELUM",
     pnj: "UJUNG BATU PASSO",
-    latitude: -3.548210,
-    longitude: 128.330120,
+    latitude: -3.54821,
+    longitude: 128.33012,
   },
   {
     id: "mtr-008",
@@ -205,8 +205,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "HARDIN",
     status: "SELESAI",
     pnj: "DESA WAAI",
-    latitude: -3.571820,
-    longitude: 128.323510,
+    latitude: -3.57182,
+    longitude: 128.32351,
   },
   {
     id: "mtr-009",
@@ -252,7 +252,7 @@ export const INITIAL_METERS: MeterRecord[] = [
     status: "SELESAI",
     pnj: "OKENG TULEHU",
     latitude: -3.597091,
-    longitude: 128.330180,
+    longitude: 128.33018,
   },
   {
     id: "mtr-011",
@@ -297,8 +297,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "RISKI",
     status: "SELESAI",
     pnj: "BAGUALA SELATAN",
-    latitude: -3.621510,
-    longitude: 128.285830,
+    latitude: -3.62151,
+    longitude: 128.28583,
   },
   {
     id: "mtr-013",
@@ -320,8 +320,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "SALOMO",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.623810,
-    longitude: 128.249820,
+    latitude: -3.62381,
+    longitude: 128.24982,
   },
   {
     id: "mtr-014",
@@ -344,7 +344,7 @@ export const INITIAL_METERS: MeterRecord[] = [
     status: "SELESAI",
     pnj: "PASSO BARAT",
     latitude: -3.625012,
-    longitude: 128.253810,
+    longitude: 128.25381,
   },
   {
     id: "mtr-015",
@@ -366,8 +366,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "YONO",
     status: "BELUM",
     pnj: "PASSO TENGAH",
-    latitude: -3.626810,
-    longitude: 128.254210,
+    latitude: -3.62681,
+    longitude: 128.25421,
   },
   {
     id: "mtr-016",
@@ -390,7 +390,7 @@ export const INITIAL_METERS: MeterRecord[] = [
     status: "SELESAI",
     pnj: "PASSO TIMUR",
     latitude: -3.629012,
-    longitude: 128.256820,
+    longitude: 128.25682,
   },
   {
     id: "mtr-017",
@@ -435,7 +435,7 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "ANDRE",
     status: "SELESAI",
     pnj: "ARI BAGUALA",
-    latitude: -3.618880,
+    latitude: -3.61888,
     longitude: 128.283368,
   },
   {
@@ -458,8 +458,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "AUNUR",
     status: "BELUM",
     pnj: "HT KECIL BAGUALA",
-    latitude: -3.652120,
-    longitude: 128.236510,
+    latitude: -3.65212,
+    longitude: 128.23651,
   },
   {
     id: "mtr-020",
@@ -481,8 +481,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "ABDUL",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.624120,
-    longitude: 128.250810,
+    latitude: -3.62412,
+    longitude: 128.25081,
   },
   {
     id: "mtr-021",
@@ -504,8 +504,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "ANDRE",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.624310,
-    longitude: 128.251020,
+    latitude: -3.62431,
+    longitude: 128.25102,
   },
   {
     id: "mtr-022",
@@ -527,8 +527,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "AUNUR",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.624510,
-    longitude: 128.251230,
+    latitude: -3.62451,
+    longitude: 128.25123,
   },
   {
     id: "mtr-023",
@@ -550,8 +550,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "FEKI",
     status: "BELUM",
     pnj: "UMURY, BAGUALA",
-    latitude: -3.622210,
-    longitude: 128.288210,
+    latitude: -3.62221,
+    longitude: 128.28821,
   },
   {
     id: "mtr-024",
@@ -573,8 +573,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "FRANS",
     status: "BELUM",
     pnj: "EHU TULEHU",
-    latitude: -3.595120,
-    longitude: 128.331210,
+    latitude: -3.59512,
+    longitude: 128.33121,
   },
   {
     id: "mtr-025",
@@ -596,8 +596,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "GABRIEL",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.624810,
-    longitude: 128.251520,
+    latitude: -3.62481,
+    longitude: 128.25152,
   },
   {
     id: "mtr-026",
@@ -619,8 +619,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "HANS",
     status: "BELUM",
     pnj: "ONG BAGUALA",
-    latitude: -3.654210,
-    longitude: 128.237210,
+    latitude: -3.65421,
+    longitude: 128.23721,
   },
   {
     id: "mtr-027",
@@ -642,8 +642,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "HARDIN",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.625010,
-    longitude: 128.251820,
+    latitude: -3.62501,
+    longitude: 128.25182,
   },
   {
     id: "mtr-028",
@@ -665,8 +665,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "ONYONG",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.625210,
-    longitude: 128.252010,
+    latitude: -3.62521,
+    longitude: 128.25201,
   },
   {
     id: "mtr-029",
@@ -688,8 +688,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "PIYER",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.625410,
-    longitude: 128.252210,
+    latitude: -3.62541,
+    longitude: 128.25221,
   },
   {
     id: "mtr-030",
@@ -711,8 +711,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "RAHMAT",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.625610,
-    longitude: 128.252410,
+    latitude: -3.62561,
+    longitude: 128.25241,
   },
   {
     id: "mtr-031",
@@ -734,8 +734,8 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "RISKI",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.625810,
-    longitude: 128.252610,
+    latitude: -3.62581,
+    longitude: 128.25261,
   },
   {
     id: "mtr-032",
@@ -757,7 +757,144 @@ export const INITIAL_METERS: MeterRecord[] = [
     petugas: "SALOMO",
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
-    latitude: -3.626010,
-    longitude: 128.252810,
+    latitude: -3.62601,
+    longitude: 128.25281,
   },
 ];
+
+function generate6246MasterDataset(): MeterRecord[] {
+  const dataset: MeterRecord[] = [...INITIAL_32_METERS];
+
+  let currentPrabayar = dataset.filter((m) => m.jenis === "PRA BAYAR").length; // 5
+  let currentPaskabayar = dataset.filter((m) => m.jenis === "PASKA BAYAR").length; // 27
+
+  const targetTotal = 6246;
+  const targetPrabayar = 1274;
+  const targetPaskabayar = 4972;
+
+  const namesPool = [
+    "LA ***", "EDM** ******", "JOM*** *********", "MAR*** ****", "MAR** ******",
+    "DRS **** ****** *****", "LA ****** *********", "RAH***", "RUS*** *********",
+    "GER*** *******", "NOV* *********", "RD.*********", "AND* ******", "PIT** *****",
+    "THR**** *********", "MAI JEMBATAN DUA", "FRANS ARI", "BAHAR HT KECIL",
+    "RUA** ***********", "RUM** *****", "DOP* *****", "ARA*** *******",
+    "ARI*****", "FLO***** ********", "M. TAH** *********", "NY. PAT*******",
+    "SIG** *********", "RD. PAT*******", "SUT*** *****", "HAS*** *******",
+    "AMB** ********", "SUL*** **********", "PAT**** *****", "WAT*** *******",
+    "LEI**** *******", "PEL*** ********", "SAM** ********", "TAL*** *******",
+    "MAT*** *******", "COR*** *********", "SIA*** ********", "HAL*** *******"
+  ];
+
+  const pnjPool = [
+    { pnj: "PASSO UTAMA, BAGUALA", lat: -3.6260, lng: 128.2500 },
+    { pnj: "PASSO PANTAI, BAGUALA", lat: -3.6275, lng: 128.2560 },
+    { pnj: "JEMBATAN DUA PASSO", lat: -3.6107, lng: 128.3270 },
+    { pnj: "NEGERI LAMA, BAGUALA", lat: -3.6280, lng: 128.2580 },
+    { pnj: "ERI LAMA, BAGUALA", lat: -3.6290, lng: 128.2574 },
+    { pnj: "KAMPUNG BARU BAGUALA", lat: -3.6228, lng: 128.2503 },
+    { pnj: "KMP PISANG BAGUALA", lat: -3.6231, lng: 128.2512 },
+    { pnj: "UD PATTIMURA, BAGUALA", lat: -3.6245, lng: 128.2510 },
+    { pnj: "SULI BANDA, SALAHUTU", lat: -3.6142, lng: 128.3125 },
+    { pnj: "DESA SULI, SALAHUTU", lat: -3.6210, lng: 128.3150 },
+    { pnj: "NATSEPA BEACH, SULI", lat: -3.6275, lng: 128.3005 },
+    { pnj: "SOPAPEI SULI, SALAHUTU", lat: -3.6295, lng: 128.3165 },
+    { pnj: "RINDAM XV PATTIMURA", lat: -3.6225, lng: 128.3245 },
+    { pnj: "HALIWELA SULI", lat: -3.6335, lng: 128.3280 },
+    { pnj: "DUSUN DURIAN PROPINSI", lat: -3.6235, lng: 128.3410 },
+    { pnj: "DESA TULEHU, SALAHUTU", lat: -3.5970, lng: 128.3371 },
+    { pnj: "EHU TULEHU", lat: -3.5951, lng: 128.3312 },
+    { pnj: "OKENG TULEHU", lat: -3.5970, lng: 128.3301 },
+    { pnj: "DESA WAAI, SALAHUTU", lat: -3.5718, lng: 128.3235 },
+    { pnj: "MARETA WAAI", lat: -3.5696, lng: 128.3258 },
+    { pnj: "UJUNG BATU PASSO", lat: -3.5482, lng: 128.3301 },
+    { pnj: "LATERI UTAMA, BAGUALA", lat: -3.6498, lng: 128.2391 },
+    { pnj: "HALONG DALAM, BAGUALA", lat: -3.6510, lng: 128.2380 },
+    { pnj: "ONG BAGUALA", lat: -3.6542, lng: 128.2372 },
+    { pnj: "HT KECIL BAGUALA", lat: -3.6521, lng: 128.2365 },
+    { pnj: "NANIA ATAS, BAGUALA", lat: -3.6200, lng: 128.2480 },
+    { pnj: "WAIHERU KAMPUS", lat: -3.6180, lng: 128.2450 },
+    { pnj: "HUNUTH BAGUALA", lat: -3.6150, lng: 128.2420 },
+    { pnj: "DESA LIANG, SALAHUTU", lat: -3.5220, lng: 128.3310 },
+  ];
+
+  for (let i = dataset.length; i < targetTotal; i++) {
+    const isPrabayar =
+      currentPrabayar < targetPrabayar &&
+      (currentPaskabayar >= targetPaskabayar || i % 5 === 0);
+
+    if (isPrabayar) {
+      currentPrabayar++;
+    } else {
+      currentPaskabayar++;
+    }
+
+    const jenis = isPrabayar ? "PRA BAYAR" : "PASKA BAYAR";
+    const pnjLoc = pnjPool[i % pnjPool.length];
+
+    // Compute residential street offsets on land
+    const goldenAngle = 137.5 * (Math.PI / 180);
+    const angle = (i * goldenAngle) % (2 * Math.PI);
+    const radius = 0.0008 + ((i * 17) % 35) * 0.00015;
+    const lat = Number((pnjLoc.lat + radius * Math.cos(angle)).toFixed(6));
+    const lng = Number((pnjLoc.lng + radius * Math.sin(angle)).toFixed(6));
+
+    const idPel = isPrabayar
+      ? `41130${String(1000000 + i).slice(-6)}`
+      : `4110${String(10000000 + i).slice(-8)}`;
+
+    const noMeterLama = isPrabayar
+      ? `3600${String(10000000 + i).slice(-7)}`
+      : `3201${String(10000000 + i).slice(-7)}`;
+
+    const tarif = isPrabayar
+      ? i % 3 === 0
+        ? "R1MT"
+        : "R1T"
+      : i % 4 === 0
+      ? "R1M"
+      : i % 5 === 0
+      ? "S1"
+      : "R1";
+
+    const daya =
+      tarif === "R1"
+        ? 450
+        : tarif === "R1M" || tarif === "R1MT"
+        ? 900
+        : tarif === "R1T"
+        ? 1300
+        : 2200;
+
+    const petugas = PETUGAS_LIST[i % PETUGAS_LIST.length];
+    const name = namesPool[i % namesPool.length];
+
+    dataset.push({
+      id: `mtr-${String(i + 1).padStart(4, "0")}`,
+      tanggal: "2026-09-01",
+      idPelanggan: idPel,
+      namaPelanggan: name,
+      tarif,
+      daya,
+      noMeterLama,
+      noMeterBaru: "",
+      noAgenda: `AGD-202609-${String(i + 1).padStart(4, "0")}`,
+      noSnMaterialKwhMeter: "",
+      noSnMaterialMcb: "",
+      kabelTw: "Standard",
+      segel: "BELUM",
+      standBongkar: `${String(1200 + ((i * 37) % 8000))} kWh`,
+      jenis,
+      gantiMeter: i % 7 === 0 ? "METER GANGGUAN" : "METER TUA",
+      petugas,
+      status: "BELUM",
+      pnj: pnjLoc.pnj,
+      latitude: lat,
+      longitude: lng,
+    });
+  }
+
+  return dataset;
+}
+
+export const INITIAL_METERS: MeterRecord[] = generate6246MasterDataset();
+
