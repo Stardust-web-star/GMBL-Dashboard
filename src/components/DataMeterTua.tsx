@@ -15,13 +15,21 @@ import {
   ChevronRight,
   Zap,
   FileSpreadsheet,
+  UserCheck,
+  User,
+  X,
 } from "lucide-react";
-import { MeterRecord, PETUGAS_LIST } from "../types";
+import { MeterRecord, PetugasName, PETUGAS_LIST } from "../types";
 import { exportMetersToCSV, getMasterExcelMeta } from "../utils/storage";
 
 interface Props {
   meters: MeterRecord[];
-  onUpdateMeterStatus: (id: string, status: "SELESAI" | "BELUM") => void;
+  onUpdateMeterStatus: (
+    id: string,
+    status: "SELESAI" | "BELUM",
+    petugas?: PetugasName,
+    additionalData?: Partial<MeterRecord>
+  ) => void;
   onDeleteMeter: (id: string) => void;
   onSelectForDocument: (meter: MeterRecord) => void;
   onOpenEditModal: (meter: MeterRecord) => void;
@@ -42,6 +50,43 @@ export const DataMeterTua: React.FC<Props> = ({
   const [filterJenis, setFilterJenis] = useState<string>("ALL");
   const [filterPetugas, setFilterPetugas] = useState<string>("ALL");
   const [filterGanti, setFilterGanti] = useState<string>("ALL");
+
+  // Modal for selecting Petugas when marking SELESAI
+  const [meterToComplete, setMeterToComplete] = useState<MeterRecord | null>(null);
+  const [selectedPetugasForCompletion, setSelectedPetugasForCompletion] = useState<PetugasName>("ABDUL");
+  const [customStandBongkar, setCustomStandBongkar] = useState<string>("");
+  const [customNoMeterBaru, setCustomNoMeterBaru] = useState<string>("");
+
+  const handleInitiateMarkSelesai = (meter: MeterRecord) => {
+    setMeterToComplete(meter);
+    setSelectedPetugasForCompletion(meter.petugas || "ABDUL");
+    setCustomStandBongkar(meter.standBongkar || "0 kWh");
+    setCustomNoMeterBaru(meter.noMeterBaru || "");
+  };
+
+  const handleConfirmMarkSelesai = () => {
+    if (!meterToComplete) return;
+    const additional: Partial<MeterRecord> = {};
+    if (customStandBongkar.trim()) additional.standBongkar = customStandBongkar.trim();
+    if (customNoMeterBaru.trim()) additional.noMeterBaru = customNoMeterBaru.trim();
+
+    onUpdateMeterStatus(
+      meterToComplete.id,
+      "SELESAI",
+      selectedPetugasForCompletion,
+      additional
+    );
+
+    setMeterToComplete(null);
+  };
+
+  const handleToggleStatus = (meter: MeterRecord) => {
+    if (meter.status === "SELESAI") {
+      onUpdateMeterStatus(meter.id, "BELUM");
+    } else {
+      handleInitiateMarkSelesai(meter);
+    }
+  };
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -274,7 +319,7 @@ export const DataMeterTua: React.FC<Props> = ({
                       #{startIndex + idx + 1} • {m.tanggal}
                     </span>
                     <button
-                      onClick={() => onUpdateMeterStatus(m.id, isDone ? "BELUM" : "SELESAI")}
+                      onClick={() => handleToggleStatus(m)}
                       className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold flex items-center space-x-1 transition-all ${
                         isDone
                           ? "bg-green-100 text-green-800"
@@ -410,9 +455,7 @@ export const DataMeterTua: React.FC<Props> = ({
                       </td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={() =>
-                            onUpdateMeterStatus(m.id, isDone ? "BELUM" : "SELESAI")
-                          }
+                          onClick={() => handleToggleStatus(m)}
                           className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center space-x-1 transition-all ${
                             isDone
                               ? "bg-green-100 text-green-700 hover:bg-green-200"
@@ -495,6 +538,153 @@ export const DataMeterTua: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {/* Petugas Selection Modal Dialog when marking as SELESAI */}
+      {meterToComplete && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden text-slate-800 animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-900 to-slate-800 px-5 py-4 text-white">
+              <div className="flex items-center space-x-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40">
+                  <UserCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold tracking-tight">Pilih Petugas Ganti Meter</h3>
+                  <p className="text-[11px] text-slate-300">Tentukan petugas pelaksana untuk menandai SELESAI</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setMeterToComplete(null)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Customer Info Card */}
+            <div className="p-5 space-y-4">
+              <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 text-xs text-slate-700">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-slate-900 text-sm">{meterToComplete.namaPelanggan}</span>
+                  <span className="rounded bg-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-800">
+                    {meterToComplete.jenis}
+                  </span>
+                </div>
+                <div className="mt-1.5 grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                  <div>
+                    ID Pel: <strong className="text-blue-700 font-mono font-bold">{meterToComplete.idPelanggan}</strong>
+                  </div>
+                  <div>
+                    Tarif/Daya: <strong className="text-slate-900">{meterToComplete.tarif} / {meterToComplete.daya} VA</strong>
+                  </div>
+                  <div>
+                    Meter Lama: <span className="font-mono text-slate-800">{meterToComplete.noMeterLama || "-"}</span>
+                  </div>
+                  <div className="truncate">
+                    Lokasi/PNJ: <span className="text-slate-800 font-medium">{meterToComplete.pnj || "-"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Petugas Selection */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5 text-blue-600" />
+                    Petugas Pelaksana Ganti Meter <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium">Klik nama atau pilih dropdown</span>
+                </div>
+
+                {/* Quick Pick Pills / Grid */}
+                <div className="grid grid-cols-4 sm:grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1 bg-slate-50 rounded-xl border border-slate-200">
+                  {PETUGAS_LIST.map((pet) => {
+                    const isSelected = selectedPetugasForCompletion === pet;
+                    return (
+                      <button
+                        key={pet}
+                        type="button"
+                        onClick={() => setSelectedPetugasForCompletion(pet)}
+                        className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center ${
+                          isSelected
+                            ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-400 scale-[1.02]"
+                            : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+                        }`}
+                      >
+                        {pet}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Dropdown Select Alternative */}
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-[11px] text-slate-500">Pilihan Terpilih:</span>
+                  <select
+                    value={selectedPetugasForCompletion}
+                    onChange={(e) => setSelectedPetugasForCompletion(e.target.value as PetugasName)}
+                    className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    {PETUGAS_LIST.map((p) => (
+                      <option key={p} value={p}>
+                        Petugas: {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Optional inputs */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                    No. Meter Baru <span className="text-slate-400 font-normal">(Opsional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={customNoMeterBaru}
+                    onChange={(e) => setCustomNoMeterBaru(e.target.value)}
+                    placeholder="Contoh: 37119200481"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                    Stand Bongkar <span className="text-slate-400 font-normal">(Opsional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={customStandBongkar}
+                    onChange={(e) => setCustomStandBongkar(e.target.value)}
+                    placeholder="Contoh: 04891 kWh"
+                    className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex items-center justify-end space-x-2.5 border-t border-slate-100 bg-slate-50 px-5 py-3.5">
+              <button
+                type="button"
+                onClick={() => setMeterToComplete(null)}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmMarkSelesai}
+                className="flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm shadow-emerald-200 transition-all"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Simpan & Tandai SELESAI ({selectedPetugasForCompletion})</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

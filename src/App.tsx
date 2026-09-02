@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { MeterRecord, UserAccount } from "./types";
+import { MeterRecord, UserAccount, PetugasName } from "./types";
 import {
   addMeterRecord,
   addUserAccount,
@@ -80,8 +80,18 @@ export default function App() {
   }, [currentUser]);
 
   // Sync state with storage when changed
-  const handleUpdateMeterStatus = (id: string, newStatus: "SELESAI" | "BELUM") => {
-    const updated = updateMeterRecord(id, { status: newStatus });
+  const handleUpdateMeterStatus = (
+    id: string,
+    newStatus: "SELESAI" | "BELUM",
+    petugas?: PetugasName,
+    additionalData?: Partial<MeterRecord>
+  ) => {
+    const updatePayload: Partial<MeterRecord> = {
+      status: newStatus,
+      ...(petugas ? { petugas } : {}),
+      ...(additionalData || {}),
+    };
+    const updated = updateMeterRecord(id, updatePayload);
     if (updated) {
       setMeters(getStoredMeters());
     }

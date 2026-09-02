@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -13,19 +13,81 @@ import {
   Clock,
   Zap,
   User,
+  UserCheck,
   ExternalLink,
   Printer,
   FileText,
   Layers,
+  X,
+  Sparkles,
 } from "lucide-react";
 import { MeterRecord, PetugasName, PETUGAS_LIST } from "../types";
 import { snapToLandInBaguala } from "../utils/csvParser";
 
 interface Props {
   meters: MeterRecord[];
-  onUpdateMeterStatus: (id: string, newStatus: "SELESAI" | "BELUM") => void;
+  onUpdateMeterStatus: (
+    id: string,
+    newStatus: "SELESAI" | "BELUM",
+    petugas?: PetugasName,
+    additionalData?: Partial<MeterRecord>
+  ) => void;
   onSelectForDocument: (meter: MeterRecord) => void;
 }
+
+// Pre-defined static Leaflet DivIcons to prevent re-creating DOM strings for 6000+ items
+const createCustomPinIcon = (startColor: string, endColor: string, innerContent: string, badgeBg: string, label: string) => {
+  return L.divIcon({
+    className: "custom-leaflet-teardrop-pin",
+    html: `
+      <div style="position: relative; width: 28px; height: 34px; cursor: pointer;">
+        <svg viewBox="0 0 28 36" width="28" height="34" style="filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4)); overflow: visible;">
+          <defs>
+            <linearGradient id="pin-grad-${label}-${startColor.replace('#', '')}" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="${startColor}" />
+              <stop offset="100%" stop-color="${endColor}" />
+            </linearGradient>
+          </defs>
+          <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.27 21.73 0 14 0z" fill="url(#pin-grad-${label}-${startColor.replace('#', '')})" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="14" cy="13.5" r="5.5" fill="rgba(0,0,0,0.15)" />
+          ${innerContent}
+        </svg>
+        <div style="
+          position: absolute;
+          top: -3px;
+          right: -5px;
+          padding: 1px 4px;
+          border-radius: 8px;
+          background: ${badgeBg};
+          border: 1.5px solid #ffffff;
+          font-size: 8px;
+          font-weight: 900;
+          color: #ffffff;
+          letter-spacing: 0.2px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">${label}</div>
+      </div>
+    `,
+    iconSize: [28, 34],
+    iconAnchor: [14, 34],
+    popupAnchor: [0, -32],
+  });
+};
+
+const ICON_SELESAI_PR = createCustomPinIcon("#10b981", "#059669", `<path d="M11 13.5l2 2 4-4" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`, "linear-gradient(135deg, #0284c7, #0369a1)", "PR");
+const ICON_SELESAI_PS = createCustomPinIcon("#10b981", "#059669", `<path d="M11 13.5l2 2 4-4" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`, "linear-gradient(135deg, #8b5cf6, #6d28d9)", "PS");
+const ICON_BELUM_PR = createCustomPinIcon("#38bdf8", "#0284c7", `<path d="M14.5 7.5L9.5 14h3.5l-1.5 5.5 5.5-6.5h-3.5l1.5-5.5z" fill="#ffffff"/>`, "linear-gradient(135deg, #0284c7, #0369a1)", "PR");
+const ICON_BELUM_PS = createCustomPinIcon("#fbbf24", "#d97706", `<text x="14" y="16.5" text-anchor="middle" font-size="10" font-weight="900" fill="#ffffff">!</text>`, "linear-gradient(135deg, #8b5cf6, #6d28d9)", "PS");
+
+const getMeterIcon = (isSelesai: boolean, isPrabayar: boolean) => {
+  if (isSelesai) {
+    return isPrabayar ? ICON_SELESAI_PR : ICON_SELESAI_PS;
+  }
+  return isPrabayar ? ICON_BELUM_PR : ICON_BELUM_PS;
+};
 
 export const PetaLokasiMap: React.FC<Props> = ({
   meters,
@@ -44,33 +106,94 @@ export const PetaLokasiMap: React.FC<Props> = ({
   const [selectedMeter, setSelectedMeter] = useState<MeterRecord | null>(null);
 
   const [mapTileType, setMapTileType] = useState<"satellite" | "streets">("satellite");
-  const [useClustering, setUseClustering] = useState<boolean>(false); // Default to false (Titik Individual Satu-Satu)
   const [isLegendOpen, setIsLegendOpen] = useState(true);
+  const [visibleCount, setVisibleCount] = useState<number>(80);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
-  const markersLayerRef = useRef<L.LayerGroup | any>(null);
   const hasInitialFittedRef = useRef(false);
   const prevFilterKeyRef = useRef<string>("");
 
-  const filterKey = `${searchTerm}-${filterStatus}-${filterJenis}-${filterGanti}-${filterPetugas}-${useClustering}`;
+  const filterKey = `${searchTerm}-${filterStatus}-${filterJenis}-${filterGanti}-${filterPetugas}`;
 
-  // Filter meters
-  const filteredMeters = meters.filter((m) => {
-    const matchesSearch =
-      m.idPelanggan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.namaPelanggan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.noMeterLama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.pnj.toLowerCase().includes(searchTerm.toLowerCase());
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(80);
+  }, [searchTerm, filterStatus, filterJenis, filterGanti, filterPetugas]);
 
-    const matchesStatus =
-      filterStatus === "ALL" || m.status === filterStatus;
-    const matchesJenis = filterJenis === "ALL" || m.jenis === filterJenis;
-    const matchesGanti =
-      filterGanti === "ALL" || m.gantiMeter === filterGanti;
-    const matchesPetugas =
-      filterPetugas === "ALL" || m.petugas === filterPetugas;
+  // Memoize filtered meters to avoid heavy string ops on every single render
+  const filteredMeters = useMemo(() => {
+    const s = searchTerm.trim().toLowerCase();
+    return meters.filter((m) => {
+      const matchesSearch =
+        !s ||
+        m.idPelanggan.toLowerCase().includes(s) ||
+        m.namaPelanggan.toLowerCase().includes(s) ||
+        m.noMeterLama.toLowerCase().includes(s) ||
+        m.pnj.toLowerCase().includes(s);
 
-    return matchesSearch && matchesStatus && matchesJenis && matchesGanti && matchesPetugas;
-  });
+      const matchesStatus =
+        filterStatus === "ALL" || m.status === filterStatus;
+      const matchesJenis = filterJenis === "ALL" || m.jenis === filterJenis;
+      const matchesGanti =
+        filterGanti === "ALL" || m.gantiMeter === filterGanti;
+      const matchesPetugas =
+        filterPetugas === "ALL" || m.petugas === filterPetugas;
+
+      return matchesSearch && matchesStatus && matchesJenis && matchesGanti && matchesPetugas;
+    });
+  }, [meters, searchTerm, filterStatus, filterJenis, filterGanti, filterPetugas]);
+
+  // Visible items for sidebar list to prevent 6000+ DOM cards overload
+  const visibleSidebarMeters = useMemo(() => {
+    return filteredMeters.slice(0, visibleCount);
+  }, [filteredMeters, visibleCount]);
+
+  // Modal for selecting Petugas when marking SELESAI
+  const [meterToComplete, setMeterToComplete] = useState<MeterRecord | null>(null);
+  const [selectedPetugasForCompletion, setSelectedPetugasForCompletion] = useState<PetugasName>("ABDUL");
+  const [customStandBongkar, setCustomStandBongkar] = useState<string>("");
+  const [customNoMeterBaru, setCustomNoMeterBaru] = useState<string>("");
+
+  const handleInitiateMarkSelesai = (meter: MeterRecord) => {
+    setMeterToComplete(meter);
+    setSelectedPetugasForCompletion(meter.petugas || "ABDUL");
+    setCustomStandBongkar(meter.standBongkar || "0 kWh");
+    setCustomNoMeterBaru(meter.noMeterBaru || "");
+  };
+
+  const handleConfirmMarkSelesai = () => {
+    if (!meterToComplete) return;
+    const additional: Partial<MeterRecord> = {};
+    if (customStandBongkar.trim()) additional.standBongkar = customStandBongkar.trim();
+    if (customNoMeterBaru.trim()) additional.noMeterBaru = customNoMeterBaru.trim();
+
+    onUpdateMeterStatus(
+      meterToComplete.id,
+      "SELESAI",
+      selectedPetugasForCompletion,
+      additional
+    );
+
+    if (selectedMeter && selectedMeter.id === meterToComplete.id) {
+      setSelectedMeter({
+        ...selectedMeter,
+        status: "SELESAI",
+        petugas: selectedPetugasForCompletion,
+        ...additional,
+      });
+    }
+
+    setMeterToComplete(null);
+  };
+
+  const handleMarkBelum = (meter: MeterRecord) => {
+    onUpdateMeterStatus(meter.id, "BELUM");
+    if (selectedMeter && selectedMeter.id === meter.id) {
+      setSelectedMeter({
+        ...selectedMeter,
+        status: "BELUM",
+      });
+    }
+  };
 
   // Initialize Map
   useEffect(() => {
@@ -100,33 +223,15 @@ export const PetaLokasiMap: React.FC<Props> = ({
       }).addTo(map);
 
       tileLayerRef.current = tileLayer;
-      mapInstanceRef.current = map;
-    }
 
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
-
-  // Update Markers Layer Group whenever map or useClustering mode changes
-  useEffect(() => {
-    if (!mapInstanceRef.current) return;
-
-    if (markersLayerRef.current) {
-      mapInstanceRef.current.removeLayer(markersLayerRef.current);
-    }
-
-    if (useClustering) {
-      // MarkerCluster Group
+      // Initialize Leaflet MarkerCluster Group with upgraded glowing cluster icons
       const clusterGroup = (L as any).markerClusterGroup({
         chunkedLoading: true,
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: false,
         zoomToBoundsOnClick: true,
-        maxClusterRadius: 40,
+        maxClusterRadius: 45,
+        disableClusteringAtZoom: 16,
         iconCreateFunction: (cluster: any) => {
           const childCount = cluster.getChildCount();
           let bgGradient = "linear-gradient(135deg, #0284c7, #2563eb)";
@@ -178,15 +283,19 @@ export const PetaLokasiMap: React.FC<Props> = ({
           });
         },
       });
-      mapInstanceRef.current.addLayer(clusterGroup);
-      markersLayerRef.current = clusterGroup;
-    } else {
-      // Standard LayerGroup (Individual pins for every coordinate)
-      const layerGroup = L.layerGroup();
-      mapInstanceRef.current.addLayer(layerGroup);
-      markersLayerRef.current = layerGroup;
+
+      map.addLayer(clusterGroup);
+      clusterGroupRef.current = clusterGroup;
+      mapInstanceRef.current = map;
     }
-  }, [useClustering]);
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   // Update Tile Layer when mapTileType changes
   useEffect(() => {
@@ -213,120 +322,73 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
   // Update Markers & Fit Bounds on Filtered Meters Change
   useEffect(() => {
-    if (!mapInstanceRef.current || !markersLayerRef.current) return;
+    if (!mapInstanceRef.current || !clusterGroupRef.current) return;
 
-    // Clear existing layer markers
-    markersLayerRef.current.clearLayers();
+    // Use a short delay so tab opening motion animations finish completely before placing markers
+    const frameId = requestAnimationFrame(() => {
+      if (!clusterGroupRef.current) return;
 
-    const bounds: L.LatLngTuple[] = [];
+      clusterGroupRef.current.clearLayers();
 
-    filteredMeters.forEach((m, idx) => {
-      // 1. Parsing Data: Extract Latitude & Longitude precisely
-      const rawLat = typeof m.latitude === "number" ? m.latitude : parseFloat(String(m.latitude).replace(",", "."));
-      const rawLng = typeof m.longitude === "number" ? m.longitude : parseFloat(String(m.longitude).replace(",", "."));
+      const bounds: L.LatLngTuple[] = [];
+      const markersList: L.Marker[] = [];
 
-      // Skip invalid numeric coordinates
-      if (isNaN(rawLat) || isNaN(rawLng) || (rawLat === 0 && rawLng === 0)) return;
+      filteredMeters.forEach((m, idx) => {
+        // Parsing Data: Extract Latitude & Longitude precisely
+        const rawLat = typeof m.latitude === "number" ? m.latitude : parseFloat(String(m.latitude).replace(",", "."));
+        const rawLng = typeof m.longitude === "number" ? m.longitude : parseFloat(String(m.longitude).replace(",", "."));
 
-      // Ensure coordinate is strictly on land in Ambon/Baguala
-      const snapped = snapToLandInBaguala(rawLat, rawLng, m.pnj, m.namaPelanggan, idx);
-      const lat = snapped.lat;
-      const lng = snapped.lng;
+        // Skip invalid numeric coordinates
+        if (isNaN(rawLat) || isNaN(rawLng) || (rawLat === 0 && rawLng === 0)) return;
 
-      const isSelesai = m.status === "SELESAI";
-      const isPrabayar = m.jenis === "PRA BAYAR";
+        // Ensure coordinate is strictly on land in Ambon/Baguala
+        const snapped = snapToLandInBaguala(rawLat, rawLng, m.pnj, m.namaPelanggan, idx);
+        const lat = snapped.lat;
+        const lng = snapped.lng;
 
-      bounds.push([lat, lng]);
+        const isSelesai = m.status === "SELESAI";
+        const isPrabayar = m.jenis === "PRA BAYAR";
 
-      // Color coding & Gradients
-      const gradId = `pin-grad-${m.id.replace(/[^a-zA-Z0-9]/g, "-")}`;
-      let startColor = "#10b981";
-      let endColor = "#059669";
-      let innerContent = `<path d="M11 13.5l2 2 4-4" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+        bounds.push([lat, lng]);
 
-      if (!isSelesai) {
-        if (isPrabayar) {
-          startColor = "#38bdf8";
-          endColor = "#0284c7";
-          // Zap / Lightning bolt symbol
-          innerContent = `<path d="M14.5 7.5L9.5 14h3.5l-1.5 5.5 5.5-6.5h-3.5l1.5-5.5z" fill="#ffffff"/>`;
-        } else {
-          startColor = "#fbbf24";
-          endColor = "#d97706";
-          // Exclamation symbol
-          innerContent = `<text x="14" y="16.5" text-anchor="middle" font-size="10" font-weight="900" fill="#ffffff">!</text>`;
-        }
+        // Use pre-cached shared icon to avoid creating 6000+ SVG DOM strings
+        const customIcon = getMeterIcon(isSelesai, isPrabayar);
+        const marker = L.marker([lat, lng], { icon: customIcon });
+
+        // Click listener on marker: set selected meter & pan map smoothly WITHOUT zooming out!
+        marker.on("click", () => {
+          setSelectedMeter(m);
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.panTo([lat, lng], { animate: true });
+          }
+        });
+
+        markersList.push(marker);
+      });
+
+      // Bulk add all markers in one single pass for maximum MarkerCluster efficiency
+      clusterGroupRef.current.addLayers(markersList);
+
+      // Auto-fit Bounds ONLY on initial load OR when user changes filter inputs explicitly
+      const filterChanged = prevFilterKeyRef.current !== filterKey;
+      if (bounds.length > 0 && mapInstanceRef.current && (!hasInitialFittedRef.current || filterChanged)) {
+        const latLngBounds = L.latLngBounds(bounds);
+        mapInstanceRef.current.fitBounds(latLngBounds, {
+          padding: [40, 40],
+          maxZoom: 16,
+        });
+        hasInitialFittedRef.current = true;
+        prevFilterKeyRef.current = filterKey;
       }
 
-      const badgeBg = isPrabayar
-        ? "linear-gradient(135deg, #0284c7, #0369a1)"
-        : "linear-gradient(135deg, #8b5cf6, #6d28d9)";
-
-      // Custom Teardrop Marker Pin
-      const customIcon = L.divIcon({
-        className: "custom-leaflet-teardrop-pin",
-        html: `
-          <div style="position: relative; width: 28px; height: 34px; cursor: pointer;">
-            <svg viewBox="0 0 28 36" width="28" height="34" style="filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4)); overflow: visible;">
-              <defs>
-                <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="${startColor}" />
-                  <stop offset="100%" stop-color="${endColor}" />
-                </linearGradient>
-              </defs>
-              <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.27 21.73 0 14 0z" fill="url(#${gradId})" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
-              <circle cx="14" cy="13.5" r="5.5" fill="rgba(0,0,0,0.15)" />
-              ${innerContent}
-            </svg>
-            <div style="
-              position: absolute;
-              top: -3px;
-              right: -5px;
-              padding: 1px 4px;
-              border-radius: 8px;
-              background: ${badgeBg};
-              border: 1.5px solid #ffffff;
-              font-size: 8px;
-              font-weight: 900;
-              color: #ffffff;
-              letter-spacing: 0.2px;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">${isPrabayar ? "PR" : "PS"}</div>
-          </div>
-        `,
-        iconSize: [28, 34],
-        iconAnchor: [14, 34],
-        popupAnchor: [0, -32],
-      });
-
-      const marker = L.marker([lat, lng], { icon: customIcon });
-
-      // Click listener on marker: set selected meter & pan map smoothly WITHOUT zooming out!
-      marker.on("click", () => {
-        setSelectedMeter(m);
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.panTo([lat, lng], { animate: true });
-        }
-      });
-
-      markersLayerRef.current.addLayer(marker);
+      // Ensure map layout calculates properly
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
     });
 
-    // Auto-fit Bounds ONLY on initial load OR when user changes filter inputs explicitly
-    const filterChanged = prevFilterKeyRef.current !== filterKey;
-    if (bounds.length > 0 && mapInstanceRef.current && (!hasInitialFittedRef.current || filterChanged)) {
-      const latLngBounds = L.latLngBounds(bounds);
-      mapInstanceRef.current.fitBounds(latLngBounds, {
-        padding: [40, 40],
-        maxZoom: 16,
-      });
-      hasInitialFittedRef.current = true;
-      prevFilterKeyRef.current = filterKey;
-    }
-  }, [filteredMeters, filterKey, useClustering]);
+    return () => cancelAnimationFrame(frameId);
+  }, [filteredMeters, filterKey]);
 
   const handleFlyToMeter = (m: MeterRecord) => {
     setSelectedMeter(m);
@@ -441,46 +503,57 @@ export const PetaLokasiMap: React.FC<Props> = ({
               Tidak ada data meter yang cocok dengan filter.
             </div>
           ) : (
-            filteredMeters.map((m) => {
-              const isSelected = selectedMeter?.id === m.id;
-              const isDone = m.status === "SELESAI";
-              return (
-                <div
-                  key={m.id}
-                  onClick={() => handleFlyToMeter(m)}
-                  className={`cursor-pointer rounded-xl border p-3 transition-all ${
-                    isSelected
-                      ? "border-blue-500 bg-blue-50 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                  }`}
+            <>
+              {visibleSidebarMeters.map((m) => {
+                const isSelected = selectedMeter?.id === m.id;
+                const isDone = m.status === "SELESAI";
+                return (
+                  <div
+                    key={m.id}
+                    onClick={() => handleFlyToMeter(m)}
+                    className={`cursor-pointer rounded-xl border p-3 transition-all ${
+                      isSelected
+                        ? "border-blue-500 bg-blue-50 shadow-sm"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900">{m.namaPelanggan}</span>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          isDone
+                            ? "bg-green-100 text-green-700"
+                            : "bg-orange-100 text-orange-700"
+                        }`}
+                      >
+                        {m.status}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
+                      <span>ID Pel: <strong>{m.idPelanggan}</strong></span>
+                      <span className="font-semibold text-blue-600">{m.tarif} / {m.daya} VA</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400">
+                      <span>Jenis: <strong className="text-slate-700">{m.jenis}</strong></span>
+                      <span className="text-slate-500 truncate max-w-[120px]">{m.pnj}</span>
+                    </div>
+                    <div className="mt-1 text-[10px] font-mono text-blue-600/80 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 flex items-center justify-between">
+                      <span>Lat: {m.latitude}</span>
+                      <span>Lng: {m.longitude}</span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {visibleCount < filteredMeters.length && (
+                <button
+                  onClick={() => setVisibleCount((prev) => prev + 100)}
+                  className="w-full py-2.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all border border-blue-200 mt-2"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900">{m.namaPelanggan}</span>
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        isDone
-                          ? "bg-green-100 text-green-700"
-                          : "bg-orange-100 text-orange-700"
-                      }`}
-                    >
-                      {m.status}
-                    </span>
-                  </div>
-                  <div className="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
-                    <span>ID Pel: <strong>{m.idPelanggan}</strong></span>
-                    <span className="font-semibold text-blue-600">{m.tarif} / {m.daya} VA</span>
-                  </div>
-                  <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400">
-                    <span>Jenis: <strong className="text-slate-700">{m.jenis}</strong></span>
-                    <span className="text-slate-500 truncate max-w-[120px]">{m.pnj}</span>
-                  </div>
-                  <div className="mt-1 text-[10px] font-mono text-blue-600/80 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 flex items-center justify-between">
-                    <span>Lat: {m.latitude}</span>
-                    <span>Lng: {m.longitude}</span>
-                  </div>
-                </div>
-              );
-            })
+                  Tampilkan Lebih Banyak ({visibleCount} dari {filteredMeters.length} data)
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -489,11 +562,11 @@ export const PetaLokasiMap: React.FC<Props> = ({
       <div className="relative flex-1">
         <div ref={mapContainerRef} className="h-full w-full bg-slate-900" />
 
-        {/* Map Type & Control Bar */}
-        <div className="absolute top-4 left-4 z-[1000] flex flex-wrap items-center gap-1.5 rounded-2xl border border-slate-800/80 bg-slate-900/90 p-1.5 shadow-2xl backdrop-blur-md">
+        {/* Map Type Control Bar */}
+        <div className="absolute top-4 left-4 z-[1000] flex items-center space-x-1.5 rounded-2xl border border-slate-800/80 bg-slate-900/90 p-1.5 shadow-2xl backdrop-blur-md">
           <button
             onClick={() => setMapTileType("satellite")}
-            className={`flex items-center space-x-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
               mapTileType === "satellite"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50"
                 : "text-slate-300 hover:bg-slate-800 hover:text-white"
@@ -503,39 +576,13 @@ export const PetaLokasiMap: React.FC<Props> = ({
           </button>
           <button
             onClick={() => setMapTileType("streets")}
-            className={`flex items-center space-x-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
               mapTileType === "streets"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50"
                 : "text-slate-300 hover:bg-slate-800 hover:text-white"
             }`}
           >
             <span>🗺️ Peta Jalan</span>
-          </button>
-
-          <div className="h-4 w-px bg-slate-700 mx-1 hidden sm:block" />
-
-          {/* Mode Cluster vs Individual Pins */}
-          <button
-            onClick={() => setUseClustering(false)}
-            className={`flex items-center space-x-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
-              !useClustering
-                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-1 ring-emerald-400/50"
-                : "text-slate-300 hover:bg-slate-800 hover:text-white"
-            }`}
-            title="Tampilkan semua titik lokasi satu-satu tanpa dikelompokkan"
-          >
-            <span>📍 Titik Individual (Satu-Satu)</span>
-          </button>
-          <button
-            onClick={() => setUseClustering(true)}
-            className={`flex items-center space-x-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
-              useClustering
-                ? "bg-purple-600 text-white shadow-md shadow-purple-600/30 ring-1 ring-purple-400/50"
-                : "text-slate-300 hover:bg-slate-800 hover:text-white"
-            }`}
-            title="Kelompokkan titik yang berdekatan"
-          >
-            <span>🔮 Cluster</span>
           </button>
         </div>
 
@@ -683,9 +730,11 @@ export const PetaLokasiMap: React.FC<Props> = ({
             <div className="mt-4 flex items-center justify-end space-x-2.5">
               <button
                 onClick={() => {
-                  const newSt = selectedMeter.status === "SELESAI" ? "BELUM" : "SELESAI";
-                  onUpdateMeterStatus(selectedMeter.id, newSt);
-                  setSelectedMeter({ ...selectedMeter, status: newSt });
+                  if (selectedMeter.status === "SELESAI") {
+                    handleMarkBelum(selectedMeter);
+                  } else {
+                    handleInitiateMarkSelesai(selectedMeter);
+                  }
                 }}
                 className={`flex items-center space-x-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-xs ${
                   selectedMeter.status === "SELESAI"
@@ -706,6 +755,153 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 <FileText className="h-4 w-4" />
                 <span>Cetak Dokumen PK</span>
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Petugas Selection Modal Dialog when marking as SELESAI */}
+        {meterToComplete && (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden text-slate-800 animate-in zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-900 to-slate-800 px-5 py-4 text-white">
+                <div className="flex items-center space-x-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40">
+                    <UserCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold tracking-tight">Pilih Petugas Ganti Meter</h3>
+                    <p className="text-[11px] text-slate-300">Tentukan petugas pelaksana untuk menandai SELESAI</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMeterToComplete(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Customer Info Card */}
+              <div className="p-5 space-y-4">
+                <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 text-xs text-slate-700">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-slate-900 text-sm">{meterToComplete.namaPelanggan}</span>
+                    <span className="rounded bg-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-800">
+                      {meterToComplete.jenis}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                    <div>
+                      ID Pel: <strong className="text-blue-700 font-mono font-bold">{meterToComplete.idPelanggan}</strong>
+                    </div>
+                    <div>
+                      Tarif/Daya: <strong className="text-slate-900">{meterToComplete.tarif} / {meterToComplete.daya} VA</strong>
+                    </div>
+                    <div>
+                      Meter Lama: <span className="font-mono text-slate-800">{meterToComplete.noMeterLama || "-"}</span>
+                    </div>
+                    <div className="truncate">
+                      Lokasi/PNJ: <span className="text-slate-800 font-medium">{meterToComplete.pnj || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Petugas Selection */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5 text-blue-600" />
+                      Petugas Pelaksana Ganti Meter <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-medium">Klik nama atau pilih dropdown</span>
+                  </div>
+
+                  {/* Quick Pick Pills / Grid */}
+                  <div className="grid grid-cols-4 sm:grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1 bg-slate-50 rounded-xl border border-slate-200">
+                    {PETUGAS_LIST.map((pet) => {
+                      const isSelected = selectedPetugasForCompletion === pet;
+                      return (
+                        <button
+                          key={pet}
+                          type="button"
+                          onClick={() => setSelectedPetugasForCompletion(pet)}
+                          className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center ${
+                            isSelected
+                              ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-400 scale-[1.02]"
+                              : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+                          }`}
+                        >
+                          {pet}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Dropdown Select Alternative */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-[11px] text-slate-500">Pilihan Terpilih:</span>
+                    <select
+                      value={selectedPetugasForCompletion}
+                      onChange={(e) => setSelectedPetugasForCompletion(e.target.value as PetugasName)}
+                      className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      {PETUGAS_LIST.map((p) => (
+                        <option key={p} value={p}>
+                          Petugas: {p}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Optional inputs */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      No. Meter Baru <span className="text-slate-400 font-normal">(Opsional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customNoMeterBaru}
+                      onChange={(e) => setCustomNoMeterBaru(e.target.value)}
+                      placeholder="Contoh: 37119200481"
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Stand Bongkar <span className="text-slate-400 font-normal">(Opsional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customStandBongkar}
+                      onChange={(e) => setCustomStandBongkar(e.target.value)}
+                      placeholder="Contoh: 04891 kWh"
+                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-end space-x-2.5 border-t border-slate-100 bg-slate-50 px-5 py-3.5">
+                <button
+                  type="button"
+                  onClick={() => setMeterToComplete(null)}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmMarkSelesai}
+                  className="flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm shadow-emerald-200 transition-all"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Simpan & Tandai SELESAI ({selectedPetugasForCompletion})</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
