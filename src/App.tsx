@@ -23,7 +23,6 @@ import { InformasiAnalytics } from "./components/InformasiAnalytics";
 import { DokumenPrint } from "./components/DokumenPrint";
 import { ManagementUser } from "./components/ManagementUser";
 import { ExcelSyncModal } from "./components/ExcelSyncModal";
-import { CloudSyncModal } from "./components/CloudSyncModal";
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() =>
@@ -34,8 +33,6 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<MenuTab>("peta");
   const [isSheetModalOpen, setIsSheetModalOpen] = useState(false);
-  const [isCloudModalOpen, setIsCloudModalOpen] = useState(false);
-  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedMeterForDoc, setSelectedMeterForDoc] = useState<MeterRecord | null>(null);
   const [editingMeter, setEditingMeter] = useState<MeterRecord | null>(null);
@@ -46,27 +43,24 @@ export default function App() {
     metersRef.current = meters;
   }, [meters]);
 
-  // Initial and periodic background cloud synchronization
-  const triggerPullCloud = useCallback(async (silent = true) => {
-    if (!silent) setIsCloudSyncing(true);
+  // Initial and periodic background cloud synchronization between Studio, Vercel & devices
+  const triggerPullCloud = useCallback(async () => {
     try {
       const current = metersRef.current;
       const res = await pullFromCloud(current);
       if (res.success && res.changesApplied > 0) {
         setMeters(res.updatedMeters);
-        console.log(`[CloudSync] Applied ${res.changesApplied} updates from Cloud.`);
+        console.log(`[AutoSync] Synced ${res.changesApplied} updates between AI Studio & Vercel.`);
       }
     } catch (err) {
-      console.warn("[CloudSync] Background sync check failed:", err);
-    } finally {
-      if (!silent) setIsCloudSyncing(false);
+      console.warn("[AutoSync] Background check notice:", err);
     }
   }, []);
 
-  // Initial sync on startup & periodic polling every 12 seconds
+  // Initial sync on startup & periodic polling every 8 seconds
   useEffect(() => {
     // 1. Initial pull
-    triggerPullCloud(true);
+    triggerPullCloud();
 
     // 2. Also push current local state to cloud once on mount if we have completed records
     const completedNow = metersRef.current.filter((m) => m.status === "SELESAI").length;
@@ -74,10 +68,10 @@ export default function App() {
       pushToCloud(metersRef.current).catch(() => {});
     }
 
-    // 3. Periodic polling
+    // 3. Periodic polling every 8 seconds for real-time background sync
     const pollTimer = setInterval(() => {
-      triggerPullCloud(true);
-    }, 12000);
+      triggerPullCloud();
+    }, 8000);
 
     // 4. Multi-tab BroadcastChannel listener
     let channel: BroadcastChannel | null = null;
@@ -94,9 +88,9 @@ export default function App() {
       // Ignore
     }
 
-    // 5. Window focus listener to refresh when switching tabs
+    // 5. Window focus listener to refresh when switching tabs / returning to app
     const handleFocus = () => {
-      triggerPullCloud(true);
+      triggerPullCloud();
     };
     window.addEventListener("focus", handleFocus);
 
@@ -149,24 +143,6 @@ export default function App() {
       clearInterval(checkInterval);
     };
   }, [currentUser]);
-
-  // Quick manual sync handler
-  const handleQuickSync = async () => {
-    setIsCloudSyncing(true);
-    try {
-      // Push first to make sure local changes are in cloud
-      await pushToCloud(metersRef.current);
-      // Then pull latest
-      const res = await pullFromCloud(metersRef.current);
-      if (res.success) {
-        setMeters(res.updatedMeters);
-      }
-    } catch (err) {
-      console.warn("Manual sync error:", err);
-    } finally {
-      setIsCloudSyncing(false);
-    }
-  };
 
   // Sync state with storage and cloud when changed
   const handleUpdateMeterStatus = (
@@ -274,7 +250,6 @@ export default function App() {
               currentUser={currentUser}
               onLogout={handleLogout}
               onOpenSheetSync={() => setIsSheetModalOpen(true)}
-              onOpenCloudSync={() => setIsCloudModalOpen(true)}
               pendingCount={pendingCount}
               completedCount={completedCount}
               mobileMenuOpen={mobileMenuOpen}
@@ -287,9 +262,6 @@ export default function App() {
               <TopHeader
                 activeTab={activeTab}
                 onOpenMobileMenu={() => setMobileMenuOpen(true)}
-                onOpenCloudSync={() => setIsCloudModalOpen(true)}
-                isCloudSyncing={isCloudSyncing}
-                onQuickSync={handleQuickSync}
               />
 
               {/* View Container with Smooth Motion Transitions */}
@@ -364,17 +336,6 @@ export default function App() {
               onMetersUpdated={(newMeters) => {
                 setMeters(newMeters);
                 pushToCloud(newMeters).catch(() => {});
-              }}
-            />
-
-            {/* Cloud Live Sync Modal */}
-            <CloudSyncModal
-              isOpen={isCloudModalOpen}
-              onClose={() => setIsCloudModalOpen(false)}
-              meters={meters}
-              onMetersUpdated={(newMeters) => {
-                setMeters(newMeters);
-                saveStoredMeters(newMeters);
               }}
             />
           </motion.div>
