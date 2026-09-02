@@ -16,6 +16,8 @@ import {
   ChevronRight,
   Sparkles,
   ShieldCheck,
+  Cloud,
+  RefreshCw,
 } from "lucide-react";
 import { UserAccount } from "../types";
 
@@ -33,6 +35,7 @@ interface NavbarProps {
   currentUser: UserAccount;
   onLogout: () => void;
   onOpenSheetSync: () => void;
+  onOpenCloudSync: () => void;
   pendingCount: number;
   completedCount: number;
   mobileMenuOpen: boolean;
@@ -45,6 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
   onLogout,
   onOpenSheetSync,
+  onOpenCloudSync,
   pendingCount,
   completedCount,
   mobileMenuOpen,
@@ -226,10 +230,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Bottom Floating Card & User Profile */}
           <div className="p-3 border-t border-slate-800/80 space-y-2 shrink-0">
+            {/* Cloud Sync Trigger */}
+            <button
+              onClick={onOpenCloudSync}
+              className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-2xl border border-blue-500/40 bg-gradient-to-r from-blue-950/90 to-indigo-950/90 text-blue-300 text-xs font-bold hover:from-blue-900/90 hover:to-indigo-900/90 hover:border-blue-400 shadow-md transition-all group ${
+                isCollapsed && !mobileMenuOpen ? "px-2" : ""
+              }`}
+              title="Cloud Sync (AI Studio ⇄ Vercel)"
+            >
+              <Cloud className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform shrink-0 animate-pulse" />
+              {(!isCollapsed || mobileMenuOpen) && <span>Cloud Sync (Multi-Device)</span>}
+            </button>
+
             {/* Excel Sync Trigger */}
             <button
               onClick={onOpenSheetSync}
-              className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/80 to-teal-950/80 text-emerald-300 text-xs font-bold hover:from-emerald-900/90 hover:to-teal-900/90 hover:border-emerald-400 shadow-md transition-all group ${
+              className={`w-full flex items-center justify-center gap-2 p-2 rounded-2xl border border-emerald-500/30 bg-emerald-950/40 text-emerald-300 text-xs font-semibold hover:bg-emerald-900/50 hover:border-emerald-400 transition-all group ${
                 isCollapsed && !mobileMenuOpen ? "px-2" : ""
               }`}
               title="Unggah / Sync Excel"
@@ -310,7 +326,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 export const TopHeader: React.FC<{
   activeTab: MenuTab;
   onOpenMobileMenu: () => void;
-}> = ({ activeTab, onOpenMobileMenu }) => {
+  onOpenCloudSync: () => void;
+  isCloudSyncing?: boolean;
+  onQuickSync?: () => void;
+}> = ({
+  activeTab,
+  onOpenMobileMenu,
+  onOpenCloudSync,
+  isCloudSyncing = false,
+  onQuickSync,
+}) => {
   const titles: Record<MenuTab, string> = {
     peta: "1. Peta Lokasi Meter Tua",
     data: "2. Data Meter Tua",
@@ -327,15 +352,15 @@ export const TopHeader: React.FC<{
   });
 
   return (
-    <header className="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-8 shrink-0 z-30 shadow-xs">
-      <div className="flex items-center gap-3">
+    <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-8 shrink-0 z-30 shadow-xs">
+      <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={onOpenMobileMenu}
           className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl lg:hidden"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="flex flex-col">
+        <div className="flex flex-col truncate">
           <AnimatePresence mode="wait">
             <motion.h1
               key={activeTab}
@@ -343,26 +368,56 @@ export const TopHeader: React.FC<{
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 6 }}
               transition={{ duration: 0.18 }}
-              className="text-lg font-extrabold text-slate-900 tracking-tight"
+              className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight truncate"
             >
               {titles[activeTab] || "Dashboard Monitoring"}
             </motion.h1>
           </AnimatePresence>
-          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold truncate">
             JTC Transaksi Energi • PLN Unit Baguala
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-4 text-xs font-medium">
-        <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full flex items-center gap-2 font-bold shadow-2xs">
+      <div className="flex items-center gap-2 sm:gap-3 text-xs font-medium shrink-0">
+        {/* Cloud Sync Status Indicator & Button */}
+        <button
+          onClick={onOpenCloudSync}
+          className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200/80 rounded-full flex items-center gap-1.5 font-bold shadow-2xs hover:bg-blue-100 hover:border-blue-300 transition-all group"
+          title="Klik untuk membuka Hub Sinkronisasi Multi-Device"
+        >
+          <Cloud className="h-3.5 w-3.5 text-blue-600 group-hover:scale-110 transition-transform" />
+          <span className="hidden sm:inline">Cloud Sync:</span>
+          <span className="text-emerald-700 flex items-center gap-1">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="hidden md:inline">Studio ⇄ Vercel</span>
+            <span className="md:hidden">Sinkron</span>
+          </span>
+        </button>
+
+        {/* Quick Sync Button */}
+        {onQuickSync && (
+          <button
+            onClick={onQuickSync}
+            disabled={isCloudSyncing}
+            className="p-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all disabled:opacity-50"
+            title="Sinkronkan data sekarang"
+          >
+            <RefreshCw className={`h-4 w-4 ${isCloudSyncing ? "animate-spin text-blue-600" : ""}`} />
+          </button>
+        )}
+
+        <span className="hidden lg:flex px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full items-center gap-2 font-bold shadow-2xs">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          Data Excel Synced
+          Excel Active
         </span>
-        <span className="text-slate-500 font-mono font-semibold hidden md:inline-block bg-slate-100 px-3 py-1 rounded-xl border border-slate-200/60">
+
+        <span className="text-slate-500 font-mono font-semibold hidden xl:inline-block bg-slate-100 px-3 py-1 rounded-xl border border-slate-200/60">
           {todayDateStr}
         </span>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { MeterRecord, UserAccount, PetugasName } from "./types";
 import {
@@ -9,9 +9,11 @@ import {
   getCurrentSessionUser,
   getStoredMeters,
   getStoredUsers,
+  saveStoredMeters,
   setCurrentSessionUser,
   updateMeterRecord,
 } from "./utils/storage";
+import { pullFromCloud, pushToCloud } from "./utils/cloudSync";
 import { LoginScreen } from "./components/LoginScreen";
 import { Navbar, TopHeader, MenuTab } from "./components/Navbar";
 import { PetaLokasiMap } from "./components/PetaLokasiMap";
@@ -21,6 +23,7 @@ import { InformasiAnalytics } from "./components/InformasiAnalytics";
 import { DokumenPrint } from "./components/DokumenPrint";
 import { ManagementUser } from "./components/ManagementUser";
 import { ExcelSyncModal } from "./components/ExcelSyncModal";
+import { CloudSyncModal } from "./components/CloudSyncModal";
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() =>
@@ -31,10 +34,78 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<MenuTab>("peta");
   const [isSheetModalOpen, setIsSheetModalOpen] = useState(false);
+  const [isCloudModalOpen, setIsCloudModalOpen] = useState(false);
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedMeterForDoc, setSelectedMeterForDoc] = useState<MeterRecord | null>(null);
   const [editingMeter, setEditingMeter] = useState<MeterRecord | null>(null);
   const [logoutNotice, setLogoutNotice] = useState<string | null>(null);
+
+  const metersRef = useRef(meters);
+  useEffect(() => {
+    metersRef.current = meters;
+  }, [meters]);
+
+  // Initial and periodic background cloud synchronization
+  const triggerPullCloud = useCallback(async (silent = true) => {
+    if (!silent) setIsCloudSyncing(true);
+    try {
+      const current = metersRef.current;
+      const res = await pullFromCloud(current);
+      if (res.success && res.changesApplied > 0) {
+        setMeters(res.updatedMeters);
+        console.log(`[CloudSync] Applied ${res.changesApplied} updates from Cloud.`);
+      }
+    } catch (err) {
+      console.warn("[CloudSync] Background sync check failed:", err);
+    } finally {
+      if (!silent) setIsCloudSyncing(false);
+    }
+  }, []);
+
+  // Initial sync on startup & periodic polling every 12 seconds
+  useEffect(() => {
+    // 1. Initial pull
+    triggerPullCloud(true);
+
+    // 2. Also push current local state to cloud once on mount if we have completed records
+    const completedNow = metersRef.current.filter((m) => m.status === "SELESAI").length;
+    if (completedNow > 0) {
+      pushToCloud(metersRef.current).catch(() => {});
+    }
+
+    // 3. Periodic polling
+    const pollTimer = setInterval(() => {
+      triggerPullCloud(true);
+    }, 12000);
+
+    // 4. Multi-tab BroadcastChannel listener
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        channel = new BroadcastChannel("gmbl_cloud_sync_broadcast");
+        channel.onmessage = (event) => {
+          if (event.data?.type === "GMBL_SYNC_UPDATE") {
+            setMeters(getStoredMeters());
+          }
+        };
+      }
+    } catch {
+      // Ignore
+    }
+
+    // 5. Window focus listener to refresh when switching tabs
+    const handleFocus = () => {
+      triggerPullCloud(true);
+    };
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(pollTimer);
+      window.removeEventListener("focus", handleFocus);
+      if (channel) channel.close();
+    };
+  }, [triggerPullCloud]);
 
   // Auto logout user after 10 minutes (600,000ms) of inactivity on dashboard
   useEffect(() => {
@@ -79,7 +150,25 @@ export default function App() {
     };
   }, [currentUser]);
 
-  // Sync state with storage when changed
+  // Quick manual sync handler
+  const handleQuickSync = async () => {
+    setIsCloudSyncing(true);
+    try {
+      // Push first to make sure local changes are in cloud
+      await pushToCloud(metersRef.current);
+      // Then pull latest
+      const res = await pullFromCloud(metersRef.current);
+      if (res.success) {
+        setMeters(res.updatedMeters);
+      }
+    } catch (err) {
+      console.warn("Manual sync error:", err);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
+  // Sync state with storage and cloud when changed
   const handleUpdateMeterStatus = (
     id: string,
     newStatus: "SELESAI" | "BELUM",
@@ -93,7 +182,10 @@ export default function App() {
     };
     const updated = updateMeterRecord(id, updatePayload);
     if (updated) {
-      setMeters(getStoredMeters());
+      const newMeters = getStoredMeters();
+      setMeters(newMeters);
+      // Auto-broadcast to Cloud
+      pushToCloud(newMeters).catch(() => {});
     }
   };
 
@@ -104,13 +196,17 @@ export default function App() {
     } else {
       addMeterRecord(record);
     }
-    setMeters(getStoredMeters());
+    const newMeters = getStoredMeters();
+    setMeters(newMeters);
+    pushToCloud(newMeters).catch(() => {});
     setActiveTab("data");
   };
 
   const handleDeleteMeter = (id: string) => {
     deleteMeterRecord(id);
-    setMeters(getStoredMeters());
+    const newMeters = getStoredMeters();
+    setMeters(newMeters);
+    pushToCloud(newMeters).catch(() => {});
   };
 
   const handleAddUser = (email: string, name: string, role: UserAccount["role"], password?: string) => {
@@ -178,6 +274,7 @@ export default function App() {
               currentUser={currentUser}
               onLogout={handleLogout}
               onOpenSheetSync={() => setIsSheetModalOpen(true)}
+              onOpenCloudSync={() => setIsCloudModalOpen(true)}
               pendingCount={pendingCount}
               completedCount={completedCount}
               mobileMenuOpen={mobileMenuOpen}
@@ -190,6 +287,9 @@ export default function App() {
               <TopHeader
                 activeTab={activeTab}
                 onOpenMobileMenu={() => setMobileMenuOpen(true)}
+                onOpenCloudSync={() => setIsCloudModalOpen(true)}
+                isCloudSyncing={isCloudSyncing}
+                onQuickSync={handleQuickSync}
               />
 
               {/* View Container with Smooth Motion Transitions */}
@@ -261,7 +361,21 @@ export default function App() {
               isOpen={isSheetModalOpen}
               onClose={() => setIsSheetModalOpen(false)}
               meters={meters}
-              onMetersUpdated={(newMeters) => setMeters(newMeters)}
+              onMetersUpdated={(newMeters) => {
+                setMeters(newMeters);
+                pushToCloud(newMeters).catch(() => {});
+              }}
+            />
+
+            {/* Cloud Live Sync Modal */}
+            <CloudSyncModal
+              isOpen={isCloudModalOpen}
+              onClose={() => setIsCloudModalOpen(false)}
+              meters={meters}
+              onMetersUpdated={(newMeters) => {
+                setMeters(newMeters);
+                saveStoredMeters(newMeters);
+              }}
             />
           </motion.div>
         )}
