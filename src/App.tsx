@@ -14,6 +14,13 @@ import {
   updateMeterRecord,
 } from "./utils/storage";
 import { pullFromCloud, pushToCloud } from "./utils/cloudSync";
+import {
+  syncMeterToFirestore,
+  batchSyncMetersToFirestore,
+  subscribeToFirestoreMeterUpdates,
+  fetchInitialFirestoreUpdates,
+  testFirestoreConnection,
+} from "./utils/firestoreSync";
 import { LoginScreen } from "./components/LoginScreen";
 import { Navbar, TopHeader, MenuTab } from "./components/Navbar";
 import { PetaLokasiMap } from "./components/PetaLokasiMap";
@@ -47,6 +54,15 @@ export default function App() {
   const triggerPullCloud = useCallback(async () => {
     try {
       const current = metersRef.current;
+      // 1. Check Firestore initial/delta updates
+      const fsRes = await fetchInitialFirestoreUpdates(current);
+      if (fsRes.changesApplied > 0) {
+        setMeters(fsRes.updatedMeters);
+        console.log(`[FirestoreSync] Synced ${fsRes.changesApplied} updates from Firestore.`);
+        return;
+      }
+
+      // 2. Also check fallback cloud sync
       const res = await pullFromCloud(current);
       if (res.success && res.changesApplied > 0) {
         setMeters(res.updatedMeters);
@@ -57,23 +73,34 @@ export default function App() {
     }
   }, []);
 
-  // Initial sync on startup & periodic polling every 8 seconds
+  // Initial sync on startup & real-time Firestore subscription
   useEffect(() => {
-    // 1. Initial pull
+    // 1. Connection check and initial fetch
+    testFirestoreConnection().catch(() => {});
     triggerPullCloud();
 
-    // 2. Also push current local state to cloud once on mount if we have completed records
-    const completedNow = metersRef.current.filter((m) => m.status === "SELESAI").length;
-    if (completedNow > 0) {
+    // 2. Real-time Firestore onSnapshot listener
+    const unsubscribeFirestore = subscribeToFirestoreMeterUpdates(
+      () => metersRef.current,
+      (updatedMeters, count) => {
+        setMeters(updatedMeters);
+        console.log(`[Firestore Real-Time] Received ${count} updates from Cloud!`);
+      }
+    );
+
+    // 3. Batch sync any existing completed local records to Firestore if not yet present
+    const completedNow = metersRef.current.filter((m) => m.status === "SELESAI");
+    if (completedNow.length > 0) {
+      batchSyncMetersToFirestore(completedNow).catch(() => {});
       pushToCloud(metersRef.current).catch(() => {});
     }
 
-    // 3. Periodic polling every 8 seconds for real-time background sync
+    // 4. Fallback periodic polling every 10 seconds
     const pollTimer = setInterval(() => {
       triggerPullCloud();
-    }, 8000);
+    }, 10000);
 
-    // 4. Multi-tab BroadcastChannel listener
+    // 5. Multi-tab BroadcastChannel listener
     let channel: BroadcastChannel | null = null;
     try {
       if (typeof window !== "undefined" && "BroadcastChannel" in window) {
@@ -88,13 +115,14 @@ export default function App() {
       // Ignore
     }
 
-    // 5. Window focus listener to refresh when switching tabs / returning to app
+    // 6. Window focus listener to refresh when switching tabs / returning to app
     const handleFocus = () => {
       triggerPullCloud();
     };
     window.addEventListener("focus", handleFocus);
 
     return () => {
+      unsubscribeFirestore();
       clearInterval(pollTimer);
       window.removeEventListener("focus", handleFocus);
       if (channel) channel.close();
@@ -160,20 +188,33 @@ export default function App() {
     if (updated) {
       const newMeters = getStoredMeters();
       setMeters(newMeters);
+      const targetMeter = newMeters.find((m) => m.id === id);
+      if (targetMeter) {
+        // Direct real-time push to Firestore
+        syncMeterToFirestore(targetMeter).catch(() => {});
+      }
       // Auto-broadcast to Cloud
       pushToCloud(newMeters).catch(() => {});
     }
   };
 
   const handleSaveMeterRecord = (record: Omit<MeterRecord, "id">) => {
+    let savedId = editingMeter?.id;
     if (editingMeter) {
       updateMeterRecord(editingMeter.id, record);
       setEditingMeter(null);
     } else {
-      addMeterRecord(record);
+      const created = addMeterRecord(record);
+      savedId = created.id;
     }
     const newMeters = getStoredMeters();
     setMeters(newMeters);
+    if (savedId) {
+      const targetMeter = newMeters.find((m) => m.id === savedId);
+      if (targetMeter) {
+        syncMeterToFirestore(targetMeter).catch(() => {});
+      }
+    }
     pushToCloud(newMeters).catch(() => {});
     setActiveTab("data");
   };

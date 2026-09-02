@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "MeterUpdate": {
+      "title": "Meter Update",
+      "description": "Represents an updated or completed meter record for GMBL PLN Baguala",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the meter"
+        },
+        "idPelanggan": {
+          "type": "string",
+          "description": "Customer PLN ID"
+        },
+        "nama": {
+          "type": "string",
+          "description": "Customer name"
+        },
+        "alamat": {
+          "type": "string",
+          "description": "Customer address"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["SELESAI", "BELUM"],
+          "description": "Completion status"
+        },
+        "petugas": {
+          "type": "string",
+          "description": "Officer name"
+        },
+        "noMeterBaru": {
+          "type": "string",
+          "description": "New kWh meter serial number"
+        },
+        "standBongkar": {
+          "type": "string",
+          "description": "Dismantled meter reading stand"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of the update"
+        }
+      },
+      "required": ["id", "idPelanggan", "status"]
+    }
+  },
+  "firestore": {
+    "/meter_updates/{meterId}": {
+      "schema": "MeterUpdate",
+      "description": "Real-time sync updates for replaced or modified meters"
+    }
+  }
+}
