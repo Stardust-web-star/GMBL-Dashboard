@@ -44,12 +44,14 @@ export const PetaLokasiMap: React.FC<Props> = ({
   const [selectedMeter, setSelectedMeter] = useState<MeterRecord | null>(null);
 
   const [mapTileType, setMapTileType] = useState<"satellite" | "streets">("satellite");
+  const [useClustering, setUseClustering] = useState<boolean>(false); // Default to false (Titik Individual Satu-Satu)
   const [isLegendOpen, setIsLegendOpen] = useState(true);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const markersLayerRef = useRef<L.LayerGroup | any>(null);
   const hasInitialFittedRef = useRef(false);
   const prevFilterKeyRef = useRef<string>("");
 
-  const filterKey = `${searchTerm}-${filterStatus}-${filterJenis}-${filterGanti}-${filterPetugas}`;
+  const filterKey = `${searchTerm}-${filterStatus}-${filterJenis}-${filterGanti}-${filterPetugas}-${useClustering}`;
 
   // Filter meters
   const filteredMeters = meters.filter((m) => {
@@ -70,7 +72,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
     return matchesSearch && matchesStatus && matchesJenis && matchesGanti && matchesPetugas;
   });
 
-  // Initialize Map & Marker Cluster Group
+  // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
@@ -94,17 +96,37 @@ export const PetaLokasiMap: React.FC<Props> = ({
             ? "&copy; Esri &mdash; Satellite Imagery | GMBL PLN Baguala"
             : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | GMBL PLN',
         maxZoom: 19,
+        maxNativeZoom: mapTileType === "satellite" ? 17 : 19,
       }).addTo(map);
 
       tileLayerRef.current = tileLayer;
+      mapInstanceRef.current = map;
+    }
 
-      // Initialize Leaflet MarkerCluster Group with upgraded glowing cluster icons
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update Markers Layer Group whenever map or useClustering mode changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    if (markersLayerRef.current) {
+      mapInstanceRef.current.removeLayer(markersLayerRef.current);
+    }
+
+    if (useClustering) {
+      // MarkerCluster Group
       const clusterGroup = (L as any).markerClusterGroup({
         chunkedLoading: true,
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: false,
         zoomToBoundsOnClick: true,
-        maxClusterRadius: 45,
+        maxClusterRadius: 40,
         iconCreateFunction: (cluster: any) => {
           const childCount = cluster.getChildCount();
           let bgGradient = "linear-gradient(135deg, #0284c7, #2563eb)";
@@ -156,19 +178,15 @@ export const PetaLokasiMap: React.FC<Props> = ({
           });
         },
       });
-
-      map.addLayer(clusterGroup);
-      clusterGroupRef.current = clusterGroup;
-      mapInstanceRef.current = map;
+      mapInstanceRef.current.addLayer(clusterGroup);
+      markersLayerRef.current = clusterGroup;
+    } else {
+      // Standard LayerGroup (Individual pins for every coordinate)
+      const layerGroup = L.layerGroup();
+      mapInstanceRef.current.addLayer(layerGroup);
+      markersLayerRef.current = layerGroup;
     }
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
+  }, [useClustering]);
 
   // Update Tile Layer when mapTileType changes
   useEffect(() => {
@@ -187,6 +205,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
           ? "&copy; Esri World Imagery | GMBL PLN Baguala"
           : '&copy; OpenStreetMap | GMBL PLN',
       maxZoom: 19,
+      maxNativeZoom: mapTileType === "satellite" ? 17 : 19,
     }).addTo(mapInstanceRef.current);
 
     tileLayerRef.current = newTileLayer;
@@ -194,15 +213,15 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
   // Update Markers & Fit Bounds on Filtered Meters Change
   useEffect(() => {
-    if (!mapInstanceRef.current || !clusterGroupRef.current) return;
+    if (!mapInstanceRef.current || !markersLayerRef.current) return;
 
-    // Clear existing cluster markers
-    clusterGroupRef.current.clearLayers();
+    // Clear existing layer markers
+    markersLayerRef.current.clearLayers();
 
     const bounds: L.LatLngTuple[] = [];
 
     filteredMeters.forEach((m, idx) => {
-      // 1. Parsing Data: Extract Latitude & Longitude precisely as pure numeric floating-point values
+      // 1. Parsing Data: Extract Latitude & Longitude precisely
       const rawLat = typeof m.latitude === "number" ? m.latitude : parseFloat(String(m.latitude).replace(",", "."));
       const rawLng = typeof m.longitude === "number" ? m.longitude : parseFloat(String(m.longitude).replace(",", "."));
 
@@ -247,8 +266,8 @@ export const PetaLokasiMap: React.FC<Props> = ({
       const customIcon = L.divIcon({
         className: "custom-leaflet-teardrop-pin",
         html: `
-          <div style="position: relative; width: 30px; height: 36px; cursor: pointer;">
-            <svg viewBox="0 0 28 36" width="30" height="36" style="filter: drop-shadow(0px 5px 10px rgba(0,0,0,0.45)); overflow: visible;">
+          <div style="position: relative; width: 28px; height: 34px; cursor: pointer;">
+            <svg viewBox="0 0 28 36" width="28" height="34" style="filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4)); overflow: visible;">
               <defs>
                 <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stop-color="${startColor}" />
@@ -278,9 +297,9 @@ export const PetaLokasiMap: React.FC<Props> = ({
             ">${isPrabayar ? "PR" : "PS"}</div>
           </div>
         `,
-        iconSize: [30, 36],
-        iconAnchor: [15, 36],
-        popupAnchor: [0, -34],
+        iconSize: [28, 34],
+        iconAnchor: [14, 34],
+        popupAnchor: [0, -32],
       });
 
       const marker = L.marker([lat, lng], { icon: customIcon });
@@ -293,7 +312,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
         }
       });
 
-      clusterGroupRef.current.addLayer(marker);
+      markersLayerRef.current.addLayer(marker);
     });
 
     // Auto-fit Bounds ONLY on initial load OR when user changes filter inputs explicitly
@@ -307,7 +326,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
       hasInitialFittedRef.current = true;
       prevFilterKeyRef.current = filterKey;
     }
-  }, [filteredMeters, filterKey]);
+  }, [filteredMeters, filterKey, useClustering]);
 
   const handleFlyToMeter = (m: MeterRecord) => {
     setSelectedMeter(m);
@@ -471,10 +490,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
         <div ref={mapContainerRef} className="h-full w-full bg-slate-900" />
 
         {/* Map Type & Control Bar */}
-        <div className="absolute top-4 left-4 z-[1000] flex items-center space-x-2 rounded-2xl border border-slate-800/80 bg-slate-900/90 p-1.5 shadow-2xl backdrop-blur-md">
+        <div className="absolute top-4 left-4 z-[1000] flex flex-wrap items-center gap-1.5 rounded-2xl border border-slate-800/80 bg-slate-900/90 p-1.5 shadow-2xl backdrop-blur-md">
           <button
             onClick={() => setMapTileType("satellite")}
-            className={`flex items-center space-x-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center space-x-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
               mapTileType === "satellite"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50"
                 : "text-slate-300 hover:bg-slate-800 hover:text-white"
@@ -484,13 +503,39 @@ export const PetaLokasiMap: React.FC<Props> = ({
           </button>
           <button
             onClick={() => setMapTileType("streets")}
-            className={`flex items-center space-x-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center space-x-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
               mapTileType === "streets"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50"
                 : "text-slate-300 hover:bg-slate-800 hover:text-white"
             }`}
           >
             <span>🗺️ Peta Jalan</span>
+          </button>
+
+          <div className="h-4 w-px bg-slate-700 mx-1 hidden sm:block" />
+
+          {/* Mode Cluster vs Individual Pins */}
+          <button
+            onClick={() => setUseClustering(false)}
+            className={`flex items-center space-x-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+              !useClustering
+                ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-1 ring-emerald-400/50"
+                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+            }`}
+            title="Tampilkan semua titik lokasi satu-satu tanpa dikelompokkan"
+          >
+            <span>📍 Titik Individual (Satu-Satu)</span>
+          </button>
+          <button
+            onClick={() => setUseClustering(true)}
+            className={`flex items-center space-x-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+              useClustering
+                ? "bg-purple-600 text-white shadow-md shadow-purple-600/30 ring-1 ring-purple-400/50"
+                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+            }`}
+            title="Kelompokkan titik yang berdekatan"
+          >
+            <span>🔮 Cluster</span>
           </button>
         </div>
 
