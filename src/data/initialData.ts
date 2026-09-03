@@ -809,14 +809,40 @@ function generate6246MasterDataset(): MeterRecord[] {
   ];
 
   const pnjPool = [
+    // South Ambon / Leitimur coastal strip
+    { pnj: "NUSANIWE, LATUHALAT", lat: -3.7190, lng: 128.1150 },
+    { pnj: "SERI, NUSANIWE", lat: -3.7250, lng: 128.1320 },
+    { pnj: "AMAHUSU, BAGUALA RAYA", lat: -3.7120, lng: 128.1480 },
+    { pnj: "AIR SALOBAR, WAINITU", lat: -3.7080, lng: 128.1680 },
+    { pnj: "KUDAMATI, BENTENG", lat: -3.7010, lng: 128.1780 },
+    { pnj: "BATU MEJA, SIRIMAU", lat: -3.6890, lng: 128.1920 },
+    { pnj: "KARANG PANJANG, SIRIMAU", lat: -3.6840, lng: 128.1980 },
+    { pnj: "GALALA, TANTUI", lat: -3.6710, lng: 128.2090 },
+    { pnj: "HALONG DALAM, BAGUALA", lat: -3.6580, lng: 128.2260 },
+    { pnj: "LATERI UTAMA, BAGUALA", lat: -3.6498, lng: 128.2391 },
+    { pnj: "ONG BAGUALA, LATERI", lat: -3.6542, lng: 128.2372 },
+    { pnj: "HT KECIL, HALONG", lat: -3.6521, lng: 128.2365 },
+
+    // Central Baguala / Passo
     { pnj: "PASSO UTAMA, BAGUALA", lat: -3.6260, lng: 128.2500 },
     { pnj: "PASSO PANTAI, BAGUALA", lat: -3.6275, lng: 128.2560 },
-    { pnj: "JEMBATAN DUA PASSO", lat: -3.6107, lng: 128.3270 },
     { pnj: "NEGERI LAMA, BAGUALA", lat: -3.6280, lng: 128.2580 },
     { pnj: "ERI LAMA, BAGUALA", lat: -3.6290, lng: 128.2574 },
+    { pnj: "JEMBATAN DUA PASSO", lat: -3.6107, lng: 128.3270 },
     { pnj: "KAMPUNG BARU BAGUALA", lat: -3.6228, lng: 128.2503 },
     { pnj: "KMP PISANG BAGUALA", lat: -3.6231, lng: 128.2512 },
     { pnj: "UD PATTIMURA, BAGUALA", lat: -3.6245, lng: 128.2510 },
+    { pnj: "NANIA ATAS, BAGUALA", lat: -3.6190, lng: 128.2460 },
+    { pnj: "WAIHERU KAMPUS", lat: -3.6160, lng: 128.2430 },
+    { pnj: "HUNUTH, BAGUALA", lat: -3.6120, lng: 128.2400 },
+
+    // West Ambon / Teluk Dalam
+    { pnj: "HATIVE BESAR, BAGUALA", lat: -3.6250, lng: 128.1350 },
+    { pnj: "TAWIRI, BANDARA", lat: -3.6850, lng: 128.1150 },
+    { pnj: "LAHA, AIR MANIS", lat: -3.7040, lng: 128.0990 },
+
+    // East Baguala / Salahutu Sector
+    { pnj: "WAITATIRI, WAIYARI", lat: -3.6192, lng: 128.2951 },
     { pnj: "SULI BANDA, SALAHUTU", lat: -3.6142, lng: 128.3125 },
     { pnj: "DESA SULI, SALAHUTU", lat: -3.6210, lng: 128.3150 },
     { pnj: "NATSEPA BEACH, SULI", lat: -3.6275, lng: 128.3005 },
@@ -830,14 +856,9 @@ function generate6246MasterDataset(): MeterRecord[] {
     { pnj: "DESA WAAI, SALAHUTU", lat: -3.5718, lng: 128.3235 },
     { pnj: "MARETA WAAI", lat: -3.5696, lng: 128.3258 },
     { pnj: "UJUNG BATU PASSO", lat: -3.5482, lng: 128.3301 },
-    { pnj: "LATERI UTAMA, BAGUALA", lat: -3.6498, lng: 128.2391 },
-    { pnj: "HALONG DALAM, BAGUALA", lat: -3.6510, lng: 128.2380 },
-    { pnj: "ONG BAGUALA", lat: -3.6542, lng: 128.2372 },
-    { pnj: "HT KECIL BAGUALA", lat: -3.6521, lng: 128.2365 },
-    { pnj: "NANIA ATAS, BAGUALA", lat: -3.6200, lng: 128.2480 },
-    { pnj: "WAIHERU KAMPUS", lat: -3.6180, lng: 128.2450 },
-    { pnj: "HUNUTH BAGUALA", lat: -3.6150, lng: 128.2420 },
     { pnj: "DESA LIANG, SALAHUTU", lat: -3.5220, lng: 128.3310 },
+    { pnj: "HITU, LEIHITU", lat: -3.5650, lng: 128.1450 },
+    { pnj: "HILA, LEIHITU", lat: -3.5450, lng: 128.0950 }
   ];
 
   for (let i = dataset.length; i < targetTotal; i++) {
@@ -857,7 +878,7 @@ function generate6246MasterDataset(): MeterRecord[] {
     // Compute residential street offsets on land
     const goldenAngle = 137.5 * (Math.PI / 180);
     const angle = (i * goldenAngle) % (2 * Math.PI);
-    const radius = 0.0008 + ((i * 17) % 35) * 0.00015;
+    const radius = 0.0012 + ((i * 19) % 45) * 0.00018;
     const lat = Number((pnjLoc.lat + radius * Math.cos(angle)).toFixed(6));
     const lng = Number((pnjLoc.lng + radius * Math.sin(angle)).toFixed(6));
 

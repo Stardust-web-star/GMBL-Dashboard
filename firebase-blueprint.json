@@ -13,13 +13,9 @@
           "type": "string",
           "description": "Customer PLN ID"
         },
-        "nama": {
+        "namaPelanggan": {
           "type": "string",
           "description": "Customer name"
-        },
-        "alamat": {
-          "type": "string",
-          "description": "Customer address"
         },
         "status": {
           "type": "string",
@@ -38,18 +34,85 @@
           "type": "string",
           "description": "Dismantled meter reading stand"
         },
+        "latitude": {
+          "type": "number",
+          "description": "GPS Latitude coordinate"
+        },
+        "longitude": {
+          "type": "number",
+          "description": "GPS Longitude coordinate"
+        },
         "updatedAt": {
           "type": "string",
           "description": "ISO timestamp of the update"
         }
       },
       "required": ["id", "idPelanggan", "status"]
+    },
+    "MasterDataChunk": {
+      "title": "Master Data Chunk",
+      "description": "Stores chunks of full master dataset for seamless cloud synchronization between Studio and Vercel",
+      "type": "object",
+      "properties": {
+        "chunkIndex": {
+          "type": "number"
+        },
+        "totalChunks": {
+          "type": "number"
+        },
+        "totalMeters": {
+          "type": "number"
+        },
+        "metersJson": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": ["chunkIndex", "totalChunks", "updatedAt"]
+    },
+    "UserAccountDoc": {
+      "title": "User Account",
+      "description": "User credentials and roles",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "email", "role"]
     }
   },
   "firestore": {
     "/meter_updates/{meterId}": {
       "schema": "MeterUpdate",
       "description": "Real-time sync updates for replaced or modified meters"
+    },
+    "/master_dataset/{chunkId}": {
+      "schema": "MasterDataChunk",
+      "description": "Synchronized master dataset between Google AI Studio and Vercel"
+    },
+    "/sync_state/{stateId}": {
+      "schema": "MasterDataChunk",
+      "description": "Sync state metadata"
+    },
+    "/user_accounts/{userId}": {
+      "schema": "UserAccountDoc",
+      "description": "User accounts collection"
     }
   }
 }
+

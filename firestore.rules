@@ -6,16 +6,25 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Meter real-time synchronization collection
+    // Meter real-time synchronization collection (per-meter updates)
     match /meter_updates/{meterId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if true;
     }
 
-    // General app state metadata
+    // Synchronized master dataset (full master data chunks across Google AI Studio & Vercel)
+    match /master_dataset/{chunkId} {
+      allow read, write: if true;
+    }
+
+    // General app sync state metadata (version, counts, timestamps)
     match /sync_state/{stateId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if true;
+    }
+
+    // User accounts collection
+    match /user_accounts/{userId} {
+      allow read, write: if true;
     }
   }
 }
+

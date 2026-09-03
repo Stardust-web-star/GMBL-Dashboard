@@ -143,17 +143,57 @@ export function isWaterCoordinate(lat: number, lng: number): boolean {
 
 export const LOCALITY_LAND_ZONES = [
   {
+    keywords: ["NUSANIWE", "LATUHALAT", "SERI", "SEILALE", "AIR LOW"],
+    centerLat: -3.7190,
+    centerLng: 128.1150,
+  },
+  {
+    keywords: ["AMAHUSU", "AIR SALOBAR", "WAINITU", "KUDAMATI", "BENTENG"],
+    centerLat: -3.7050,
+    centerLng: 128.1650,
+  },
+  {
+    keywords: ["SIRIMAU", "BATU MEJA", "KARANG PANJANG", "BATU GAJAH", "URITETU"],
+    centerLat: -3.6890,
+    centerLng: 128.1920,
+  },
+  {
+    keywords: ["GALALA", "TANTUI", "HATIVE KECIL", "BATUMERAH"],
+    centerLat: -3.6710,
+    centerLng: 128.2090,
+  },
+  {
+    keywords: ["LATERI", "HALONG", "ZIPU", "MARTHA", "ONG", "HT KECIL"],
+    centerLat: -3.65126,
+    centerLng: 128.23718,
+  },
+  {
     keywords: ["PASSO", "ERI", "JEMBATAN DUA", "OTTOKWIK", "NEGERI LAMA"],
     centerLat: -3.62607,
     centerLng: 128.24326,
   },
   {
-    keywords: ["SULI", "NATSEPA", "UMURY", "ARI"],
-    centerLat: -3.6210,
-    centerLng: 128.2860,
+    keywords: ["NANIA", "WAIHERU", "HUNUTH", "DURIAN PATAH"],
+    centerLat: -3.6160,
+    centerLng: 128.2430,
   },
   {
-    keywords: ["TULEHU", "EHU", "OKENG", "WAISO"],
+    keywords: ["HATIVE BESAR", "TAWIRI", "LAHA", "AIR MANIS", "BANDARA"],
+    centerLat: -3.6850,
+    centerLng: 128.1150,
+  },
+  {
+    keywords: ["WAITATIRI", "WAIYARI", "FOC", "ANGGA SERE"],
+    centerLat: -3.6192,
+    centerLng: 128.2951,
+  },
+  {
+    keywords: ["SULI", "NATSEPA", "UMURY", "ARI", "SOPAPEI", "RINDAM", "HALIWELA"],
+    centerLat: -3.6225,
+    centerLng: 128.3180,
+  },
+  {
+    keywords: ["TULEHU", "EHU", "OKENG", "WAISO", "DUSUN DURIAN"],
     centerLat: -3.59709,
     centerLng: 128.33718,
   },
@@ -163,19 +203,14 @@ export const LOCALITY_LAND_ZONES = [
     centerLng: 128.32266,
   },
   {
-    keywords: ["LATERI", "HALONG", "ZIPU", "MARTHA", "ONG", "HT KECIL"],
-    centerLat: -3.65126,
-    centerLng: 128.23718,
-  },
-  {
-    keywords: ["PATTIMURA", "KAMPUNG", "BARU", "PISANG", "AIR MANIS", "NANIA", "WAIHERU"],
-    centerLat: -3.71108,
-    centerLng: 128.09996,
-  },
-  {
     keywords: ["LIANG", "HUNIMUA"],
     centerLat: -3.5220,
     centerLng: 128.3310,
+  },
+  {
+    keywords: ["HITU", "HILA", "WAKAL", "KAITETU", "LEIHITU"],
+    centerLat: -3.5550,
+    centerLng: 128.1250,
   },
 ];
 

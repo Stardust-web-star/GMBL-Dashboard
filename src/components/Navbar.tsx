@@ -312,9 +312,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 export const TopHeader: React.FC<{
   activeTab: MenuTab;
   onOpenMobileMenu: () => void;
+  isSyncing?: boolean;
+  lastSyncTime?: string;
+  onManualSync?: () => void;
 }> = ({
   activeTab,
   onOpenMobileMenu,
+  isSyncing = false,
+  lastSyncTime,
+  onManualSync,
 }) => {
   const titles: Record<MenuTab, string> = {
     peta: "1. Peta Lokasi Meter Tua",
@@ -360,13 +366,26 @@ export const TopHeader: React.FC<{
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 text-xs font-medium shrink-0">
-        <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full flex items-center gap-2 font-bold shadow-2xs">
+        {/* Firestore Real-Time Sync Indicator */}
+        <button
+          onClick={onManualSync}
+          title="Klik untuk sinkronisasi paksa antara Google AI Studio & Vercel"
+          className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 rounded-full flex items-center gap-2 font-bold shadow-2xs transition-all cursor-pointer active:scale-95"
+        >
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          Data Excel Synced
-        </span>
+          <span className="hidden sm:inline">Cloud Firestore Synced</span>
+          <span className="sm:hidden">Synced</span>
+          <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isSyncing ? "animate-spin" : ""}`} />
+        </button>
+
+        {lastSyncTime && (
+          <span className="text-[10px] text-slate-400 hidden xl:inline-block font-mono">
+            {lastSyncTime}
+          </span>
+        )}
 
         <span className="text-slate-500 font-mono font-semibold hidden md:inline-block bg-slate-100 px-3 py-1 rounded-xl border border-slate-200/60">
           {todayDateStr}

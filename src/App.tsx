@@ -10,6 +10,7 @@ import {
   getStoredMeters,
   getStoredUsers,
   saveStoredMeters,
+  saveStoredUsers,
   setCurrentSessionUser,
   updateMeterRecord,
 } from "./utils/storage";
@@ -17,9 +18,14 @@ import { pullFromCloud, pushToCloud } from "./utils/cloudSync";
 import {
   syncMeterToFirestore,
   batchSyncMetersToFirestore,
+  syncMasterDatasetToFirestore,
+  fetchMasterDatasetFromFirestore,
+  subscribeToFirestoreMasterDataset,
   subscribeToFirestoreMeterUpdates,
   fetchInitialFirestoreUpdates,
   testFirestoreConnection,
+  syncUsersToFirestore,
+  fetchUsersFromFirestore,
 } from "./utils/firestoreSync";
 import { LoginScreen } from "./components/LoginScreen";
 import { Navbar, TopHeader, MenuTab } from "./components/Navbar";
@@ -44,6 +50,8 @@ export default function App() {
   const [selectedMeterForDoc, setSelectedMeterForDoc] = useState<MeterRecord | null>(null);
   const [editingMeter, setEditingMeter] = useState<MeterRecord | null>(null);
   const [logoutNotice, setLogoutNotice] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncSuccessTime, setLastSyncSuccessTime] = useState<string>("");
 
   const metersRef = useRef(meters);
   useEffect(() => {
@@ -52,55 +60,75 @@ export default function App() {
 
   // Initial and periodic background cloud synchronization between Studio, Vercel & devices
   const triggerPullCloud = useCallback(async () => {
+    setIsSyncing(true);
     try {
       const current = metersRef.current;
-      // 1. Check Firestore initial/delta updates
+      // 1. Check Firestore initial/delta updates & master data
       const fsRes = await fetchInitialFirestoreUpdates(current);
-      if (fsRes.changesApplied > 0) {
+      if (fsRes.changesApplied > 0 || fsRes.updatedMeters.length !== current.length) {
         setMeters(fsRes.updatedMeters);
         console.log(`[FirestoreSync] Synced ${fsRes.changesApplied} updates from Firestore.`);
-        return;
       }
 
-      // 2. Also check fallback cloud sync
-      const res = await pullFromCloud(current);
+      // 2. Sync user accounts from Firestore
+      const cloudUsers = await fetchUsersFromFirestore();
+      if (cloudUsers && cloudUsers.length > 0) {
+        setUsers(cloudUsers);
+      }
+
+      // 3. Also check fallback cloud sync
+      const res = await pullFromCloud(metersRef.current);
       if (res.success && res.changesApplied > 0) {
         setMeters(res.updatedMeters);
         console.log(`[AutoSync] Synced ${res.changesApplied} updates between AI Studio & Vercel.`);
       }
+      setLastSyncSuccessTime(new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
     } catch (err) {
       console.warn("[AutoSync] Background check notice:", err);
+    } finally {
+      setIsSyncing(false);
     }
   }, []);
 
-  // Initial sync on startup & real-time Firestore subscription
+  // Initial sync on startup & real-time Firestore subscriptions
   useEffect(() => {
     // 1. Connection check and initial fetch
     testFirestoreConnection().catch(() => {});
     triggerPullCloud();
 
-    // 2. Real-time Firestore onSnapshot listener
-    const unsubscribeFirestore = subscribeToFirestoreMeterUpdates(
+    // 2. Real-time Firestore onSnapshot listener for per-meter updates
+    const unsubscribeMeterUpdates = subscribeToFirestoreMeterUpdates(
       () => metersRef.current,
       (updatedMeters, count) => {
         setMeters(updatedMeters);
-        console.log(`[Firestore Real-Time] Received ${count} updates from Cloud!`);
+        setLastSyncSuccessTime(new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+        console.log(`[Firestore Real-Time] Received ${count} meter updates from Cloud!`);
       }
     );
 
-    // 3. Batch sync any existing completed local records to Firestore if not yet present
-    const completedNow = metersRef.current.filter((m) => m.status === "SELESAI");
+    // 3. Real-time Firestore listener for Master Dataset modifications across Studio & Vercel
+    const unsubscribeMasterDataset = subscribeToFirestoreMasterDataset(
+      (newMasterMeters, meta) => {
+        setMeters(newMasterMeters);
+        setLastSyncSuccessTime(new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+        console.log(`[Firestore Master Dataset] Master data synchronized from ${meta.source} (${newMasterMeters.length} records).`);
+      }
+    );
+
+    // 4. Batch sync any existing completed local records to Firestore if not yet present
+    const currentMeters = metersRef.current;
+    const completedNow = currentMeters.filter((m) => m.status === "SELESAI");
     if (completedNow.length > 0) {
       batchSyncMetersToFirestore(completedNow).catch(() => {});
-      pushToCloud(metersRef.current).catch(() => {});
+      pushToCloud(currentMeters).catch(() => {});
     }
 
-    // 4. Fallback periodic polling every 10 seconds
+    // 5. Fallback periodic polling every 12 seconds
     const pollTimer = setInterval(() => {
       triggerPullCloud();
-    }, 10000);
+    }, 12000);
 
-    // 5. Multi-tab BroadcastChannel listener
+    // 6. Multi-tab BroadcastChannel listener
     let channel: BroadcastChannel | null = null;
     try {
       if (typeof window !== "undefined" && "BroadcastChannel" in window) {
@@ -115,14 +143,15 @@ export default function App() {
       // Ignore
     }
 
-    // 6. Window focus listener to refresh when switching tabs / returning to app
+    // 7. Window focus listener to refresh when switching tabs / returning to app
     const handleFocus = () => {
       triggerPullCloud();
     };
     window.addEventListener("focus", handleFocus);
 
     return () => {
-      unsubscribeFirestore();
+      unsubscribeMeterUpdates();
+      unsubscribeMasterDataset();
       clearInterval(pollTimer);
       window.removeEventListener("focus", handleFocus);
       if (channel) channel.close();
@@ -228,12 +257,16 @@ export default function App() {
 
   const handleAddUser = (email: string, name: string, role: UserAccount["role"], password?: string) => {
     addUserAccount(email, name, role, password);
-    setUsers(getStoredUsers());
+    const newUsers = getStoredUsers();
+    setUsers(newUsers);
+    syncUsersToFirestore(newUsers).catch(() => {});
   };
 
   const handleDeleteUser = (id: string) => {
     deleteUserAccount(id);
-    setUsers(getStoredUsers());
+    const newUsers = getStoredUsers();
+    setUsers(newUsers);
+    syncUsersToFirestore(newUsers).catch(() => {});
   };
 
   const handleSelectForDocument = (meter: MeterRecord) => {
@@ -303,6 +336,9 @@ export default function App() {
               <TopHeader
                 activeTab={activeTab}
                 onOpenMobileMenu={() => setMobileMenuOpen(true)}
+                isSyncing={isSyncing}
+                lastSyncTime={lastSyncSuccessTime}
+                onManualSync={triggerPullCloud}
               />
 
               {/* View Container with Smooth Motion Transitions */}
@@ -376,6 +412,7 @@ export default function App() {
               meters={meters}
               onMetersUpdated={(newMeters) => {
                 setMeters(newMeters);
+                syncMasterDatasetToFirestore(newMeters).catch(() => {});
                 pushToCloud(newMeters).catch(() => {});
               }}
             />
@@ -385,5 +422,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
