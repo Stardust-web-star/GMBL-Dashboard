@@ -23,33 +23,35 @@ export function parseExcelBuffer(buffer: ArrayBuffer): MeterRecord[] {
 
 /**
  * Downloads current meter records as an Excel file (.xlsx)
+ * Formatted with "Kordinat" column (-3.6037047905949,128.335212307342) matching PLN Baguala standard
  */
 export function exportMetersToExcelFile(meters: MeterRecord[], filename?: string): void {
-  const dataRows = meters.map((m) => ({
-    "ID Pel": m.idPelanggan,
-    "NAMA": m.namaPelanggan,
-    "PNJ": m.pnj,
-    "TARIF": m.tarif,
-    "DAYA": m.daya,
-    "JENIS": m.jenis,
-    "No Meter": m.noMeterLama || "",
-    "Latitude": String(m.latitude).replace(".", ","),
-    "Longitude": String(m.longitude).replace(".", ","),
-  }));
+  const dataRows = meters.map((m) => {
+    const coordString = `${m.latitude},${m.longitude}`;
+    return {
+      "ID Pel": m.idPelanggan,
+      "NAMA": m.namaPelanggan,
+      "PNJ": m.pnj,
+      "TARIF": m.tarif,
+      "DAYA": m.daya,
+      "JENIS": m.jenis,
+      "No Meter": m.noMeterLama || "",
+      "Kordinat": coordString,
+    };
+  });
 
   const worksheet = XLSX.utils.json_to_sheet(dataRows);
 
   // Set column widths for nice viewing in Excel
   worksheet["!cols"] = [
     { wch: 16 }, // ID Pel
-    { wch: 25 }, // NAMA
+    { wch: 28 }, // NAMA
     { wch: 30 }, // PNJ
     { wch: 10 }, // TARIF
     { wch: 10 }, // DAYA
     { wch: 14 }, // JENIS
     { wch: 16 }, // No Meter
-    { wch: 20 }, // Latitude
-    { wch: 20 }, // Longitude
+    { wch: 36 }, // Kordinat (e.g. -3.6037047905949,128.335212307342)
   ];
 
   const workbook = XLSX.utils.book_new();
@@ -60,7 +62,7 @@ export function exportMetersToExcelFile(meters: MeterRecord[], filename?: string
 }
 
 /**
- * Generates and downloads a clean Excel template (.xlsx) with sample format
+ * Generates and downloads a clean Excel template (.xlsx) with sample format matching Image 2
  */
 export function downloadExcelTemplateFile(): void {
   const sampleRows = INITIAL_METERS.slice(0, 5).map((m) => ({
@@ -71,22 +73,20 @@ export function downloadExcelTemplateFile(): void {
     "DAYA": m.daya,
     "JENIS": m.jenis,
     "No Meter": m.noMeterLama || "",
-    "Latitude": String(m.latitude).replace(".", ","),
-    "Longitude": String(m.longitude).replace(".", ","),
+    "Kordinat": `${m.latitude},${m.longitude}`,
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(sampleRows);
 
   worksheet["!cols"] = [
     { wch: 16 },
-    { wch: 25 },
+    { wch: 28 },
     { wch: 30 },
     { wch: 10 },
     { wch: 10 },
     { wch: 14 },
     { wch: 16 },
-    { wch: 20 },
-    { wch: 20 },
+    { wch: 36 },
   ];
 
   const workbook = XLSX.utils.book_new();

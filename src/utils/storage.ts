@@ -237,6 +237,7 @@ export function exportMetersToCSV(meters: MeterRecord[], decimalSeparator: "," |
     "PETUGAS",
     "STATUS",
     "PNJ / LOKASI",
+    "KORDINAT",
     "LATITUDE",
     "LONGITUDE",
   ];
@@ -265,6 +266,7 @@ export function exportMetersToCSV(meters: MeterRecord[], decimalSeparator: "," |
     m.petugas,
     m.status,
     `"${(m.pnj || "").replace(/"/g, '""')}"`,
+    `"${m.latitude},${m.longitude}"`,
     formatCoord(m.latitude),
     formatCoord(m.longitude),
   ]);

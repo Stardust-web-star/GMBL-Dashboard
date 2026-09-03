@@ -403,8 +403,8 @@ export const ExcelSyncModal: React.FC<Props> = ({
                   Pilih atau Seret File Excel (.xlsx, .xls, .csv)
                 </h4>
                 <p className="text-xs text-slate-500 mb-4 max-w-md mx-auto">
-                  Unggah file Excel daftar pelanggan PLN. Sistem akan otomatis mendeteksi kolom{" "}
-                  <strong className="text-slate-700">ID Pel, NAMA, PNJ, TARIF, DAYA, JENIS, No Meter, Latitude, Longitude</strong>.
+                  Unggah file Excel daftar pelanggan PLN. Sistem otomatis mendeteksi kolom{" "}
+                  <strong className="text-slate-700">ID Pel, NAMA, PNJ, TARIF, DAYA, JENIS, No Meter, Kordinat</strong> (atau terpisah Latitude, Longitude).
                 </p>
                 <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm">
                   <FileSpreadsheet className="w-4 h-4" />
@@ -423,7 +423,7 @@ export const ExcelSyncModal: React.FC<Props> = ({
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                     <Table className="w-4 h-4 text-emerald-600" />
-                    Format Kolom Excel yang Didukung:
+                    Format Kolom Master Data Excel (8 Kolom Sesuai Template):
                   </span>
                   <button
                     onClick={downloadExcelTemplateFile}
@@ -444,8 +444,7 @@ export const ExcelSyncModal: React.FC<Props> = ({
                         <th className="px-3 py-1.5 border-b">DAYA</th>
                         <th className="px-3 py-1.5 border-b">JENIS</th>
                         <th className="px-3 py-1.5 border-b">No Meter</th>
-                        <th className="px-3 py-1.5 border-b">Latitude</th>
-                        <th className="px-3 py-1.5 border-b">Longitude</th>
+                        <th className="px-3 py-1.5 border-b text-emerald-700">Kordinat (Lat,Lng)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-mono">
@@ -457,8 +456,17 @@ export const ExcelSyncModal: React.FC<Props> = ({
                         <td className="px-3 py-1">900</td>
                         <td className="px-3 py-1">PRABAYAR</td>
                         <td className="px-3 py-1">36000810071</td>
-                        <td className="px-3 py-1 text-emerald-700">-3.60370479</td>
-                        <td className="px-3 py-1 text-emerald-700">128.3352123</td>
+                        <td className="px-3 py-1 text-emerald-700 font-bold">-3.6037047905949,128.335212307342</td>
+                      </tr>
+                      <tr>
+                        <td className="px-3 py-1 text-slate-900 font-bold">411300228124</td>
+                        <td className="px-3 py-1">EDM** ******</td>
+                        <td className="px-3 py-1">***ERI LAMA,</td>
+                        <td className="px-3 py-1">R1T</td>
+                        <td className="px-3 py-1">2200</td>
+                        <td className="px-3 py-1">PRABAYAR</td>
+                        <td className="px-3 py-1">36002382194</td>
+                        <td className="px-3 py-1 text-emerald-700 font-bold">-3.62607190833329,128.243261310917</td>
                       </tr>
                     </tbody>
                   </table>
@@ -534,13 +542,13 @@ export const ExcelSyncModal: React.FC<Props> = ({
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Tempelkan Baris Tabel Excel di Sini:
+                  Tempelkan Baris Tabel Excel di Sini (Sesuai Kolom Master Data):
                 </label>
                 <textarea
                   rows={8}
                   value={pasteInput}
                   onChange={(e) => setPasteInput(e.target.value)}
-                  placeholder="411340318513	LA ***	***ON MAN***	R1MT	900	PRABAYAR	36000810071	-3,60370479	128,335212&#10;411300228124	EDM** ******	***ERI LAMA	R1T	2200	PRABAYAR	36002382194	-3,62607190	128,243261"
+                  placeholder="411340318513	LA ***	***ON MAN***	R1MT	900	PRABAYAR	36000810071	-3.6037047905949,128.335212307342&#10;411300228124	EDM** ******	***ERI LAMA,	R1T	2200	PRABAYAR	36002382194	-3.62607190833329,128.243261310917"
                   className="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-slate-50"
                 />
               </div>

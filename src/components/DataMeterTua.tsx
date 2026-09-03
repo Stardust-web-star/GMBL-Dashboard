@@ -405,8 +405,8 @@ export const DataMeterTua: React.FC<Props> = ({
                 <th className="px-4 py-3 font-bold uppercase text-slate-500">ID Pelanggan</th>
                 <th className="px-4 py-3 font-bold uppercase text-slate-500">Nama Pelanggan</th>
                 <th className="px-4 py-3 font-bold uppercase text-slate-500">Tarif / Daya</th>
-                <th className="px-4 py-3 font-bold uppercase text-slate-500">No Meter Lama</th>
-                <th className="px-4 py-3 font-bold uppercase text-slate-500">No Meter Baru</th>
+                <th className="px-4 py-3 font-bold uppercase text-slate-500">No Meter</th>
+                <th className="px-4 py-3 font-bold uppercase text-slate-500 text-emerald-700">Kordinat</th>
                 <th className="px-4 py-3 font-bold uppercase text-slate-500">Jenis</th>
                 <th className="px-4 py-3 font-bold uppercase text-slate-500">Alasan</th>
                 <th className="px-4 py-3 font-bold uppercase text-slate-500">Petugas</th>
@@ -417,13 +417,14 @@ export const DataMeterTua: React.FC<Props> = ({
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {paginatedMeters.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={13} className="px-4 py-8 text-center text-slate-400">
                     Tidak ada data meter yang sesuai.
                   </td>
                 </tr>
               ) : (
                 paginatedMeters.map((m, idx) => {
                   const isDone = m.status === "SELESAI";
+                  const coordStr = `${m.latitude},${m.longitude}`;
                   return (
                     <tr
                       key={m.id}
@@ -436,8 +437,20 @@ export const DataMeterTua: React.FC<Props> = ({
                       <td className="px-4 py-3 text-slate-600 font-medium">
                         <span className="font-mono">{m.tarif}</span> / {m.daya} VA
                       </td>
-                      <td className="px-4 py-3 font-mono text-slate-500">{m.noMeterLama || "-"}</td>
-                      <td className="px-4 py-3 font-mono text-blue-600 font-bold">{m.noMeterBaru || "-"}</td>
+                      <td className="px-4 py-3 font-mono text-slate-600">
+                        {m.noMeterBaru ? (
+                          <span className="text-blue-600 font-bold">{m.noMeterBaru}</span>
+                        ) : (
+                          m.noMeterLama || "-"
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-[11px] text-emerald-800" title={`Kordinat: ${coordStr}`}>
+                        <div className="flex items-center gap-1">
+                          <span className="bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            {m.latitude.toFixed(6)},{m.longitude.toFixed(6)}
+                          </span>
+                        </div>
+                      </td>
                       <td className="px-4 py-3">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold ${

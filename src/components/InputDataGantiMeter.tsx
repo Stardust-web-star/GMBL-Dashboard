@@ -21,6 +21,7 @@ import {
   PetugasName,
   StatusGanti,
 } from "../types";
+import { parseCoordinate, parseKordinatPair } from "../utils/csvParser";
 
 interface Props {
   onSave: (data: Omit<MeterRecord, "id">) => void;
@@ -53,8 +54,9 @@ export const InputDataGantiMeter: React.FC<Props> = ({
   const [petugas, setPetugas] = useState<PetugasName>("ABDUL");
   const [status, setStatus] = useState<StatusGanti>("BELUM");
   const [pnj, setPnj] = useState("BAGUALA, PASSO");
-  const [latitude, setLatitude] = useState<number>(-3.626);
-  const [longitude, setLongitude] = useState<number>(128.25);
+  const [latitudeInput, setLatitudeInput] = useState<string>("-3.626");
+  const [longitudeInput, setLongitudeInput] = useState<string>("128.25");
+  const [kordinatCombinedInput, setKordinatCombinedInput] = useState<string>("-3.626,128.25");
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -79,10 +81,37 @@ export const InputDataGantiMeter: React.FC<Props> = ({
       setPetugas(editingMeter.petugas);
       setStatus(editingMeter.status);
       setPnj(editingMeter.pnj);
-      setLatitude(editingMeter.latitude);
-      setLongitude(editingMeter.longitude);
+      const latStr = String(editingMeter.latitude || -3.626).replace(/,/g, ".");
+      const lngStr = String(editingMeter.longitude || 128.25).replace(/,/g, ".");
+      setLatitudeInput(latStr);
+      setLongitudeInput(lngStr);
+      setKordinatCombinedInput(`${latStr},${lngStr}`);
     }
   }, [editingMeter]);
+
+  const handleLatitudeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = e.target.value.replace(/,/g, ".");
+    setLatitudeInput(sanitized);
+    setKordinatCombinedInput(`${sanitized},${longitudeInput}`);
+  };
+
+  const handleLongitudeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = e.target.value.replace(/,/g, ".");
+    setLongitudeInput(sanitized);
+    setKordinatCombinedInput(`${latitudeInput},${sanitized}`);
+  };
+
+  const handleCombinedKordinatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setKordinatCombinedInput(val);
+    const parsed = parseKordinatPair(val);
+    if (parsed.lat !== null) {
+      setLatitudeInput(String(parsed.lat));
+    }
+    if (parsed.lng !== null) {
+      setLongitudeInput(String(parsed.lng));
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,6 +120,9 @@ export const InputDataGantiMeter: React.FC<Props> = ({
       alert("ID Pelanggan dan Nama Pelanggan wajib diisi!");
       return;
     }
+
+    const parsedLat = parseCoordinate(latitudeInput) ?? -3.626;
+    const parsedLng = parseCoordinate(longitudeInput) ?? 128.25;
 
     const payload: Omit<MeterRecord, "id"> = {
       tanggal,
@@ -111,8 +143,8 @@ export const InputDataGantiMeter: React.FC<Props> = ({
       petugas,
       status,
       pnj,
-      latitude: Number(latitude),
-      longitude: Number(longitude),
+      latitude: parsedLat,
+      longitude: parsedLng,
     };
 
     onSave(payload);
@@ -147,10 +179,10 @@ export const InputDataGantiMeter: React.FC<Props> = ({
 
   const handleGenerateRandomCoords = () => {
     // Random offsets within Baguala area (-3.58 to -3.71, 128.09 to 128.34)
-    const lat = Number((-3.58 - Math.random() * 0.13).toFixed(8));
-    const lng = Number((128.09 + Math.random() * 0.25).toFixed(8));
-    setLatitude(lat);
-    setLongitude(lng);
+    const lat = (-3.58 - Math.random() * 0.13).toFixed(6);
+    const lng = (128.09 + Math.random() * 0.25).toFixed(6);
+    setLatitudeInput(lat);
+    setLongitudeInput(lng);
   };
 
   return (
@@ -460,40 +492,81 @@ export const InputDataGantiMeter: React.FC<Props> = ({
         {/* Section 4: GPS Tagging Coordinates */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600 flex items-center space-x-2">
-              <MapPin className="h-4 w-4" />
-              <span>4. Tagging Koordinat GPS Peta (Baguala Area)</span>
-            </h3>
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600 flex items-center space-x-2">
+                <MapPin className="h-4 w-4" />
+                <span>4. Tagging Koordinat GPS Peta (Baguala Area)</span>
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Tanda koma (<span className="font-bold text-amber-600">,</span>) otomatis dikonversi menjadi titik (<span className="font-bold text-emerald-600">.</span>) agar posisi peta 100% akurat.
+              </p>
+            </div>
             <button
               type="button"
               onClick={handleGenerateRandomCoords}
-              className="text-[11px] font-semibold text-blue-600 hover:underline"
+              className="text-[11px] font-semibold text-blue-600 hover:underline shrink-0"
             >
               Set Koordinat Baguala Acak
             </button>
           </div>
 
+          {/* Combined Kordinat Quick Input / Paste */}
+          <div className="bg-blue-50/60 p-3 rounded-xl border border-blue-200/80">
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-blue-900">
+                TITIK KORDINAT (Format: -3.60370479,128.3352123)
+              </label>
+              <span className="text-[10px] font-mono text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-bold">
+                Master Data Baguala Standard
+              </span>
+            </div>
+            <input
+              type="text"
+              value={kordinatCombinedInput}
+              onChange={handleCombinedKordinatChange}
+              placeholder="-3.6037047905949,128.335212307342"
+              className="w-full text-xs p-2.5 border border-blue-300 rounded-lg bg-white font-mono text-blue-950 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+            />
+            <p className="text-[10px] text-blue-700 mt-1">
+              Tempelkan langsung titik kordinat lengkap di atas, atau edit nilai Latitude dan Longitude secara terpisah di bawah.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">LATITUDE</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">LATITUDE</label>
+                <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  Desimal: Titik (.)
+                </span>
+              </div>
               <input
-                type="number"
-                step="any"
-                value={latitude}
-                onChange={(e) => setLatitude(parseFloat(e.target.value))}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                type="text"
+                inputMode="decimal"
+                value={latitudeInput}
+                onChange={handleLatitudeChange}
+                placeholder="-3.626000"
+                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm"
               />
+              <p className="text-[10px] text-slate-400 mt-1">Contoh: -3.62966 atau -3.603704</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">LONGITUDE</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">LONGITUDE</label>
+                <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  Desimal: Titik (.)
+                </span>
+              </div>
               <input
-                type="number"
-                step="any"
-                value={longitude}
-                onChange={(e) => setLongitude(parseFloat(e.target.value))}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                type="text"
+                inputMode="decimal"
+                value={longitudeInput}
+                onChange={handleLongitudeChange}
+                placeholder="128.250000"
+                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm"
               />
+              <p className="text-[10px] text-slate-400 mt-1">Contoh: 128.258574 atau 128.335212</p>
             </div>
           </div>
         </div>

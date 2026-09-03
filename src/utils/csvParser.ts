@@ -3,13 +3,99 @@ import { INITIAL_METERS } from "../data/initialData";
 
 export function parseCoordinate(val: any): number | null {
   if (val === undefined || val === null || val === "") return null;
-  // Convert comma decimal separator (Indonesian Google Sheet format) to dot
-  const str = String(val).trim().replace(",", ".");
-  const match = str.match(/-?\d+(\.\d+)?/);
-  if (!match) return null;
-  const num = parseFloat(match[0]);
+  // Convert comma decimal separator (Indonesian Excel/Sheets format) to dot
+  let str = String(val).trim();
+  if (!str) return null;
+
+  // Replace unicode minus signs with standard minus
+  str = str.replace(/[−–—]/g, "-");
+
+  // Replace comma with dot
+  str = str.replace(/,/g, ".");
+
+  // Remove any characters other than digits, dot, and minus
+  str = str.replace(/[^0-9.-]/g, "");
+
+  // If there are multiple dots, treat the first as decimal point
+  const parts = str.split(".");
+  if (parts.length > 2) {
+    str = parts[0] + "." + parts.slice(1).join("");
+  }
+
+  const num = parseFloat(str);
   if (isNaN(num)) return null;
   return num;
+}
+
+/**
+ * Parses a combined coordinate string in various formats:
+ * e.g. "-3.6037047905949,128.335212307342"
+ * e.g. "-3.6037047905949, 128.335212307342"
+ * e.g. "-3,6037047905949; 128,335212307342"
+ * e.g. "-3.6037047905949 128.335212307342"
+ */
+export function parseKordinatPair(val: any): { lat: number | null; lng: number | null } {
+  if (val === undefined || val === null || val === "") return { lat: null, lng: null };
+  let str = String(val).trim().replace(/^["']|["']$/g, "");
+  if (!str) return { lat: null, lng: null };
+
+  // Replace unicode minus signs with standard minus
+  str = str.replace(/[−–—]/g, "-");
+
+  let part1 = "";
+  let part2 = "";
+
+  if (str.includes(";")) {
+    const parts = str.split(";").map((p) => p.trim());
+    part1 = parts[0] || "";
+    part2 = parts[1] || "";
+  } else if (str.includes("/") && !str.includes(",")) {
+    const parts = str.split("/").map((p) => p.trim());
+    part1 = parts[0] || "";
+    part2 = parts[1] || "";
+  } else if (str.includes(",")) {
+    const commaParts = str.split(",");
+    if (commaParts.length === 2) {
+      part1 = commaParts[0].trim();
+      part2 = commaParts[1].trim();
+    } else if (commaParts.length > 2) {
+      // Possible format with comma decimals and space: e.g. "-3,60370479, 128,3352123"
+      const match = str.match(/([+-]?\d+(?:[.,]\d+)?)[,\s]+([+-]?\d+(?:[.,]\d+)?)/);
+      if (match) {
+        part1 = match[1];
+        part2 = match[2];
+      }
+    }
+  } else if (/\s+/.test(str)) {
+    const parts = str.split(/\s+/).map((p) => p.trim());
+    if (parts.length >= 2) {
+      part1 = parts[0];
+      part2 = parts[1];
+    }
+  }
+
+  let lat = parseCoordinate(part1);
+  let lng = parseCoordinate(part2);
+
+  // If couldn't parse using delimiter splitting, extract matching floats
+  if (lat === null || lng === null) {
+    const numbers = str.match(/[-+]?[0-9]+(?:[.,][0-9]+)?/g);
+    if (numbers && numbers.length >= 2) {
+      lat = parseCoordinate(numbers[0]);
+      lng = parseCoordinate(numbers[1]);
+    }
+  }
+
+  // Swap if coordinates were provided as (lng, lat)
+  if (lat !== null && lng !== null) {
+    if (Math.abs(lat) > 90 || (lat > 100 && lng < 0)) {
+      const temp = lat;
+      lat = lng;
+      lng = temp;
+    }
+  }
+
+  return { lat, lng };
 }
 
 // Map of known localities in Baguala & Ambon area matching Google Satellite map locations
@@ -49,17 +135,8 @@ export const LOCALITY_ZONES = [
 export function isWaterCoordinate(lat: number, lng: number): boolean {
   if (!lat || !lng || isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) return true;
 
-  // Teluk Ambon water body (Passo / Lateri / Halong / Galala shore)
-  if (lat < -3.610 && lat > -3.665 && lng < 128.2510) return true;
-
-  // Banda Sea / Baguala Bay (Tulehu / Suli / Waai / Natsepa coastal water)
-  if (lat < -3.540 && lat > -3.625 && lng > 128.3360) return true;
-
-  // Air Manis / Nusaniwe sea
-  if (lat < -3.690 && lng < 128.1080) return true;
-
-  // Outer bounds (far out in the sea surrounding Ambon)
-  if (lat > -3.50 || lat < -3.75 || lng < 128.08 || lng > 128.38) return true;
+  // Extreme outer bounds (outside of Maluku / Ambon island region)
+  if (lat > -3.0 || lat < -4.2 || lng < 127.5 || lng > 129.0) return true;
 
   return false;
 }
@@ -67,8 +144,8 @@ export function isWaterCoordinate(lat: number, lng: number): boolean {
 export const LOCALITY_LAND_ZONES = [
   {
     keywords: ["PASSO", "ERI", "JEMBATAN DUA", "OTTOKWIK", "NEGERI LAMA"],
-    centerLat: -3.6275,
-    centerLng: 128.2560,
+    centerLat: -3.62607,
+    centerLng: 128.24326,
   },
   {
     keywords: ["SULI", "NATSEPA", "UMURY", "ARI"],
@@ -77,23 +154,23 @@ export const LOCALITY_LAND_ZONES = [
   },
   {
     keywords: ["TULEHU", "EHU", "OKENG", "WAISO"],
-    centerLat: -3.5960,
-    centerLng: 128.3290,
+    centerLat: -3.59709,
+    centerLng: 128.33718,
   },
   {
     keywords: ["WAAI", "MARETA", "UJUNG BATU", "UJUNG"],
-    centerLat: -3.5710,
-    centerLng: 128.3240,
+    centerLat: -3.57527,
+    centerLng: 128.32266,
   },
   {
     keywords: ["LATERI", "HALONG", "ZIPU", "MARTHA", "ONG", "HT KECIL"],
-    centerLat: -3.6510,
-    centerLng: 128.2380,
+    centerLat: -3.65126,
+    centerLng: 128.23718,
   },
   {
     keywords: ["PATTIMURA", "KAMPUNG", "BARU", "PISANG", "AIR MANIS", "NANIA", "WAIHERU"],
-    centerLat: -3.6220,
-    centerLng: 128.2505,
+    centerLat: -3.71108,
+    centerLng: 128.09996,
   },
   {
     keywords: ["LIANG", "HUNIMUA"],
@@ -109,12 +186,12 @@ export function snapToLandInBaguala(
   namaPelanggan?: string,
   index: number = 0
 ): { lat: number; lng: number } {
-  // If coordinates are already safely on land, retain them
-  if (!isWaterCoordinate(lat, lng)) {
+  // If coordinates are valid and provided, retain the exact genuine coordinates
+  if (lat && lng && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0 && !isWaterCoordinate(lat, lng)) {
     return { lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)) };
   }
 
-  // Find matching land locality zone
+  // Find matching land locality zone for missing coordinates
   const searchText = `${pnj || ""} ${namaPelanggan || ""}`.toUpperCase();
   let matchedZone = LOCALITY_LAND_ZONES[0];
 
@@ -183,6 +260,7 @@ export function parseCsvToMeters(csvText: string): MeterRecord[] {
 
   let latIdx = -1;
   let lngIdx = -1;
+  let kordinatIdx = -1;
   let idPelIdx = -1;
   let namaIdx = -1;
   let pnjIdx = -1;
@@ -199,9 +277,11 @@ export function parseCsvToMeters(csvText: string): MeterRecord[] {
   if (isHeader) {
     firstLineCols.forEach((colHeader, idx) => {
       const lower = colHeader.toLowerCase().trim();
-      if (/latitude|^lat$/i.test(lower) && !/long|lng/i.test(lower)) {
+      if (/^kordinat|^koordinat|titik\s*kordinat|titik\s*koordinat|^coord|^coordinates|^gps/i.test(lower)) {
+        kordinatIdx = idx;
+      } else if (/latitude|^lat$/i.test(lower) && !/long|lng/i.test(lower)) {
         latIdx = idx;
-      } else if (/longitude|^long$|^lng$/i.test(lower)) {
+      } else if (/longitude|^long$|^lng$|longtitude/i.test(lower)) {
         lngIdx = idx;
       } else if (/no\s*meter\s*baru|meter_baru/i.test(lower)) {
         noMeterBaruIdx = idx;
@@ -235,13 +315,15 @@ export function parseCsvToMeters(csvText: string): MeterRecord[] {
   const sampleDataRow = parseCsvLine(lines[startRow] || "");
 
   // Dynamic Column Auto-Detection via Data Content Heuristics
-  if (idPelIdx === -1 || namaIdx === -1 || latIdx === -1 || lngIdx === -1) {
+  if (idPelIdx === -1 || namaIdx === -1 || (kordinatIdx === -1 && (latIdx === -1 || lngIdx === -1))) {
     sampleDataRow.forEach((val, idx) => {
       const cleaned = val.trim();
       if (/^\d{10,14}$/.test(cleaned) && cleaned.startsWith("4")) {
         if (idPelIdx === -1) idPelIdx = idx;
       } else if (/^\d{10,12}$/.test(cleaned) && cleaned.startsWith("3")) {
         if (noMeterIdx === -1) noMeterIdx = idx;
+      } else if (cleaned.includes(",") && (cleaned.includes("-3.") || cleaned.includes("128."))) {
+        if (kordinatIdx === -1) kordinatIdx = idx;
       } else if (/^-?3\.\d+|-?3,\d+/.test(cleaned)) {
         if (latIdx === -1) latIdx = idx;
       } else if (/^128\.\d+|^128,\d+/.test(cleaned)) {
@@ -259,8 +341,8 @@ export function parseCsvToMeters(csvText: string): MeterRecord[] {
     });
   }
 
-  // Fallback positional assignments if still undetected
-  if (sampleDataRow.length >= 8 && sampleDataRow.length <= 15) {
+  // Fallback positional assignments matching Image 2 (8 columns standard: ID Pel, NAMA, PNJ, TARIF, DAYA, JENIS, No Meter, Kordinat)
+  if (sampleDataRow.length === 8) {
     if (idPelIdx === -1) idPelIdx = 0;
     if (namaIdx === -1) namaIdx = 1;
     if (pnjIdx === -1) pnjIdx = 2;
@@ -268,8 +350,17 @@ export function parseCsvToMeters(csvText: string): MeterRecord[] {
     if (dayaIdx === -1) dayaIdx = 4;
     if (jenisIdx === -1) jenisIdx = 5;
     if (noMeterIdx === -1) noMeterIdx = 6;
-    if (latIdx === -1) latIdx = 7;
-    if (lngIdx === -1) lngIdx = 8;
+    if (kordinatIdx === -1) kordinatIdx = 7;
+  } else if (sampleDataRow.length >= 9 && sampleDataRow.length <= 15) {
+    if (idPelIdx === -1) idPelIdx = 0;
+    if (namaIdx === -1) namaIdx = 1;
+    if (pnjIdx === -1) pnjIdx = 2;
+    if (tarifIdx === -1) tarifIdx = 3;
+    if (dayaIdx === -1) dayaIdx = 4;
+    if (jenisIdx === -1) jenisIdx = 5;
+    if (noMeterIdx === -1) noMeterIdx = 6;
+    if (latIdx === -1 && kordinatIdx === -1) latIdx = 7;
+    if (lngIdx === -1 && kordinatIdx === -1) lngIdx = 8;
   }
 
   const results: MeterRecord[] = [];
@@ -307,8 +398,42 @@ export function parseCsvToMeters(csvText: string): MeterRecord[] {
 
     const pnjVal = (pnjIdx >= 0 ? cols[pnjIdx] : "") || initialFallback?.pnj || "BAGUALA";
 
-    let rawLat = latIdx >= 0 ? parseCoordinate(cols[latIdx]) : null;
-    let rawLng = lngIdx >= 0 ? parseCoordinate(cols[lngIdx]) : null;
+    let rawLat: number | null = null;
+    let rawLng: number | null = null;
+
+    // 1. Try extracting from combined Kordinat column
+    if (kordinatIdx >= 0 && cols[kordinatIdx]) {
+      const pair = parseKordinatPair(cols[kordinatIdx]);
+      if (pair.lat !== null && pair.lng !== null) {
+        rawLat = pair.lat;
+        rawLng = pair.lng;
+      }
+    }
+
+    // 2. Try extracting from separate Latitude / Longitude columns
+    if (rawLat === null || rawLng === null) {
+      if (latIdx >= 0 && cols[latIdx]) {
+        const pLat = parseCoordinate(cols[latIdx]);
+        if (pLat !== null) rawLat = pLat;
+      }
+      if (lngIdx >= 0 && cols[lngIdx]) {
+        const pLng = parseCoordinate(cols[lngIdx]);
+        if (pLng !== null) rawLng = pLng;
+      }
+    }
+
+    // 3. Fallback: Search all cells in row for a combined coordinate pair (e.g. if column was shifted)
+    if (rawLat === null || rawLng === null) {
+      for (let c = 0; c < cols.length; c++) {
+        if (c === idPelIdx || c === namaIdx) continue;
+        const pair = parseKordinatPair(cols[c]);
+        if (pair.lat !== null && pair.lng !== null) {
+          rawLat = pair.lat;
+          rawLng = pair.lng;
+          break;
+        }
+      }
+    }
 
     if (rawLat !== null && rawLng !== null) {
       if (Math.abs(rawLat) > 90 || (rawLat > 100 && rawLng < 0)) {
