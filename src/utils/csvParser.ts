@@ -523,7 +523,7 @@ export function parseCsvToMeters(csvText: string): MeterRecord[] {
       standBongkar: "0 kWh",
       jenis: jenisStr.includes("PRA") ? "PRA BAYAR" : "PASKA BAYAR",
       gantiMeter: gantiStr.includes("GANGGUAN") ? "METER GANGGUAN" : "METER TUA",
-      petugas: ((petugasIdx >= 0 ? cols[petugasIdx] : "") || "ABDUL").toUpperCase() as any,
+      petugas: ((petugasIdx >= 0 ? cols[petugasIdx] : "") || "").toUpperCase() as any,
       status: statusStr === "SELESAI" ? "SELESAI" : "BELUM",
       pnj: pnjVal,
       latitude: snapped.lat,

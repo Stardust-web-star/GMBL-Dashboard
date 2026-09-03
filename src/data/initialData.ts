@@ -501,7 +501,7 @@ const INITIAL_32_METERS: MeterRecord[] = [
     standBongkar: "03400 kWh",
     jenis: "PASKA BAYAR",
     gantiMeter: "METER TUA",
-    petugas: "ABDUL",
+    petugas: "" as any,
     status: "BELUM",
     pnj: "UD PATTIMURA, BAGUALA",
     latitude: -3.706853,
@@ -909,7 +909,7 @@ function generate6246MasterDataset(): MeterRecord[] {
         ? 1300
         : 2200;
 
-    const petugas = PETUGAS_LIST[i % PETUGAS_LIST.length];
+    const petugas = "" as any;
     const name = namesPool[i % namesPool.length];
 
     dataset.push({
