@@ -121,8 +121,39 @@ export async function syncMeterToFirestore(meter: MeterRecord): Promise<void> {
   }
 }
 
+let isSyncingMaster = false;
+let lastMasterSyncTimestamp = 0;
+
 /**
- * Upload multiple modified records in a batch
+ * Compact meter record for lightweight cloud storage
+ */
+function compactMeterForStorage(m: MeterRecord) {
+  return {
+    id: m.id,
+    idPelanggan: m.idPelanggan,
+    namaPelanggan: m.namaPelanggan,
+    tarif: m.tarif,
+    daya: m.daya,
+    jenis: m.jenis,
+    noMeterLama: m.noMeterLama,
+    noMeterBaru: m.noMeterBaru || "",
+    standBongkar: m.standBongkar || "",
+    noSnMaterialKwhMeter: m.noSnMaterialKwhMeter || "",
+    noSnMaterialMcb: m.noSnMaterialMcb || "",
+    kabelTw: m.kabelTw || "",
+    segel: m.segel || "",
+    gantiMeter: m.gantiMeter || "METER TUA",
+    petugas: m.petugas || "ABDUL",
+    status: m.status || "BELUM",
+    pnj: m.pnj || "",
+    latitude: Number(m.latitude) || -3.65,
+    longitude: Number(m.longitude) || 128.2,
+    updatedAt: m.updatedAt || "",
+  };
+}
+
+/**
+ * Upload multiple modified records in a batch with throttling
  */
 export async function batchSyncMetersToFirestore(meters: MeterRecord[]): Promise<void> {
   const modified = meters.filter(
@@ -134,7 +165,7 @@ export async function batchSyncMetersToFirestore(meters: MeterRecord[]): Promise
   if (modified.length === 0) return;
 
   try {
-    const chunkSize = 400;
+    const chunkSize = 200;
     for (let i = 0; i < modified.length; i += chunkSize) {
       const chunk = modified.slice(i, i + chunkSize);
       const batch = writeBatch(db);
@@ -146,6 +177,10 @@ export async function batchSyncMetersToFirestore(meters: MeterRecord[]): Promise
         }
       });
       await batch.commit();
+      // Brief pause between batches to prevent socket write-stream saturation
+      if (i + chunkSize < modified.length) {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+      }
     }
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, COLLECTION_NAME);
@@ -153,7 +188,7 @@ export async function batchSyncMetersToFirestore(meters: MeterRecord[]): Promise
 }
 
 /**
- * Synchronize full Master Dataset to Firestore in compact chunks
+ * Synchronize full Master Dataset to Firestore in compact, throttled chunks
  * Allows Google AI Studio and Vercel to have 100% identical master datasets automatically.
  */
 export async function syncMasterDatasetToFirestore(meters: MeterRecord[]): Promise<{
@@ -161,35 +196,53 @@ export async function syncMasterDatasetToFirestore(meters: MeterRecord[]): Promi
   totalChunks: number;
   message: string;
 }> {
+  // Prevent concurrent or hyper-frequent uploads
+  const now = Date.now();
+  if (isSyncingMaster || (now - lastMasterSyncTimestamp < 15000)) {
+    return {
+      success: true,
+      totalChunks: 0,
+      message: "Sinkronisasi master data sedang berlangsung...",
+    };
+  }
+
+  isSyncingMaster = true;
+  lastMasterSyncTimestamp = now;
+
   try {
     if (!Array.isArray(meters) || meters.length === 0) {
+      isSyncingMaster = false;
       return { success: false, totalChunks: 0, message: "Data master kosong." };
     }
 
-    const CHUNK_SIZE = 500;
-    const totalChunks = Math.ceil(meters.length / CHUNK_SIZE);
+    const compactedMeters = meters.map(compactMeterForStorage);
+    const CHUNK_SIZE = 800;
+    const totalChunks = Math.ceil(compactedMeters.length / CHUNK_SIZE);
     const updatedAt = new Date().toISOString();
     const source =
       typeof window !== "undefined" && window.location.hostname.includes("vercel")
         ? "Vercel Deployment"
         : "Google AI Studio";
 
-    // 1. Write each chunk to Firestore
+    // 1. Write each chunk sequentially to Firestore with small throttling delay
     for (let i = 0; i < totalChunks; i++) {
-      const slice = meters.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+      const slice = compactedMeters.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
       const chunkDocRef = doc(db, MASTER_CHUNKS_COLLECTION, `chunk_${i}`);
       await setDoc(chunkDocRef, {
         chunkIndex: i,
         totalChunks,
-        totalMeters: meters.length,
+        totalMeters: compactedMeters.length,
         metersJson: JSON.stringify(slice),
         updatedAt,
       });
+
+      // Throttling to prevent WebSocket / stream buffer exhaustion
+      await new Promise((resolve) => setTimeout(resolve, 120));
     }
 
     // 2. Update master metadata document
     await setDoc(doc(db, "sync_state", SYNC_STATE_DOC), {
-      totalMeters: meters.length,
+      totalMeters: compactedMeters.length,
       totalChunks,
       updatedAt,
       source,
@@ -216,6 +269,8 @@ export async function syncMasterDatasetToFirestore(meters: MeterRecord[]): Promi
       totalChunks: 0,
       message: `Gagal sinkron master data ke Firestore: ${err?.message || err}`,
     };
+  } finally {
+    isSyncingMaster = false;
   }
 }
 
@@ -394,11 +449,8 @@ export async function fetchInitialFirestoreUpdates(
     // 1. Check if master dataset exists in Firestore
     const masterRes = await fetchMasterDatasetFromFirestore();
     let baseMeters = currentMeters;
-    if (masterRes.success && masterRes.meters && masterRes.meters.length >= 6000) {
+    if (masterRes.success && masterRes.meters && masterRes.meters.length > 0) {
       baseMeters = masterRes.meters;
-    } else if (currentMeters.length >= 6000) {
-      // Seed Firestore with local master data if cloud has no master dataset yet
-      syncMasterDatasetToFirestore(currentMeters).catch(() => {});
     }
 
     // 2. Fetch individual meter updates
@@ -406,10 +458,6 @@ export async function fetchInitialFirestoreUpdates(
     const snapshot = await getDocs(colRef);
 
     if (snapshot.empty) {
-      const completed = baseMeters.filter((m) => m.status === "SELESAI");
-      if (completed.length > 0) {
-        await batchSyncMetersToFirestore(completed);
-      }
       return { updatedMeters: baseMeters, changesApplied: masterRes.success ? baseMeters.length : 0 };
     }
 

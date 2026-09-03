@@ -54,12 +54,15 @@ export default function App() {
   const [lastSyncSuccessTime, setLastSyncSuccessTime] = useState<string>("");
 
   const metersRef = useRef(meters);
+  const isPullingRef = useRef(false);
   useEffect(() => {
     metersRef.current = meters;
   }, [meters]);
 
   // Initial and periodic background cloud synchronization between Studio, Vercel & devices
   const triggerPullCloud = useCallback(async () => {
+    if (isPullingRef.current) return;
+    isPullingRef.current = true;
     setIsSyncing(true);
     try {
       const current = metersRef.current;
@@ -87,6 +90,7 @@ export default function App() {
       console.warn("[AutoSync] Background check notice:", err);
     } finally {
       setIsSyncing(false);
+      isPullingRef.current = false;
     }
   }, []);
 
@@ -115,18 +119,10 @@ export default function App() {
       }
     );
 
-    // 4. Batch sync any existing completed local records to Firestore if not yet present
-    const currentMeters = metersRef.current;
-    const completedNow = currentMeters.filter((m) => m.status === "SELESAI");
-    if (completedNow.length > 0) {
-      batchSyncMetersToFirestore(completedNow).catch(() => {});
-      pushToCloud(currentMeters).catch(() => {});
-    }
-
-    // 5. Fallback periodic polling every 12 seconds
+    // 4. Fallback periodic polling every 30 seconds
     const pollTimer = setInterval(() => {
       triggerPullCloud();
-    }, 12000);
+    }, 30000);
 
     // 6. Multi-tab BroadcastChannel listener
     let channel: BroadcastChannel | null = null;
