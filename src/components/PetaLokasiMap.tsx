@@ -27,9 +27,17 @@ import {
   Footprints,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   RotateCw,
   Locate,
   Route,
+  Plus,
+  Minus,
+  Menu,
+  SlidersHorizontal,
+  List,
+  Info,
 } from "lucide-react";
 import { MeterRecord, PetugasName, PETUGAS_LIST } from "../types";
 import { snapToLandInBaguala } from "../utils/csvParser";
@@ -49,6 +57,8 @@ interface Props {
     additionalData?: Partial<MeterRecord>
   ) => void;
   onSelectForDocument: (meter: MeterRecord) => void;
+  onOpenMobileMenu?: () => void;
+  isSyncing?: boolean;
 }
 
 // Pre-defined static Leaflet DivIcons to prevent re-creating DOM strings for 6000+ items
@@ -158,6 +168,8 @@ export const PetaLokasiMap: React.FC<Props> = ({
   meters,
   onUpdateMeterStatus,
   onSelectForDocument,
+  onOpenMobileMenu,
+  isSyncing,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -171,8 +183,60 @@ export const PetaLokasiMap: React.FC<Props> = ({
   const [selectedMeter, setSelectedMeter] = useState<MeterRecord | null>(null);
 
   const [mapTileType, setMapTileType] = useState<"satellite" | "streets">("satellite");
-  const [isLegendOpen, setIsLegendOpen] = useState(true);
+  const [isLegendOpen, setIsLegendOpen] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 1024 : false
+  );
   const [visibleCount, setVisibleCount] = useState<number>(80);
+  const [mobileListOpen, setMobileListOpen] = useState<boolean>(false);
+  const [mobileFilterModalOpen, setMobileFilterModalOpen] = useState<boolean>(false);
+
+  // Summary counts for quick chips
+  const counts = useMemo(() => {
+    let prabayar = 0;
+    let paskabayar = 0;
+    let selesai = 0;
+    let belum = 0;
+    for (let i = 0; i < meters.length; i++) {
+      const m = meters[i];
+      if (m.jenis === "PRA BAYAR") prabayar++;
+      else paskabayar++;
+      if (m.status === "SELESAI") selesai++;
+      else belum++;
+    }
+    return { prabayar, paskabayar, selesai, belum };
+  }, [meters]);
+
+  // Mobile horizontal filter chips scroll management
+  const chipsScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState<boolean>(false);
+  const [canScrollRight, setCanScrollRight] = useState<boolean>(true);
+
+  const updateScrollButtons = useCallback(() => {
+    const el = chipsScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 6);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6);
+  }, []);
+
+  useEffect(() => {
+    updateScrollButtons();
+    const handleResize = () => updateScrollButtons();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [updateScrollButtons, meters.length]);
+
+  const handleScrollChips = (direction: "left" | "right") => {
+    const el = chipsScrollRef.current;
+    if (!el) return;
+    const scrollAmount = 160;
+    el.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+    setTimeout(updateScrollButtons, 300);
+  };
+
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const hasInitialFittedRef = useRef(false);
   const prevFilterKeyRef = useRef<string>("");
@@ -549,8 +613,6 @@ export const PetaLokasiMap: React.FC<Props> = ({
         zoomControl: false,
       });
 
-      L.control.zoom({ position: "bottomright" }).addTo(map);
-
       // Tile layer
       const satelliteUrl = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
       const streetsUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -759,9 +821,9 @@ export const PetaLokasiMap: React.FC<Props> = ({
   };
 
   return (
-    <div className="relative flex h-full min-h-[calc(100vh-64px)] w-full flex-col overflow-hidden bg-slate-50 lg:flex-row">
-      {/* Side Filter Controls & Meter List */}
-      <div className="z-20 flex w-full flex-col border-b border-slate-200 bg-white p-3 sm:p-4 shadow-sm lg:w-96 lg:border-b-0 lg:border-r max-h-[40vh] lg:max-h-none overflow-y-auto shrink-0">
+    <div className="relative flex h-full min-h-[calc(100vh-64px)] w-full flex-col overflow-hidden bg-slate-900 lg:flex-row">
+      {/* Side Filter Controls & Meter List (Desktop Only) */}
+      <div className="hidden lg:flex z-20 w-96 flex-col border-r border-slate-200 bg-white p-4 shadow-sm shrink-0 overflow-y-auto">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div className="flex items-center space-x-2">
             <MapPin className="h-4 w-4 text-blue-600" />
@@ -926,11 +988,207 @@ export const PetaLokasiMap: React.FC<Props> = ({
       </div>
 
       {/* Main Interactive Map View */}
-      <div className="relative flex-1">
+      <div className="relative flex-1 h-full w-full">
         <div ref={mapContainerRef} className="h-full w-full bg-slate-900" />
 
-        {/* Map Type Control Bar */}
-        <div className="absolute top-4 left-4 z-[1000] flex items-center space-x-1.5 rounded-2xl border border-slate-800/80 bg-slate-900/90 p-1.5 shadow-2xl backdrop-blur-md">
+        {/* Mobile Google Maps Header & Search Bar (< lg) */}
+        <div className="lg:hidden absolute top-3 inset-x-3 z-[1000] flex flex-col gap-2 pointer-events-none">
+          {/* Floating Search Pill */}
+          <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/95 shadow-xl border border-slate-200/90 px-3.5 py-2.5 backdrop-blur-md">
+            {/* Hamburger Menu Button */}
+            {onOpenMobileMenu && (
+              <button
+                type="button"
+                onClick={onOpenMobileMenu}
+                className="text-slate-600 hover:text-blue-600 p-1 rounded-full transition-colors shrink-0 active:scale-95"
+                aria-label="Buka Menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            )}
+
+            {/* Search Input */}
+            <div className="relative flex-1 flex items-center min-w-0">
+              <Search className="h-4 w-4 text-blue-600 shrink-0 mr-2" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Telusuri ID Pel, Nama, Lokasi..."
+                className="w-full bg-transparent text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Sync status indicator */}
+            {isSyncing && (
+              <span className="flex h-2.5 w-2.5 relative shrink-0" title="Sinkronisasi Cloud Aktif">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+            )}
+
+            {/* Filter Detailed Button */}
+            <button
+              type="button"
+              onClick={() => setMobileFilterModalOpen(true)}
+              className={`p-1.5 rounded-full transition-all shrink-0 active:scale-95 ${
+                filterStatus !== "ALL" || filterPetugas !== "ALL"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-slate-500 hover:bg-slate-100"
+              }`}
+              title="Filter Lengkap"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Floating Category Pills with Modern Sleek Left/Right Scroll Controls */}
+          <div className="pointer-events-auto relative flex items-center w-full">
+            {/* Modern Left Scroll Button with subtle gradient mask */}
+            {canScrollLeft && (
+              <div className="absolute left-0 z-20 flex items-center h-full pl-0.5 pr-3 bg-gradient-to-r from-slate-950/70 via-slate-950/30 to-transparent rounded-l-full">
+                <button
+                  type="button"
+                  onClick={() => handleScrollChips("left")}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-md border border-slate-200/90 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                  aria-label="Geser ke kiri"
+                  title="Geser ke kiri"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Scrollable Chips Track (No native scrollbar) */}
+            <div
+              ref={chipsScrollRef}
+              onScroll={updateScrollButtons}
+              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth w-full px-1 py-1"
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+                WebkitOverflowScrolling: "touch",
+              }}
+            >
+              <button
+                onClick={() => setFilterJenis("ALL")}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                  filterJenis === "ALL"
+                    ? "bg-blue-600 text-white shadow-blue-600/30 ring-1 ring-blue-400"
+                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                }`}
+              >
+                <span>Semua</span>
+                <span className="text-[10px] opacity-85">({meters.length})</span>
+              </button>
+
+              <button
+                onClick={() => setFilterJenis("PRA BAYAR")}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                  filterJenis === "PRA BAYAR"
+                    ? "bg-blue-600 text-white shadow-blue-600/30 ring-1 ring-blue-400"
+                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                }`}
+              >
+                <span>⚡ Prabayar</span>
+                <span className="text-[10px] opacity-85">({counts.prabayar})</span>
+              </button>
+
+              <button
+                onClick={() => setFilterJenis("PASKA BAYAR")}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                  filterJenis === "PASKA BAYAR"
+                    ? "bg-purple-600 text-white shadow-purple-600/30 ring-1 ring-purple-400"
+                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                }`}
+              >
+                <span>🔌 Paskabayar</span>
+                <span className="text-[10px] opacity-85">({counts.paskabayar})</span>
+              </button>
+
+              <button
+                onClick={() => setFilterStatus(filterStatus === "BELUM" ? "ALL" : "BELUM")}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                  filterStatus === "BELUM"
+                    ? "bg-amber-600 text-white shadow-amber-600/30 ring-1 ring-amber-400"
+                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                }`}
+              >
+                <span>⏳ Belum ({counts.belum})</span>
+              </button>
+
+              <button
+                onClick={() => setFilterStatus(filterStatus === "SELESAI" ? "ALL" : "SELESAI")}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                  filterStatus === "SELESAI"
+                    ? "bg-emerald-600 text-white shadow-emerald-600/30 ring-1 ring-emerald-400"
+                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                }`}
+              >
+                <span>✅ Selesai ({counts.selesai})</span>
+              </button>
+
+              <button
+                onClick={() => setMobileListOpen(true)}
+                className="shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md bg-gradient-to-r from-blue-700 to-indigo-700 text-white flex items-center gap-1 backdrop-blur-md active:scale-95"
+              >
+                <List className="h-3.5 w-3.5" />
+                <span>Daftar Meter ({filteredMeters.length})</span>
+              </button>
+            </div>
+
+            {/* Modern Right Scroll Button with subtle gradient mask */}
+            {canScrollRight && (
+              <div className="absolute right-0 z-20 flex items-center h-full pr-0.5 pl-3 bg-gradient-to-l from-slate-950/70 via-slate-950/30 to-transparent rounded-r-full">
+                <button
+                  type="button"
+                  onClick={() => handleScrollChips("right")}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-md border border-slate-200/90 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                  aria-label="Geser ke kanan"
+                  title="Geser ke kanan"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Google Maps style Floating Layer Switcher & Legend Toggle (Cleanly spaced below the chips) */}
+        <div className="lg:hidden absolute top-32 right-3.5 z-[950] flex flex-col gap-2">
+          <button
+            onClick={() => setMapTileType(mapTileType === "satellite" ? "streets" : "satellite")}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900/90 text-white shadow-2xl border border-slate-700/70 backdrop-blur-md active:scale-95 transition-all"
+            title={mapTileType === "satellite" ? "Beralih ke Peta Jalan" : "Beralih ke Satelit"}
+            aria-label="Ubah Tipe Peta"
+          >
+            <Layers className="h-5 w-5 text-blue-400" />
+          </button>
+
+          <button
+            onClick={() => setIsLegendOpen(!isLegendOpen)}
+            className={`flex h-10 w-10 items-center justify-center rounded-2xl shadow-2xl border backdrop-blur-md active:scale-95 transition-all ${
+              isLegendOpen
+                ? "bg-blue-600 text-white border-blue-500 ring-2 ring-blue-400/40"
+                : "bg-slate-900/90 text-slate-300 border-slate-700/70 hover:text-white"
+            }`}
+            title="Buka / Tutup Legenda Peta"
+            aria-label="Legenda Peta"
+          >
+            <Info className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Map Type Control Bar (Desktop Only) */}
+        <div className="hidden lg:flex absolute top-4 left-4 z-[1000] items-center space-x-1.5 rounded-2xl border border-slate-800/80 bg-slate-900/90 p-1.5 shadow-2xl backdrop-blur-md">
           <button
             onClick={() => setMapTileType("satellite")}
             className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
@@ -1125,8 +1383,13 @@ export const PetaLokasiMap: React.FC<Props> = ({
           </div>
         )}
 
-        {/* Floating GPS & Locate User Controls */}
-        <div className="absolute bottom-6 right-4 z-[1000] flex flex-col items-end space-y-2">
+        {/* Floating Map Navigation & GPS Controls (Stacked vertically without overlapping) */}
+        <div
+          className={`absolute right-3.5 sm:right-6 z-[1000] flex flex-col items-end space-y-2 transition-all duration-200 ${
+            selectedMeter ? "bottom-[270px] sm:bottom-6" : "bottom-6"
+          }`}
+        >
+          {/* Locate / GPS User Position Button */}
           <button
             onClick={() => {
               if (userLocation && mapInstanceRef.current) {
@@ -1135,8 +1398,9 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 startGpsTracking(true);
               }
             }}
-            className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700/70 bg-slate-900/90 text-white shadow-2xl backdrop-blur-md hover:bg-blue-600 hover:border-blue-500 transition-all group"
+            className="relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-2xl border border-slate-700/70 bg-slate-900/90 text-white shadow-2xl backdrop-blur-md hover:bg-blue-600 hover:border-blue-500 transition-all group active:scale-95"
             title="Pusatkan ke Titik Lokasi Saya (GPS)"
+            aria-label="Pusatkan Lokasi Saya"
           >
             <Crosshair className={`h-5 w-5 ${gpsStatus === 'active' ? 'text-blue-400 group-hover:text-white' : 'text-slate-400'}`} />
             {gpsStatus === 'active' && (
@@ -1146,10 +1410,38 @@ export const PetaLokasiMap: React.FC<Props> = ({
               </span>
             )}
           </button>
+
+          {/* Integrated Zoom In & Zoom Out Controls (Hidden on mobile when card is open to avoid clutter) */}
+          <div className={`${selectedMeter ? "hidden sm:flex" : "flex"} flex-col rounded-2xl border border-slate-700/70 bg-slate-900/90 shadow-2xl backdrop-blur-md overflow-hidden`}>
+            <button
+              onClick={() => {
+                if (mapInstanceRef.current) {
+                  mapInstanceRef.current.zoomIn();
+                }
+              }}
+              className="flex h-9 w-10 sm:h-10 sm:w-11 items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800 active:scale-95"
+              title="Perbesar Peta (+)"
+              aria-label="Zoom In"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => {
+                if (mapInstanceRef.current) {
+                  mapInstanceRef.current.zoomOut();
+                }
+              }}
+              className="flex h-9 w-10 sm:h-10 sm:w-11 items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
+              title="Perkecil Peta (-)"
+              aria-label="Zoom Out"
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
-        {/* High-Tech Legend Overlay on Map */}
-        <div className="absolute top-4 right-4 z-[1000] w-72 rounded-2xl border border-slate-800/90 bg-slate-900/90 p-3.5 shadow-2xl backdrop-blur-md text-white transition-all">
+        {/* High-Tech Legend Overlay on Map (Desktop Only) */}
+        <div className="hidden lg:block absolute top-4 right-4 z-[1000] w-72 rounded-2xl border border-slate-800/90 bg-slate-900/90 p-3.5 shadow-2xl backdrop-blur-md text-white transition-all">
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2.5">
             <div className="flex items-center space-x-2">
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
@@ -1235,9 +1527,54 @@ export const PetaLokasiMap: React.FC<Props> = ({
           )}
         </div>
 
+        {/* Mobile Floating Legend Card (Positioned to the left of layer controls without covering them) */}
+        {isLegendOpen && (
+          <div className="lg:hidden absolute top-32 right-16 z-[960] w-64 rounded-2xl border border-slate-800/90 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-xl text-white animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-1.5 mb-2">
+              <span className="font-bold text-xs text-slate-100 flex items-center gap-1.5">
+                <Layers className="h-3.5 w-3.5 text-blue-400" />
+                Legenda Peta
+              </span>
+              <button
+                onClick={() => setIsLegendOpen(false)}
+                className="rounded-full p-1 text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="space-y-1.5 text-[11px]">
+              <div className="flex items-center justify-between rounded-lg bg-slate-800/60 p-1.5">
+                <span className="flex items-center gap-1.5 font-medium text-slate-200">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                  Meter Selesai
+                </span>
+                <span className="text-[10px] font-bold text-emerald-400">HIJAU</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-slate-800/60 p-1.5">
+                <span className="flex items-center gap-1.5 font-medium text-slate-200">
+                  <span className="h-2.5 w-2.5 rounded-full bg-sky-500"></span>
+                  Prabayar Belum
+                </span>
+                <span className="text-[10px] font-bold text-sky-400">BIRU (PR)</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-slate-800/60 p-1.5">
+                <span className="flex items-center gap-1.5 font-medium text-slate-200">
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+                  Paskabayar Belum
+                </span>
+                <span className="text-[10px] font-bold text-amber-400">KUNING (PS)</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Selected Meter Quick Actions Overlay */}
         {selectedMeter && (
-          <div className="absolute bottom-16 sm:bottom-6 left-3 right-3 sm:left-6 sm:right-6 z-[1000] max-w-xl mx-auto rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xl text-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="absolute bottom-4 sm:bottom-6 left-3 right-3 sm:left-6 sm:right-6 z-[1000] max-w-xl mx-auto rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xl text-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-200">
+            {/* Mobile Sheet Drag Indicator */}
+            <div className="sm:hidden -mt-1 mb-2.5 flex justify-center">
+              <div className="w-10 h-1 bg-slate-300 rounded-full" />
+            </div>
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-2">
                 <span className="rounded-lg bg-blue-100 px-3 py-1 text-xs font-bold text-blue-600 tracking-wide">
@@ -1506,6 +1843,196 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   <span>Simpan & Tandai SELESAI ({selectedPetugasForCompletion})</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Google Maps Bottom Sheet Drawer for Meter List */}
+        {mobileListOpen && (
+          <div className="lg:hidden fixed inset-x-0 bottom-0 top-16 z-[1200] flex flex-col bg-white rounded-t-3xl shadow-2xl border-t border-slate-200 animate-in slide-in-from-bottom duration-200">
+            {/* Grab Handle */}
+            <div className="pt-3 pb-1 flex justify-center cursor-pointer" onClick={() => setMobileListOpen(false)}>
+              <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <List className="h-4 w-4 text-blue-600" />
+                  Daftar Meter ({filteredMeters.length})
+                </h3>
+                <p className="text-[11px] text-slate-500">Ketuk meter untuk memusatkan peta ke lokasinya</p>
+              </div>
+              <button
+                onClick={() => setMobileListOpen(false)}
+                className="p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {filteredMeters.length === 0 ? (
+                <div className="py-12 text-center text-xs text-slate-400">
+                  Tidak ada data meter yang cocok dengan filter.
+                </div>
+              ) : (
+                <>
+                  {visibleSidebarMeters.map((m) => {
+                    const isSelected = selectedMeter?.id === m.id;
+                    const isDone = m.status === "SELESAI";
+                    return (
+                      <div
+                        key={m.id}
+                        onClick={() => {
+                          handleFlyToMeter(m);
+                          setMobileListOpen(false);
+                        }}
+                        className={`cursor-pointer rounded-2xl border p-3 transition-all active:scale-98 ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-50/70 shadow-sm"
+                            : "border-slate-200 bg-white hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 truncate max-w-[180px]">{m.namaPelanggan}</span>
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                              isDone
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-amber-100 text-amber-700"
+                            }`}
+                          >
+                            {m.status}
+                          </span>
+                        </div>
+                        <div className="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
+                          <span>ID Pel: <strong className="text-slate-800">{m.idPelanggan}</strong></span>
+                          <span className="font-semibold text-blue-600">{m.tarif} / {m.daya} VA</span>
+                        </div>
+                        <div className="mt-1 text-[10px] text-slate-400 flex items-center justify-between">
+                          <span>Jenis: <strong className="text-slate-600">{m.jenis}</strong></span>
+                          <span className="truncate max-w-[140px]">{m.pnj}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {visibleCount < filteredMeters.length && (
+                    <button
+                      onClick={() => setVisibleCount((prev) => prev + 100)}
+                      className="w-full py-2.5 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl mt-2 hover:bg-blue-100"
+                    >
+                      Tampilkan Lebih Banyak ({visibleCount} dari {filteredMeters.length})
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Filter Sheet Modal */}
+        {mobileFilterModalOpen && (
+          <div className="lg:hidden fixed inset-0 z-[1300] flex items-end sm:items-center justify-center bg-slate-950/60 p-0 sm:p-4 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-slate-200 text-slate-800 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center space-x-2">
+                  <SlidersHorizontal className="h-4 w-4 text-blue-600" />
+                  <h3 className="font-bold text-sm text-slate-900">Filter Data Meter</h3>
+                </div>
+                <button
+                  onClick={() => setMobileFilterModalOpen(false)}
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-3.5 text-xs">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1.5">Status Penggantian</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {["ALL", "SELESAI", "BELUM"].map((st) => (
+                      <button
+                        key={st}
+                        type="button"
+                        onClick={() => setFilterStatus(st)}
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                          filterStatus === st
+                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        {st === "ALL" ? "Semua" : st === "SELESAI" ? "✓ Selesai" : "! Belum"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1.5">Petugas Lapangan</label>
+                  <select
+                    value={filterPetugas}
+                    onChange={(e) => setFilterPetugas(e.target.value)}
+                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="ALL">Semua Petugas</option>
+                    {PETUGAS_LIST.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1.5">Jenis Layanan</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { val: "ALL", label: "Semua" },
+                      { val: "PRA BAYAR", label: "⚡ Prabayar" },
+                      { val: "PASKA BAYAR", label: "🔌 Paskabayar" },
+                    ].map((item) => (
+                      <button
+                        key={item.val}
+                        type="button"
+                        onClick={() => setFilterJenis(item.val)}
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                          filterJenis === item.val
+                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterStatus("ALL");
+                    setFilterPetugas("ALL");
+                    setFilterJenis("ALL");
+                    setSearchTerm("");
+                  }}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterModalOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all"
+                >
+                  Terapkan ({filteredMeters.length})
                 </button>
               </div>
             </div>

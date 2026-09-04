@@ -290,37 +290,39 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </motion.div>
       </aside>
-      {/* Mobile Bottom Navigation Dock (Visible on handphones < lg) */}
-      <div className="fixed bottom-3 inset-x-3 z-40 lg:hidden flex items-center justify-around bg-slate-900/90 border border-slate-800/90 backdrop-blur-xl rounded-2xl p-2 shadow-2xl shadow-slate-950/80">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                setMobileMenuOpen(false);
-              }}
-              className={`relative flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all ${
-                isActive ? "text-blue-400 font-extrabold" : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="activeMobileBottomPill"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  className="absolute inset-0 bg-blue-600/20 border border-blue-500/30 rounded-xl"
-                />
-              )}
-              <Icon className={`h-5 w-5 z-10 transition-transform ${isActive ? "scale-110 text-blue-400" : "text-slate-400"}`} />
-              <span className="text-[9px] z-10 mt-1 font-semibold truncate max-w-[52px] leading-none">
-                {item.label.split(" ")[0]}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Mobile Bottom Navigation Dock (Visible on handphones < lg when multiple tabs exist and not on full-screen peta view) */}
+      {menuItems.length > 1 && activeTab !== "peta" && (
+        <div className="fixed bottom-3 inset-x-3 z-40 lg:hidden flex items-center justify-around bg-slate-900/90 border border-slate-800/90 backdrop-blur-xl rounded-2xl p-2 shadow-2xl shadow-slate-950/80">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setMobileMenuOpen(false);
+                }}
+                className={`relative flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all ${
+                  isActive ? "text-blue-400 font-extrabold" : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeMobileBottomPill"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="absolute inset-0 bg-blue-600/20 border border-blue-500/30 rounded-xl"
+                  />
+                )}
+                <Icon className={`h-5 w-5 z-10 transition-transform ${isActive ? "scale-110 text-blue-400" : "text-slate-400"}`} />
+                <span className="text-[9px] z-10 mt-1 font-semibold truncate max-w-[52px] leading-none">
+                  {item.label.split(" ")[0]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 };

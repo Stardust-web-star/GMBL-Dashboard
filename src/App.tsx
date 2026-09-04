@@ -337,18 +337,20 @@ export default function App() {
 
             {/* Main Content Workspace Column */}
             <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-slate-50 lg:m-4 lg:rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden relative">
-              {/* Top Header Bar */}
-              <TopHeader
-                activeTab={activeTab}
-                currentUser={currentUser}
-                onOpenMobileMenu={() => setMobileMenuOpen(true)}
-                isSyncing={isSyncing}
-                lastSyncTime={lastSyncSuccessTime}
-                onManualSync={triggerPullCloud}
-              />
+              {/* Top Header Bar (Hidden on mobile when on map view to give full Google Maps screen) */}
+              <div className={activeTab === "peta" ? "hidden lg:block" : "block"}>
+                <TopHeader
+                  activeTab={activeTab}
+                  currentUser={currentUser}
+                  onOpenMobileMenu={() => setMobileMenuOpen(true)}
+                  isSyncing={isSyncing}
+                  lastSyncTime={lastSyncSuccessTime}
+                  onManualSync={triggerPullCloud}
+                />
+              </div>
 
               {/* View Container with Smooth Motion Transitions */}
-              <main className="flex-1 overflow-y-auto bg-slate-50 relative pb-20 lg:pb-0">
+              <main className={`flex-1 ${activeTab === "peta" ? "overflow-hidden pb-0" : "overflow-y-auto pb-20"} lg:pb-0 relative bg-slate-50`}>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
@@ -363,6 +365,8 @@ export default function App() {
                         meters={meters}
                         onUpdateMeterStatus={handleUpdateMeterStatus}
                         onSelectForDocument={handleSelectForDocument}
+                        onOpenMobileMenu={() => setMobileMenuOpen(true)}
+                        isSyncing={isSyncing}
                       />
                     )}
 
