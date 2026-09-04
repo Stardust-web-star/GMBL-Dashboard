@@ -34,28 +34,53 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
         if (match.password) {
           isPasswordValid = password === match.password;
         } else {
-          isPasswordValid = password.length >= 4 || password === "admin" || password === "admin123";
+          isPasswordValid = password.length >= 4 || password === "admin" || password === "admin123" || password === "pw123!";
         }
       }
 
       if (
         (trimmedEmail === "fikiilham56@gmail.com" && password === "admin123") ||
         (trimmedEmail === "muhammadnurbella20@gmail.com" && password === "admin") ||
+        (trimmedEmail === "petugasgm" && password === "pw123!") ||
         isPasswordValid
       ) {
-        const userToLogin: UserAccount = match || {
-          id: trimmedEmail === "muhammadnurbella20@gmail.com" ? "usr-admin-02" : `usr-${Date.now()}`,
-          email: trimmedEmail,
-          name: trimmedEmail === "muhammadnurbella20@gmail.com" ? "Acho" : "Fiki Ilham (Admin GMBL)",
-          role: "super_admin",
-          status: "active",
-          createdAt: "2026-09-01",
-        };
+        let userToLogin: UserAccount;
+        if (match) {
+          userToLogin = match;
+        } else if (trimmedEmail === "petugasgm") {
+          userToLogin = {
+            id: "usr-petugas-01",
+            email: "petugasgm",
+            name: "PETUGAS GM",
+            role: "petugas",
+            status: "active",
+            createdAt: "2026-09-03",
+            password: "pw123!",
+          };
+        } else if (trimmedEmail === "muhammadnurbella20@gmail.com") {
+          userToLogin = {
+            id: "usr-admin-02",
+            email: "muhammadnurbella20@gmail.com",
+            name: "Acho",
+            role: "super_admin",
+            status: "active",
+            createdAt: "2026-09-01",
+          };
+        } else {
+          userToLogin = {
+            id: `usr-${Date.now()}`,
+            email: trimmedEmail,
+            name: "Fiki Ilham (Admin GMBL)",
+            role: "super_admin",
+            status: "active",
+            createdAt: "2026-09-01",
+          };
+        }
 
         setCurrentSessionUser(userToLogin);
         onLoginSuccess(userToLogin);
       } else {
-        setErrorMsg("Email atau Password tidak sesuai. Silakan periksa kembali.");
+        setErrorMsg("Email / User ID atau Password tidak sesuai. Silakan periksa kembali.");
       }
       setLoading(false);
     }, 400);
@@ -192,11 +217,11 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
                   <input
-                    type="email"
+                    type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Masukkan Email / NIP..."
+                    placeholder="Masukkan Email / User ID (cth: petugasgm)..."
                     className="w-full text-xs p-3 pl-10 border border-slate-200 rounded-xl bg-slate-50/70 text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white focus:border-transparent transition-all shadow-2xs"
                   />
                 </div>

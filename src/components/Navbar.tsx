@@ -53,13 +53,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   setMobileMenuOpen,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const isPetugas = currentUser.role === "petugas";
 
-  const menuItems = [
+  const allMenuItems = [
     {
       id: "peta" as MenuTab,
       label: "Peta Lokasi Tua",
       icon: MapPin,
-      badge: null,
+      badge: isPetugas ? "HANYA PETA" : null,
+      badgeColor: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
     },
     {
       id: "data" as MenuTab,
@@ -95,6 +97,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       badgeColor: "bg-purple-500/20 text-purple-300 border border-purple-500/30",
     },
   ];
+
+  const menuItems = isPetugas
+    ? allMenuItems.filter((item) => item.id === "peta")
+    : allMenuItems;
 
   return (
     <>
@@ -228,24 +234,30 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Bottom Floating Card & User Profile */}
           <div className="p-3 border-t border-slate-800/80 space-y-2 shrink-0">
-            {/* Excel Sync Trigger */}
-            <button
-              onClick={onOpenSheetSync}
-              className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/80 to-teal-950/80 text-emerald-300 text-xs font-bold hover:from-emerald-900/90 hover:to-teal-900/90 hover:border-emerald-400 shadow-md transition-all group ${
-                isCollapsed && !mobileMenuOpen ? "px-2" : ""
-              }`}
-              title="Unggah / Sync Excel"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform shrink-0" />
-              {(!isCollapsed || mobileMenuOpen) && <span>Unggah / Sync Excel</span>}
-            </button>
+            {/* Excel Sync Trigger (Hidden for Petugas GM since access is strictly limited to map) */}
+            {!isPetugas && (
+              <button
+                onClick={onOpenSheetSync}
+                className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/80 to-teal-950/80 text-emerald-300 text-xs font-bold hover:from-emerald-900/90 hover:to-teal-900/90 hover:border-emerald-400 shadow-md transition-all group ${
+                  isCollapsed && !mobileMenuOpen ? "px-2" : ""
+                }`}
+                title="Unggah / Sync Excel"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform shrink-0" />
+                {(!isCollapsed || mobileMenuOpen) && <span>Unggah / Sync Excel</span>}
+              </button>
+            )}
 
             {/* User Profile Floating Card */}
             <div className={`flex items-center justify-between bg-slate-800/90 p-2.5 rounded-2xl border border-slate-700/80 shadow-inner ${
               isCollapsed && !mobileMenuOpen ? "flex-col gap-2" : ""
             }`}>
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="relative flex h-8 w-8 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 items-center justify-center text-xs font-black text-white uppercase shrink-0 shadow-md">
+                <div className={`relative flex h-8 w-8 rounded-xl items-center justify-center text-xs font-black text-white uppercase shrink-0 shadow-md ${
+                  isPetugas
+                    ? "bg-gradient-to-tr from-amber-500 to-orange-600"
+                    : "bg-gradient-to-tr from-sky-500 to-blue-600"
+                }`}>
                   {currentUser.email.substring(0, 2).toUpperCase()}
                 </div>
                 {(!isCollapsed || mobileMenuOpen) && (
@@ -257,7 +269,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                       )}
                     </span>
                     <span className="text-slate-400 text-[10px] truncate font-medium">
-                      {currentUser.role === "super_admin" ? "Super Admin" : "Admin Operasional"}
+                      {currentUser.role === "super_admin"
+                        ? "Super Admin"
+                        : currentUser.role === "petugas"
+                        ? "Petugas Lapangan (Peta Saja)"
+                        : "Admin Operasional"}
                     </span>
                   </div>
                 )}
@@ -312,12 +328,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 export const TopHeader: React.FC<{
   activeTab: MenuTab;
   onOpenMobileMenu: () => void;
+  currentUser?: UserAccount;
   isSyncing?: boolean;
   lastSyncTime?: string;
   onManualSync?: () => void;
 }> = ({
   activeTab,
   onOpenMobileMenu,
+  currentUser,
   isSyncing = false,
   lastSyncTime,
   onManualSync,
@@ -347,18 +365,25 @@ export const TopHeader: React.FC<{
           <Menu className="h-5 w-5" />
         </button>
         <div className="flex flex-col truncate">
-          <AnimatePresence mode="wait">
-            <motion.h1
-              key={activeTab}
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
-              transition={{ duration: 0.18 }}
-              className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight truncate"
-            >
-              {titles[activeTab] || "Dashboard Monitoring"}
-            </motion.h1>
-          </AnimatePresence>
+          <div className="flex items-center gap-2">
+            <AnimatePresence mode="wait">
+              <motion.h1
+                key={activeTab}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.18 }}
+                className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight truncate"
+              >
+                {titles[activeTab] || "Dashboard Monitoring"}
+              </motion.h1>
+            </AnimatePresence>
+            {currentUser?.role === "petugas" && (
+              <span className="hidden sm:inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-300">
+                Akses Terbatas: Peta Lokasi
+              </span>
+            )}
+          </div>
           <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold truncate">
             JTC Transaksi Energi • PLN Unit Baguala
           </p>

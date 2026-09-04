@@ -526,8 +526,22 @@ export async function fetchUsersFromFirestore(): Promise<UserAccount[] | null> {
   try {
     const snap = await getDoc(doc(db, "sync_state", USERS_STATE_DOC));
     if (snap.exists() && snap.data().usersJson) {
-      const users: UserAccount[] = JSON.parse(snap.data().usersJson);
+      let users: UserAccount[] = JSON.parse(snap.data().usersJson);
       if (Array.isArray(users) && users.length > 0) {
+        // Ensure PETUGAS GM exists even if old cloud data doesn't have it
+        const hasPetugas = users.some((u) => u.email.toLowerCase() === "petugasgm");
+        if (!hasPetugas) {
+          users.push({
+            id: "usr-petugas-01",
+            email: "petugasgm",
+            name: "PETUGAS GM",
+            role: "petugas",
+            status: "active",
+            createdAt: "2026-09-03",
+            lastLogin: "2026-09-03 10:00",
+            password: "pw123!",
+          });
+        }
         saveStoredUsers(users);
         return users;
       }

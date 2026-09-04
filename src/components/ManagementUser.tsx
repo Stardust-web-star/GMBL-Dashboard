@@ -130,9 +130,15 @@ export const ManagementUser: React.FC<Props> = ({
                     </td>
                     <td className="px-5 py-4 font-mono text-blue-600 font-medium">{u.email}</td>
                     <td className="px-5 py-4">
-                      <span className="rounded bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                        {u.role}
-                      </span>
+                      {u.role === "petugas" ? (
+                        <span className="rounded bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-800 border border-amber-200">
+                          PETUGAS (HANYA PETA)
+                        </span>
+                      ) : (
+                        <span className="rounded bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                          {u.role}
+                        </span>
+                      )}
                     </td>
                     <td className="px-5 py-4">
                       <span className="inline-flex items-center space-x-1.5 rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-bold text-green-700">
@@ -231,6 +237,7 @@ export const ManagementUser: React.FC<Props> = ({
                 >
                   <option value="admin">Admin Operasional</option>
                   <option value="super_admin">Super Admin Manager</option>
+                  <option value="petugas">Petugas Lapangan (Hanya Akses Peta Lokasi)</option>
                   <option value="supervisor">Supervisor Transaksi Energi</option>
                 </select>
               </div>

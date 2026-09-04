@@ -53,6 +53,13 @@ export default function App() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncSuccessTime, setLastSyncSuccessTime] = useState<string>("");
 
+  // Restrict PETUGAS GM to only "peta" tab
+  useEffect(() => {
+    if (currentUser?.role === "petugas" && activeTab !== "peta") {
+      setActiveTab("peta");
+    }
+  }, [currentUser, activeTab]);
+
   const metersRef = useRef(meters);
   const isPullingRef = useRef(false);
   useEffect(() => {
@@ -267,7 +274,9 @@ export default function App() {
 
   const handleSelectForDocument = (meter: MeterRecord) => {
     setSelectedMeterForDoc(meter);
-    setActiveTab("dokumen");
+    if (currentUser?.role !== "petugas") {
+      setActiveTab("dokumen");
+    }
   };
 
   const handleOpenEditModal = (meter: MeterRecord) => {
@@ -331,6 +340,7 @@ export default function App() {
               {/* Top Header Bar */}
               <TopHeader
                 activeTab={activeTab}
+                currentUser={currentUser}
                 onOpenMobileMenu={() => setMobileMenuOpen(true)}
                 isSyncing={isSyncing}
                 lastSyncTime={lastSyncSuccessTime}
@@ -356,7 +366,7 @@ export default function App() {
                       />
                     )}
 
-                    {activeTab === "data" && (
+                    {currentUser.role !== "petugas" && activeTab === "data" && (
                       <DataMeterTua
                         meters={meters}
                         onUpdateMeterStatus={handleUpdateMeterStatus}
@@ -370,7 +380,7 @@ export default function App() {
                       />
                     )}
 
-                    {activeTab === "input" && (
+                    {currentUser.role !== "petugas" && activeTab === "input" && (
                       <InputDataGantiMeter
                         onSave={handleSaveMeterRecord}
                         editingMeter={editingMeter}
@@ -378,9 +388,11 @@ export default function App() {
                       />
                     )}
 
-                    {activeTab === "informasi" && <InformasiAnalytics meters={meters} />}
+                    {currentUser.role !== "petugas" && activeTab === "informasi" && (
+                      <InformasiAnalytics meters={meters} />
+                    )}
 
-                    {activeTab === "dokumen" && (
+                    {currentUser.role !== "petugas" && activeTab === "dokumen" && (
                       <DokumenPrint
                         meters={meters}
                         selectedMeter={selectedMeterForDoc}
@@ -388,7 +400,7 @@ export default function App() {
                       />
                     )}
 
-                    {activeTab === "users" && (
+                    {currentUser.role !== "petugas" && activeTab === "users" && (
                       <ManagementUser
                         users={users}
                         currentUser={currentUser}

@@ -97,13 +97,24 @@ export function getStoredUsers(): UserAccount[] {
 
     // Ensure muhammadnurbella20@gmail.com admin exists and is updated to Acho (super_admin)
     let hasBella = false;
+    let hasPetugasGm = false;
+
     filtered = filtered.map((u) => {
       if (u.email.toLowerCase() === "muhammadnurbella20@gmail.com") {
         hasBella = true;
         return {
           ...u,
           name: "Acho",
-          role: "super_admin",
+          role: "super_admin" as const,
+        };
+      }
+      if (u.email.toLowerCase() === "petugasgm") {
+        hasPetugasGm = true;
+        return {
+          ...u,
+          name: "PETUGAS GM",
+          role: "petugas" as const,
+          password: "pw123!",
         };
       }
       return u;
@@ -119,6 +130,19 @@ export function getStoredUsers(): UserAccount[] {
         createdAt: "2026-09-01",
         lastLogin: "2026-09-01 17:00",
         password: "admin",
+      });
+    }
+
+    if (!hasPetugasGm) {
+      filtered.push({
+        id: "usr-petugas-01",
+        email: "petugasgm",
+        name: "PETUGAS GM",
+        role: "petugas",
+        status: "active",
+        createdAt: "2026-09-03",
+        lastLogin: "2026-09-03 10:00",
+        password: "pw123!",
       });
     }
 

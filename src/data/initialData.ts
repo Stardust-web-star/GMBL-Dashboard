@@ -21,6 +21,16 @@ export const INITIAL_USERS: UserAccount[] = [
     lastLogin: "2026-09-01 17:00",
     password: "admin",
   },
+  {
+    id: "usr-petugas-01",
+    email: "petugasgm",
+    name: "PETUGAS GM",
+    role: "petugas",
+    status: "active",
+    createdAt: "2026-09-03",
+    lastLogin: "2026-09-03 10:00",
+    password: "pw123!",
+  },
 ];
 
 const INITIAL_32_METERS: MeterRecord[] = [
