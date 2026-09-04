@@ -1,6 +1,6 @@
 {
   "name": "GMBL",
   "description": "GANTI METER BAGUALA - Dashboard Monitoring kWh Meter Tua PLN Unit JTC Transaksi Energi",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

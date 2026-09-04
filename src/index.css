@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+@keyframes gps-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.gps-radar-wave {
+  animation: gps-pulse 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+@keyframes destination-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.destination-marker-bounce {
+  animation: destination-bounce 1.5s ease-in-out infinite;
+}

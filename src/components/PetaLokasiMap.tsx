@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -20,9 +20,25 @@ import {
   Layers,
   X,
   Sparkles,
+  Navigation,
+  Crosshair,
+  Bike,
+  Car,
+  Footprints,
+  ChevronDown,
+  ChevronUp,
+  RotateCw,
+  Locate,
+  Route,
 } from "lucide-react";
 import { MeterRecord, PetugasName, PETUGAS_LIST } from "../types";
 import { snapToLandInBaguala } from "../utils/csvParser";
+import {
+  fetchDirections,
+  getGoogleMapsNavigationUrl,
+  calculateHaversineDistanceKm,
+  RouteResult,
+} from "../utils/routing";
 
 interface Props {
   meters: MeterRecord[];
@@ -77,6 +93,55 @@ const createCustomPinIcon = (startColor: string, endColor: string, innerContent:
   });
 };
 
+// Pulsating live user GPS marker (Google Maps style)
+const createUserGpsIcon = () => {
+  return L.divIcon({
+    className: "user-gps-location-pin",
+    html: `
+      <div style="position: relative; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+        <div class="gps-radar-wave" style="position: absolute; width: 36px; height: 36px; border-radius: 50%; background: rgba(37, 99, 235, 0.45); pointer-events: none;"></div>
+        <div style="
+          position: relative;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: #2563eb;
+          border: 3px solid #ffffff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 2;
+        ">
+          <div style="width: 6px; height: 6px; border-radius: 50%; background: #ffffff;"></div>
+        </div>
+      </div>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -18],
+  });
+};
+
+// Destination marker pin (Google Maps red pin with bounce)
+const createDestinationPinIcon = () => {
+  return L.divIcon({
+    className: "destination-marker-pin",
+    html: `
+      <div class="destination-marker-bounce" style="position: relative; width: 32px; height: 42px; display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 28 38" width="32" height="42" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">
+          <path d="M14 0C6.27 0 0 6.27 0 14c0 11.5 14 24 14 24s14-12.5 14-24C28 6.27 21.73 0 14 0z" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>
+          <circle cx="14" cy="14" r="5.5" fill="#ffffff"/>
+          <circle cx="14" cy="14" r="3" fill="#dc2626"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [32, 42],
+    iconAnchor: [16, 42],
+    popupAnchor: [0, -40],
+  });
+};
+
 const ICON_SELESAI_PR = createCustomPinIcon("#10b981", "#059669", `<path d="M11 13.5l2 2 4-4" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`, "linear-gradient(135deg, #0284c7, #0369a1)", "PR");
 const ICON_SELESAI_PS = createCustomPinIcon("#10b981", "#059669", `<path d="M11 13.5l2 2 4-4" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`, "linear-gradient(135deg, #8b5cf6, #6d28d9)", "PS");
 const ICON_BELUM_PR = createCustomPinIcon("#38bdf8", "#0284c7", `<path d="M14.5 7.5L9.5 14h3.5l-1.5 5.5 5.5-6.5h-3.5l1.5-5.5z" fill="#ffffff"/>`, "linear-gradient(135deg, #0284c7, #0369a1)", "PR");
@@ -111,6 +176,25 @@ export const PetaLokasiMap: React.FC<Props> = ({
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const hasInitialFittedRef = useRef(false);
   const prevFilterKeyRef = useRef<string>("");
+
+  // Live GPS Location States
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; accuracy?: number } | null>(null);
+  const [gpsStatus, setGpsStatus] = useState<"idle" | "requesting" | "active" | "error">("idle");
+  const [gpsErrorNotice, setGpsErrorNotice] = useState<string | null>(null);
+  const userMarkerRef = useRef<L.Marker | null>(null);
+  const accuracyCircleRef = useRef<L.Circle | null>(null);
+  const hasCenteredOnUserRef = useRef(false);
+  const watchIdRef = useRef<number | null>(null);
+
+  // Direction / Routing States (Google Maps style)
+  const [activeRoute, setActiveRoute] = useState<RouteResult | null>(null);
+  const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
+  const [travelMode, setTravelMode] = useState<"motorcycle" | "driving" | "walking">("motorcycle");
+  const [showSteps, setShowSteps] = useState(false);
+  const [routedMeter, setRoutedMeter] = useState<MeterRecord | null>(null);
+  const routeOutlineRef = useRef<L.Polyline | null>(null);
+  const routeCoreRef = useRef<L.Polyline | null>(null);
+  const destinationMarkerRef = useRef<L.Marker | null>(null);
 
   const filterKey = `${searchTerm}-${filterStatus}-${filterJenis}-${filterGanti}-${filterPetugas}`;
 
@@ -192,6 +276,264 @@ export const PetaLokasiMap: React.FC<Props> = ({
         ...selectedMeter,
         status: "BELUM",
       });
+    }
+  };
+
+  // Start GPS Geolocation Tracking
+  const startGpsTracking = useCallback((flyToUser = false) => {
+    if (!navigator.geolocation) {
+      setGpsStatus("error");
+      setGpsErrorNotice("Browser tidak mendukung GPS Geolocation.");
+      return;
+    }
+
+    setGpsStatus("requesting");
+    setGpsErrorNotice(null);
+
+    const handleSuccess = (pos: GeolocationPosition) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      const coords = { lat: latitude, lng: longitude, accuracy };
+      setUserLocation(coords);
+      setGpsStatus("active");
+      setGpsErrorNotice(null);
+
+      if (mapInstanceRef.current) {
+        const map = mapInstanceRef.current;
+
+        // User GPS dot marker
+        if (!userMarkerRef.current) {
+          const userIcon = createUserGpsIcon();
+          const marker = L.marker([latitude, longitude], {
+            icon: userIcon,
+            zIndexOffset: 2500,
+          }).addTo(map);
+
+          marker.bindPopup(`
+            <div style="font-family: sans-serif; padding: 4px 6px;">
+              <strong style="color: #1d4ed8; font-size: 12px; display: block; margin-bottom: 2px;">📍 Lokasi Anda (GPS Aktif)</strong>
+              <div style="font-size: 11px; color: #475569; line-height: 1.4;">
+                Koordinat: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}<br/>
+                Akurasi: ±${Math.round(accuracy || 10)} meter
+              </div>
+            </div>
+          `);
+          userMarkerRef.current = marker;
+        } else {
+          userMarkerRef.current.setLatLng([latitude, longitude]);
+        }
+
+        // Translucent accuracy circle
+        if (!accuracyCircleRef.current) {
+          const circle = L.circle([latitude, longitude], {
+            radius: Math.min(accuracy || 25, 150),
+            color: "#2563eb",
+            fillColor: "#3b82f6",
+            fillOpacity: 0.12,
+            weight: 1,
+          }).addTo(map);
+          accuracyCircleRef.current = circle;
+        } else {
+          accuracyCircleRef.current.setLatLng([latitude, longitude]);
+          accuracyCircleRef.current.setRadius(Math.min(accuracy || 25, 150));
+        }
+
+        // Fly to user on initial access or explicit button click
+        if (flyToUser || !hasCenteredOnUserRef.current) {
+          map.flyTo([latitude, longitude], 15, { duration: 1 });
+          hasCenteredOnUserRef.current = true;
+        }
+      }
+    };
+
+    const handleError = (err: GeolocationPositionError) => {
+      console.warn("GPS tracking notice:", err.message);
+      setGpsStatus("error");
+      setGpsErrorNotice(
+        err.code === 1
+          ? "Izin GPS belum aktif di browser. Anda dapat mengaktifkan simulasi lokasi Passo Baguala."
+          : "Sinyal GPS belum terdeteksi. Anda dapat mengaktifkan simulasi lokasi Passo Baguala."
+      );
+    };
+
+    navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 10000,
+    });
+
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+
+    watchIdRef.current = navigator.geolocation.watchPosition(handleSuccess, () => {}, {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 10000,
+    });
+  }, []);
+
+  // Fallback to simulated location in Passo, Baguala
+  const setSimulatedBagualaLocation = useCallback(() => {
+    const simLat = -3.6280;
+    const simLng = 128.2570;
+    const coords = { lat: simLat, lng: simLng, accuracy: 15 };
+    setUserLocation(coords);
+    setGpsStatus("active");
+    setGpsErrorNotice(null);
+
+    if (mapInstanceRef.current) {
+      const map = mapInstanceRef.current;
+      if (!userMarkerRef.current) {
+        const userIcon = createUserGpsIcon();
+        const marker = L.marker([simLat, simLng], {
+          icon: userIcon,
+          zIndexOffset: 2500,
+        }).addTo(map);
+
+        marker.bindPopup(`
+          <div style="font-family: sans-serif; padding: 4px 6px;">
+            <strong style="color: #1d4ed8; font-size: 12px; display: block; margin-bottom: 2px;">📍 Lokasi Petugas (ULP Baguala)</strong>
+            <div style="font-size: 11px; color: #475569; line-height: 1.4;">
+              Passo, Kec. Baguala, Kota Ambon<br/>
+              Simulasi Posisi Siap Navigasi
+            </div>
+          </div>
+        `);
+        userMarkerRef.current = marker;
+      } else {
+        userMarkerRef.current.setLatLng([simLat, simLng]);
+      }
+
+      if (!accuracyCircleRef.current) {
+        const circle = L.circle([simLat, simLng], {
+          radius: 35,
+          color: "#2563eb",
+          fillColor: "#3b82f6",
+          fillOpacity: 0.12,
+          weight: 1,
+        }).addTo(map);
+        accuracyCircleRef.current = circle;
+      } else {
+        accuracyCircleRef.current.setLatLng([simLat, simLng]);
+      }
+
+      map.flyTo([simLat, simLng], 15, { duration: 1 });
+    }
+  }, []);
+
+  // Clear current active direction / route on the map
+  const clearActiveRoute = useCallback(() => {
+    if (mapInstanceRef.current) {
+      if (routeOutlineRef.current) {
+        mapInstanceRef.current.removeLayer(routeOutlineRef.current);
+        routeOutlineRef.current = null;
+      }
+      if (routeCoreRef.current) {
+        mapInstanceRef.current.removeLayer(routeCoreRef.current);
+        routeCoreRef.current = null;
+      }
+      if (destinationMarkerRef.current) {
+        mapInstanceRef.current.removeLayer(destinationMarkerRef.current);
+        destinationMarkerRef.current = null;
+      }
+    }
+    setActiveRoute(null);
+    setRoutedMeter(null);
+    setShowSteps(false);
+  }, []);
+
+  // Start route calculation from user position to meter location
+  const handleStartDirection = async (
+    meter: MeterRecord,
+    mode: "motorcycle" | "driving" | "walking" = travelMode
+  ) => {
+    const rawLat = typeof meter.latitude === "number" ? meter.latitude : parseFloat(String(meter.latitude).replace(",", "."));
+    const rawLng = typeof meter.longitude === "number" ? meter.longitude : parseFloat(String(meter.longitude).replace(",", "."));
+    if (isNaN(rawLat) || isNaN(rawLng)) {
+      alert("Koordinat kWh meter ini tidak valid.");
+      return;
+    }
+
+    const snapped = snapToLandInBaguala(rawLat, rawLng, meter.pnj, meter.namaPelanggan);
+    const destLat = snapped.lat;
+    const destLng = snapped.lng;
+
+    let startLat = userLocation?.lat;
+    let startLng = userLocation?.lng;
+
+    // If user location is not yet set, automatically activate Baguala center simulation
+    if (!startLat || !startLng) {
+      startLat = -3.6280;
+      startLng = 128.2570;
+      setSimulatedBagualaLocation();
+    }
+
+    setIsCalculatingRoute(true);
+    setSelectedMeter(meter);
+    setRoutedMeter(meter);
+    setTravelMode(mode);
+
+    try {
+      const result = await fetchDirections(startLat, startLng, destLat, destLng, mode);
+      setActiveRoute(result);
+
+      if (mapInstanceRef.current) {
+        const map = mapInstanceRef.current;
+
+        // Clear existing polylines
+        if (routeOutlineRef.current) map.removeLayer(routeOutlineRef.current);
+        if (routeCoreRef.current) map.removeLayer(routeCoreRef.current);
+        if (destinationMarkerRef.current) map.removeLayer(destinationMarkerRef.current);
+
+        // Dark glowing casing (shadow) line
+        const outline = L.polyline(result.coordinates, {
+          color: "#1e3a8a",
+          weight: 8,
+          opacity: 0.85,
+          lineCap: "round",
+          lineJoin: "round",
+        }).addTo(map);
+        routeOutlineRef.current = outline;
+
+        // Core bright blue line
+        const core = L.polyline(result.coordinates, {
+          color: "#2563eb",
+          weight: 5,
+          opacity: 0.95,
+          lineCap: "round",
+          lineJoin: "round",
+        }).addTo(map);
+        routeCoreRef.current = core;
+
+        // Red destination marker with bounce
+        const destIcon = createDestinationPinIcon();
+        const destMarker = L.marker([destLat, destLng], {
+          icon: destIcon,
+          zIndexOffset: 2000,
+        }).addTo(map);
+
+        destMarker.bindPopup(`
+          <div style="font-family: sans-serif; padding: 4px 6px;">
+            <strong style="color: #dc2626; font-size: 12px; display: block; margin-bottom: 2px;">🏁 Tujuan: ${meter.namaPelanggan}</strong>
+            <div style="font-size: 11px; color: #475569;">
+              ID Pel: ${meter.idPelanggan}<br/>
+              Estimasi: ${result.distanceKm} km (${result.durationMinutes} menit)
+            </div>
+          </div>
+        `);
+        destinationMarkerRef.current = destMarker;
+
+        // Fit map bounds to view both user location, the complete route line, and target meter
+        const bounds = L.latLngBounds(result.coordinates);
+        map.fitBounds(bounds, {
+          padding: [80, 80],
+          maxZoom: 16,
+        });
+      }
+    } catch (err) {
+      console.error("Routing error:", err);
+    } finally {
+      setIsCalculatingRoute(false);
     }
   };
 
@@ -287,15 +629,27 @@ export const PetaLokasiMap: React.FC<Props> = ({
       map.addLayer(clusterGroup);
       clusterGroupRef.current = clusterGroup;
       mapInstanceRef.current = map;
+
+      // Automatically initialize real-time GPS connection upon opening map
+      startGpsTracking(false);
     }
 
     return () => {
+      if (watchIdRef.current !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+      userMarkerRef.current = null;
+      accuracyCircleRef.current = null;
+      routeOutlineRef.current = null;
+      routeCoreRef.current = null;
+      destinationMarkerRef.current = null;
     };
-  }, []);
+  }, [startGpsTracking]);
 
   // Update Tile Layer when mapTileType changes
   useEffect(() => {
@@ -518,16 +872,29 @@ export const PetaLokasiMap: React.FC<Props> = ({
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900">{m.namaPelanggan}</span>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          isDone
-                            ? "bg-green-100 text-green-700"
-                            : "bg-orange-100 text-orange-700"
-                        }`}
-                      >
-                        {m.status}
-                      </span>
+                      <span className="text-xs font-bold text-slate-900 truncate max-w-[170px]">{m.namaPelanggan}</span>
+                      <div className="flex items-center space-x-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartDirection(m);
+                          }}
+                          className="flex items-center space-x-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 hover:bg-blue-600 hover:text-white transition-all border border-blue-200"
+                          title="Buat Rute Navigasi ke kWh Meter ini"
+                        >
+                          <Navigation className="h-2.5 w-2.5" />
+                          <span>Rute</span>
+                        </button>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            isDone
+                              ? "bg-green-100 text-green-700"
+                              : "bg-orange-100 text-orange-700"
+                          }`}
+                        >
+                          {m.status}
+                        </span>
+                      </div>
                     </div>
                     <div className="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
                       <span>ID Pel: <strong>{m.idPelanggan}</strong></span>
@@ -583,6 +950,201 @@ export const PetaLokasiMap: React.FC<Props> = ({
             }`}
           >
             <span>🗺️ Peta Jalan</span>
+          </button>
+        </div>
+
+        {/* Floating Active Route / Navigation Bar (Google Maps & My Maps style) */}
+        {activeRoute && routedMeter && (
+          <div className="absolute top-4 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 z-[1050] w-full max-w-md rounded-2xl border border-slate-700/80 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-xl text-white animate-in slide-in-from-top-4 duration-200">
+            {/* Header & Travel Mode Selection */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <div className="flex items-center space-x-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700/60">
+                <button
+                  onClick={() => handleStartDirection(routedMeter, "motorcycle")}
+                  className={`flex items-center space-x-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                    travelMode === "motorcycle"
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                  title="Sepeda Motor"
+                >
+                  <Bike className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Motor</span>
+                </button>
+                <button
+                  onClick={() => handleStartDirection(routedMeter, "driving")}
+                  className={`flex items-center space-x-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                    travelMode === "driving"
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                  title="Mobil"
+                >
+                  <Car className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Mobil</span>
+                </button>
+                <button
+                  onClick={() => handleStartDirection(routedMeter, "walking")}
+                  className={`flex items-center space-x-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                    travelMode === "walking"
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                  title="Jalan Kaki"
+                >
+                  <Footprints className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Jalan</span>
+                </button>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    if (mapInstanceRef.current && activeRoute) {
+                      const bounds = L.latLngBounds(activeRoute.coordinates);
+                      mapInstanceRef.current.fitBounds(bounds, { padding: [80, 80] });
+                    }
+                  }}
+                  className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-white transition-colors"
+                  title="Pusatkan Rute"
+                >
+                  <Locate className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={clearActiveRoute}
+                  className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-white transition-colors"
+                  title="Tutup Navigasi"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Route Metrics (Google Maps Style Duration & Distance) */}
+            <div className="mt-3 flex items-center justify-between">
+              <div>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-black text-emerald-400 tracking-tight">
+                    {activeRoute.durationMinutes} mnt
+                  </span>
+                  <span className="text-sm font-bold text-slate-300">
+                    ({activeRoute.distanceKm} km)
+                  </span>
+                </div>
+                <div className="text-xs text-slate-400 flex items-center space-x-1 mt-0.5">
+                  <Route className="h-3 w-3 text-blue-400" />
+                  <span className="truncate max-w-[200px] sm:max-w-[260px] font-medium">
+                    {activeRoute.summary || "Rute Tercepat"}
+                  </span>
+                </div>
+              </div>
+
+              <a
+                href={getGoogleMapsNavigationUrl(
+                  userLocation?.lat || -3.6280,
+                  userLocation?.lng || 128.2570,
+                  typeof routedMeter.latitude === "number" ? routedMeter.latitude : parseFloat(String(routedMeter.latitude).replace(",", ".")),
+                  typeof routedMeter.longitude === "number" ? routedMeter.longitude : parseFloat(String(routedMeter.longitude).replace(",", ".")),
+                  travelMode
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-lg shadow-blue-500/30 hover:from-blue-500 hover:to-indigo-500 transition-all ring-1 ring-blue-400/40"
+              >
+                <Navigation className="h-4 w-4" />
+                <span>Buka Google Maps</span>
+              </a>
+            </div>
+
+            {/* Destination target preview */}
+            <div className="mt-3 rounded-xl bg-slate-800/70 p-2.5 border border-slate-700/60 flex items-center justify-between text-xs">
+              <div className="truncate pr-2">
+                <span className="text-slate-400 text-[10px] uppercase font-bold block">Tujuan Penggantian Meter:</span>
+                <strong className="text-slate-200 font-bold block truncate">{routedMeter.namaPelanggan}</strong>
+                <span className="text-slate-400 text-[11px]">ID: {routedMeter.idPelanggan} | {routedMeter.pnj}</span>
+              </div>
+              <button
+                onClick={() => setShowSteps(!showSteps)}
+                className="shrink-0 flex items-center space-x-1 text-xs font-bold text-blue-400 hover:text-blue-300 py-1 px-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition-all border border-blue-500/20"
+              >
+                <span>Langkah ({activeRoute.steps.length})</span>
+                {showSteps ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </button>
+            </div>
+
+            {/* Turn-by-Turn Instruction List (Collapsible) */}
+            {showSteps && activeRoute.steps.length > 0 && (
+              <div className="mt-2.5 max-h-44 overflow-y-auto space-y-1.5 rounded-xl bg-slate-950/80 p-2 border border-slate-800 scrollbar-thin text-xs animate-in fade-in duration-150">
+                {activeRoute.steps.map((step, idx) => (
+                  <div key={idx} className="flex items-start space-x-2 py-1 border-b border-slate-900 last:border-0 text-slate-300">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-900/60 text-[10px] font-bold text-blue-300 border border-blue-700/50">
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-[11px] leading-tight font-medium text-slate-200">{step.instruction}</p>
+                      <span className="text-[10px] text-slate-400">
+                        {step.distanceMeters > 0 ? `${step.distanceMeters} m` : ""}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* GPS Permission / Simulation Notice Banner */}
+        {gpsErrorNotice && (
+          <div className="absolute top-16 left-4 right-4 sm:left-auto sm:right-4 z-[1000] max-w-sm rounded-2xl border border-amber-500/40 bg-amber-950/95 p-3.5 shadow-2xl backdrop-blur-md text-white text-xs animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start space-x-2">
+                <span className="text-amber-400 text-sm">📍</span>
+                <div>
+                  <strong className="font-bold text-amber-200 block text-xs">GPS Lokasi Terdeteksi:</strong>
+                  <span className="text-amber-100/80 text-[11px] leading-relaxed block mt-0.5">
+                    {gpsErrorNotice}
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => setGpsErrorNotice(null)} className="text-amber-400 hover:text-white ml-2 text-xs font-bold">✕</button>
+            </div>
+            <div className="mt-2.5 flex space-x-2">
+              <button
+                onClick={setSimulatedBagualaLocation}
+                className="flex-1 rounded-xl bg-amber-500/20 px-3 py-1.5 text-[11px] font-bold text-amber-300 hover:bg-amber-500/30 border border-amber-500/40 transition-all text-center"
+              >
+                📍 Pakai Titik ULP Baguala (Passo)
+              </button>
+              <button
+                onClick={() => startGpsTracking(true)}
+                className="rounded-xl bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700 transition-all"
+              >
+                Coba GPS Asli
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Floating GPS & Locate User Controls */}
+        <div className="absolute bottom-6 right-4 z-[1000] flex flex-col items-end space-y-2">
+          <button
+            onClick={() => {
+              if (userLocation && mapInstanceRef.current) {
+                mapInstanceRef.current.flyTo([userLocation.lat, userLocation.lng], 16, { duration: 0.8 });
+              } else {
+                startGpsTracking(true);
+              }
+            }}
+            className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-700/70 bg-slate-900/90 text-white shadow-2xl backdrop-blur-md hover:bg-blue-600 hover:border-blue-500 transition-all group"
+            title="Pusatkan ke Titik Lokasi Saya (GPS)"
+          >
+            <Crosshair className={`h-5 w-5 ${gpsStatus === 'active' ? 'text-blue-400 group-hover:text-white' : 'text-slate-400'}`} />
+            {gpsStatus === 'active' && (
+              <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+            )}
           </button>
         </div>
 
@@ -727,35 +1289,79 @@ export const PetaLokasiMap: React.FC<Props> = ({
               </div>
             </div>
 
-            <div className="mt-4 flex items-center justify-end space-x-2.5">
-              <button
-                onClick={() => {
-                  if (selectedMeter.status === "SELESAI") {
-                    handleMarkBelum(selectedMeter);
-                  } else {
-                    handleInitiateMarkSelesai(selectedMeter);
-                  }
-                }}
-                className={`flex items-center space-x-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all shadow-xs ${
-                  selectedMeter.status === "SELESAI"
-                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
-                    : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200"
-                }`}
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                <span>
-                  {selectedMeter.status === "SELESAI" ? "Tandai BELUM" : "Tandai SELESAI"}
-                </span>
-              </button>
+            {(() => {
+              const mLat = typeof selectedMeter.latitude === "number" ? selectedMeter.latitude : parseFloat(String(selectedMeter.latitude).replace(",", "."));
+              const mLng = typeof selectedMeter.longitude === "number" ? selectedMeter.longitude : parseFloat(String(selectedMeter.longitude).replace(",", "."));
+              const distKm = (userLocation && !isNaN(mLat) && !isNaN(mLng))
+                ? calculateHaversineDistanceKm(userLocation.lat, userLocation.lng, mLat, mLng)
+                : null;
 
-              <button
-                onClick={() => onSelectForDocument(selectedMeter)}
-                className="flex items-center space-x-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs shadow-blue-200 hover:bg-blue-700 transition-all"
-              >
-                <FileText className="h-4 w-4" />
-                <span>Cetak Dokumen PK</span>
-              </button>
-            </div>
+              return (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => handleStartDirection(selectedMeter)}
+                      disabled={isCalculatingRoute}
+                      className="flex items-center space-x-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3.5 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50"
+                    >
+                      <Navigation className="h-4 w-4" />
+                      <span>
+                        {isCalculatingRoute
+                          ? "Menghitung Rute..."
+                          : `Rute Arah ${distKm !== null ? `(${distKm.toFixed(1)} km)` : ""}`}
+                      </span>
+                    </button>
+
+                    <a
+                      href={getGoogleMapsNavigationUrl(
+                        userLocation?.lat || -3.6280,
+                        userLocation?.lng || 128.2570,
+                        mLat,
+                        mLng,
+                        travelMode
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-xs"
+                      title="Buka Navigasi Langsung di Google Maps"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5 text-slate-500" />
+                      <span>Google Maps</span>
+                    </a>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => {
+                        if (selectedMeter.status === "SELESAI") {
+                          handleMarkBelum(selectedMeter);
+                        } else {
+                          handleInitiateMarkSelesai(selectedMeter);
+                        }
+                      }}
+                      className={`flex items-center space-x-2 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all shadow-xs ${
+                        selectedMeter.status === "SELESAI"
+                          ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
+                          : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200"
+                      }`}
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>
+                        {selectedMeter.status === "SELESAI" ? "Tandai BELUM" : "Tandai SELESAI"}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => onSelectForDocument(selectedMeter)}
+                      className="flex items-center space-x-2 rounded-xl bg-blue-600 px-3.5 py-2.5 text-xs font-bold text-white shadow-xs shadow-blue-200 hover:bg-blue-700 transition-all"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Cetak PK</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
