@@ -104,37 +104,171 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Mobile Slide-Over Drawer Navigation (z-[3000] to sit above all map layers and modals) */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm lg:hidden"
-          />
+          <div className="fixed inset-0 z-[3000] lg:hidden flex">
+            {/* Dark Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm cursor-pointer"
+              aria-label="Tutup Menu"
+            />
+
+            {/* Slide-In Drawer */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
+              className="relative z-10 w-80 max-w-[85vw] h-full flex flex-col bg-slate-900 text-slate-300 border-r border-slate-800 shadow-2xl shadow-slate-950/90 backdrop-blur-2xl select-none"
+            >
+              {/* Drawer Header */}
+              <div className="p-4 border-b border-slate-800/80 flex items-center justify-between shrink-0 bg-slate-900/90">
+                <div className="flex items-center gap-3 min-w-0">
+                  <GMBLLogo size="md" showGlow={true} />
+                  <div className="flex flex-col truncate">
+                    <span className="text-white font-extrabold leading-none tracking-tight text-base flex items-center gap-1.5">
+                      GMBL <Sparkles className="h-3.5 w-3.5 text-amber-400 inline" />
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider font-semibold truncate">
+                      Ganti Meter Baguala
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer active:scale-95"
+                  aria-label="Tutup Menu"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Drawer Nav Items */}
+              <nav className="flex-1 p-3 space-y-2 overflow-y-auto scrollbar-none">
+                <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Menu Utama
+                </div>
+                {menuItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`relative w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all text-xs font-bold text-left cursor-pointer active:scale-98 ${
+                        isActive
+                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 border border-blue-400/40"
+                          : "text-slate-300 hover:text-white hover:bg-slate-800/70"
+                      }`}
+                    >
+                      <div className={`flex h-6 w-6 shrink-0 items-center justify-center ${isActive ? "text-white" : "text-slate-400"}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="flex-1 truncate">{item.label}</span>
+                      {item.badge && (
+                        <span
+                          className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full ${
+                            item.badgeColor || (isActive ? "bg-white/20 text-white" : "bg-slate-800 text-slate-300")
+                          }`}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* Drawer Bottom Actions & User Profile */}
+              <div className="p-3 border-t border-slate-800/80 space-y-2 shrink-0 bg-slate-900/90">
+                {!isPetugas && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenSheetSync();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 p-2.5 rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/80 to-teal-950/80 text-emerald-300 text-xs font-bold hover:border-emerald-400 shadow-md transition-all cursor-pointer active:scale-95"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Unggah / Sync Excel</span>
+                  </button>
+                )}
+
+                <div className="flex items-center justify-between bg-slate-800/90 p-2.5 rounded-2xl border border-slate-700/80 shadow-inner">
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    <div
+                      className={`relative flex h-8 w-8 rounded-xl items-center justify-center text-xs font-black text-white uppercase shrink-0 shadow-md ${
+                        isPetugas
+                          ? "bg-gradient-to-tr from-amber-500 to-orange-600"
+                          : "bg-gradient-to-tr from-sky-500 to-blue-600"
+                      }`}
+                    >
+                      {currentUser.email.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-white text-xs font-bold truncate flex items-center gap-1">
+                        {currentUser.name}
+                        {currentUser.role === "super_admin" && (
+                          <ShieldCheck className="h-3.5 w-3.5 text-purple-400 shrink-0 inline" />
+                        )}
+                      </span>
+                      <span className="text-slate-400 text-[10px] truncate font-medium">
+                        {currentUser.role === "super_admin"
+                          ? "Super Admin"
+                          : currentUser.role === "petugas"
+                          ? "Petugas Lapangan"
+                          : "Admin Operasional"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-2 rounded-xl transition-colors cursor-pointer"
+                    title="Keluar / Logout"
+                    aria-label="Keluar"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
-      {/* Floating Sidebar Container */}
-      <aside className="relative z-40 shrink-0 lg:p-4 lg:pr-0">
+      {/* Desktop Collapsible Floating Sidebar Container (Hidden on mobile) */}
+      <aside className="hidden lg:flex relative z-30 shrink-0 p-4 pr-0">
         <motion.div
           animate={{
             width: isCollapsed ? "80px" : "268px",
           }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900/95 text-slate-300 border border-slate-800/80 shadow-2xl shadow-slate-950/50 backdrop-blur-xl lg:static lg:h-[calc(100vh-2rem)] lg:rounded-3xl transition-transform duration-300 overflow-visible ${
-            mobileMenuOpen ? "translate-x-0 !w-72" : "-translate-x-full lg:translate-x-0"
-          }`}
+          className="flex flex-col h-[calc(100vh-2rem)] bg-slate-900/95 text-slate-300 border border-slate-800/80 rounded-3xl shadow-2xl shadow-slate-950/50 backdrop-blur-xl transition-all overflow-visible"
         >
           {/* Header & Logo */}
-          <div className={`border-b border-slate-800/80 flex items-center shrink-0 transition-all ${
-            isCollapsed && !mobileMenuOpen ? "p-3 justify-center relative" : "p-4 justify-between"
-          }`}>
+          <div
+            className={`border-b border-slate-800/80 flex items-center shrink-0 transition-all ${
+              isCollapsed ? "p-3 justify-center relative" : "p-4 justify-between"
+            }`}
+          >
             <div className="flex items-center gap-3 min-w-0">
               <GMBLLogo size="md" showGlow={true} />
-              {(!isCollapsed || mobileMenuOpen) && (
+              {!isCollapsed && (
                 <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -151,19 +285,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
 
-            {/* Mobile close button */}
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-slate-400 hover:text-white p-1 rounded-lg lg:hidden"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
             {/* Desktop Floating Toggle Button */}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className={`hidden lg:flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 border shadow-xs transition-all ${
-                isCollapsed && !mobileMenuOpen
+              className={`flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 border shadow-xs transition-all ${
+                isCollapsed
                   ? "absolute -right-3 top-4 h-6 w-6 z-50 rounded-full border-blue-400/60 bg-blue-600 text-white shadow-md hover:bg-blue-500 hover:scale-110"
                   : "h-7 w-7 rounded-xl bg-slate-800/80 border-slate-700/60"
               }`}
@@ -183,14 +309,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={item.id}
                   onClick={() => {
                     setActiveTab(item.id);
-                    setMobileMenuOpen(false);
                   }}
                   className={`relative w-full flex items-center gap-3 px-3 py-3 rounded-2xl transition-all text-xs font-bold text-left group ${
                     isActive
                       ? "text-white"
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
                   }`}
-                  title={isCollapsed && !mobileMenuOpen ? item.label : undefined}
+                  title={isCollapsed ? item.label : undefined}
                 >
                   {/* Sliding Active Pill Background */}
                   {isActive && (
@@ -202,14 +327,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                   )}
 
                   {/* Icon */}
-                  <div className={`relative z-10 flex h-6 w-6 shrink-0 items-center justify-center transition-transform group-hover:scale-110 ${
-                    isActive ? "text-white" : "text-slate-400 group-hover:text-white"
-                  }`}>
+                  <div
+                    className={`relative z-10 flex h-6 w-6 shrink-0 items-center justify-center transition-transform group-hover:scale-110 ${
+                      isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+                    }`}
+                  >
                     <Icon className="w-5 h-5" />
                   </div>
 
                   {/* Label & Badge */}
-                  {(!isCollapsed || mobileMenuOpen) && (
+                  {!isCollapsed && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -239,28 +366,32 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 onClick={onOpenSheetSync}
                 className={`w-full flex items-center justify-center gap-2 p-2.5 rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/80 to-teal-950/80 text-emerald-300 text-xs font-bold hover:from-emerald-900/90 hover:to-teal-900/90 hover:border-emerald-400 shadow-md transition-all group ${
-                  isCollapsed && !mobileMenuOpen ? "px-2" : ""
+                  isCollapsed ? "px-2" : ""
                 }`}
                 title="Unggah / Sync Excel"
               >
                 <FileSpreadsheet className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform shrink-0" />
-                {(!isCollapsed || mobileMenuOpen) && <span>Unggah / Sync Excel</span>}
+                {!isCollapsed && <span>Unggah / Sync Excel</span>}
               </button>
             )}
 
             {/* User Profile Floating Card */}
-            <div className={`flex items-center justify-between bg-slate-800/90 p-2.5 rounded-2xl border border-slate-700/80 shadow-inner ${
-              isCollapsed && !mobileMenuOpen ? "flex-col gap-2" : ""
-            }`}>
+            <div
+              className={`flex items-center justify-between bg-slate-800/90 p-2.5 rounded-2xl border border-slate-700/80 shadow-inner ${
+                isCollapsed ? "flex-col gap-2" : ""
+              }`}
+            >
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className={`relative flex h-8 w-8 rounded-xl items-center justify-center text-xs font-black text-white uppercase shrink-0 shadow-md ${
-                  isPetugas
-                    ? "bg-gradient-to-tr from-amber-500 to-orange-600"
-                    : "bg-gradient-to-tr from-sky-500 to-blue-600"
-                }`}>
+                <div
+                  className={`relative flex h-8 w-8 rounded-xl items-center justify-center text-xs font-black text-white uppercase shrink-0 shadow-md ${
+                    isPetugas
+                      ? "bg-gradient-to-tr from-amber-500 to-orange-600"
+                      : "bg-gradient-to-tr from-sky-500 to-blue-600"
+                  }`}
+                >
                   {currentUser.email.substring(0, 2).toUpperCase()}
                 </div>
-                {(!isCollapsed || mobileMenuOpen) && (
+                {!isCollapsed && (
                   <div className="flex flex-col overflow-hidden">
                     <span className="text-white text-xs font-bold truncate flex items-center gap-1">
                       {currentUser.name}
@@ -272,7 +403,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       {currentUser.role === "super_admin"
                         ? "Super Admin"
                         : currentUser.role === "petugas"
-                        ? "Petugas Lapangan (Peta Saja)"
+                        ? "Petugas Lapangan"
                         : "Admin Operasional"}
                     </span>
                   </div>
@@ -281,7 +412,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               <button
                 onClick={onLogout}
-                className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-1.5 rounded-xl transition-colors"
+                className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-1.5 rounded-xl transition-colors cursor-pointer"
                 title="Keluar / Logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -361,8 +492,14 @@ export const TopHeader: React.FC<{
     <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-8 shrink-0 z-30 shadow-xs">
       <div className="flex items-center gap-3 min-w-0">
         <button
-          onClick={onOpenMobileMenu}
-          className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl lg:hidden"
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenMobileMenu();
+          }}
+          className="p-2 text-slate-700 hover:text-blue-600 hover:bg-slate-100 rounded-xl lg:hidden transition-colors cursor-pointer active:scale-95"
+          aria-label="Buka Menu Navigasi"
+          title="Buka Menu Navigasi"
         >
           <Menu className="h-5 w-5" />
         </button>

@@ -991,17 +991,25 @@ export const PetaLokasiMap: React.FC<Props> = ({
       <div className="relative flex-1 h-full w-full">
         <div ref={mapContainerRef} className="h-full w-full bg-slate-900" />
 
-        {/* Mobile Google Maps Header & Search Bar (< lg) */}
-        <div className="lg:hidden absolute top-3 inset-x-3 z-[1000] flex flex-col gap-2 pointer-events-none">
+        {/* Mobile Google Maps Header & Search Bar (< lg) - Hidden during active navigation to maximize map view */}
+        {!activeRoute && (
+          <div className="lg:hidden absolute top-3 inset-x-3 z-[1000] flex flex-col gap-2 pointer-events-none">
           {/* Floating Search Pill */}
           <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/95 shadow-xl border border-slate-200/90 px-3.5 py-2.5 backdrop-blur-md">
             {/* Hamburger Menu Button */}
             {onOpenMobileMenu && (
               <button
                 type="button"
-                onClick={onOpenMobileMenu}
-                className="text-slate-600 hover:text-blue-600 p-1 rounded-full transition-colors shrink-0 active:scale-95"
-                aria-label="Buka Menu"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onOpenMobileMenu();
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center -ml-1 text-slate-700 hover:text-blue-600 hover:bg-slate-100 active:bg-slate-200 rounded-full transition-all shrink-0 active:scale-90 cursor-pointer"
+                aria-label="Buka Menu Navigasi"
+                title="Buka Menu Navigasi"
               >
                 <Menu className="h-5 w-5" />
               </button>
@@ -1161,6 +1169,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
             )}
           </div>
         </div>
+        )}
 
         {/* Mobile Google Maps style Floating Layer Switcher & Legend Toggle (Cleanly spaced below the chips) */}
         <div className="lg:hidden absolute top-32 right-3.5 z-[950] flex flex-col gap-2">
@@ -1211,15 +1220,16 @@ export const PetaLokasiMap: React.FC<Props> = ({
           </button>
         </div>
 
-        {/* Floating Active Route / Navigation Bar (Google Maps & My Maps style) */}
+        {/* Floating Active Route / Navigation Bar (Google Maps & My Maps style - Compact & Proportional) */}
         {activeRoute && routedMeter && (
-          <div className="absolute top-4 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 z-[1050] w-full max-w-md rounded-2xl border border-slate-700/80 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-xl text-white animate-in slide-in-from-top-4 duration-200">
+          <div className="absolute top-3 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 z-[1050] w-auto sm:w-full max-w-sm sm:max-w-md rounded-2xl border border-slate-700/80 bg-slate-900/95 p-3 sm:p-3.5 shadow-2xl backdrop-blur-xl text-white animate-in slide-in-from-top-3 duration-200">
             {/* Header & Travel Mode Selection */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-              <div className="flex items-center space-x-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700/60">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+              <div className="flex items-center space-x-1 bg-slate-800/90 p-0.5 rounded-xl border border-slate-700/60">
                 <button
+                  type="button"
                   onClick={() => handleStartDirection(routedMeter, "motorcycle")}
-                  className={`flex items-center space-x-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                  className={`flex items-center space-x-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-all ${
                     travelMode === "motorcycle"
                       ? "bg-blue-600 text-white shadow-sm"
                       : "text-slate-400 hover:text-white"
@@ -1230,8 +1240,9 @@ export const PetaLokasiMap: React.FC<Props> = ({
                   <span className="hidden sm:inline">Motor</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleStartDirection(routedMeter, "driving")}
-                  className={`flex items-center space-x-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                  className={`flex items-center space-x-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-all ${
                     travelMode === "driving"
                       ? "bg-blue-600 text-white shadow-sm"
                       : "text-slate-400 hover:text-white"
@@ -1242,8 +1253,9 @@ export const PetaLokasiMap: React.FC<Props> = ({
                   <span className="hidden sm:inline">Mobil</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleStartDirection(routedMeter, "walking")}
-                  className={`flex items-center space-x-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                  className={`flex items-center space-x-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-all ${
                     travelMode === "walking"
                       ? "bg-blue-600 text-white shadow-sm"
                       : "text-slate-400 hover:text-white"
@@ -1255,43 +1267,45 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 </button>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5">
                 <button
+                  type="button"
                   onClick={() => {
                     if (mapInstanceRef.current && activeRoute) {
                       const bounds = L.latLngBounds(activeRoute.coordinates);
                       mapInstanceRef.current.fitBounds(bounds, { padding: [80, 80] });
                     }
                   }}
-                  className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-white transition-colors"
+                  className="rounded-lg bg-slate-800/90 p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
                   title="Pusatkan Rute"
                 >
-                  <Locate className="h-4 w-4" />
+                  <Locate className="h-3.5 w-3.5" />
                 </button>
                 <button
+                  type="button"
                   onClick={clearActiveRoute}
-                  className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-white transition-colors"
+                  className="rounded-lg bg-slate-800/90 p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                   title="Tutup Navigasi"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
 
             {/* Route Metrics (Google Maps Style Duration & Distance) */}
-            <div className="mt-3 flex items-center justify-between">
-              <div>
-                <div className="flex items-baseline space-x-2">
-                  <span className="text-2xl font-black text-emerald-400 tracking-tight">
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="flex items-baseline space-x-1.5">
+                  <span className="text-lg sm:text-xl font-black text-emerald-400 tracking-tight">
                     {activeRoute.durationMinutes} mnt
                   </span>
-                  <span className="text-sm font-bold text-slate-300">
+                  <span className="text-xs font-bold text-slate-300">
                     ({activeRoute.distanceKm} km)
                   </span>
                 </div>
-                <div className="text-xs text-slate-400 flex items-center space-x-1 mt-0.5">
-                  <Route className="h-3 w-3 text-blue-400" />
-                  <span className="truncate max-w-[200px] sm:max-w-[260px] font-medium">
+                <div className="text-[10px] text-slate-400 flex items-center space-x-1 mt-0.5 truncate">
+                  <Route className="h-3 w-3 text-blue-400 shrink-0" />
+                  <span className="truncate font-medium">
                     {activeRoute.summary || "Rute Tercepat"}
                   </span>
                 </div>
@@ -1307,23 +1321,26 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3.5 py-2 text-xs font-bold text-white shadow-lg shadow-blue-500/30 hover:from-blue-500 hover:to-indigo-500 transition-all ring-1 ring-blue-400/40"
+                className="shrink-0 flex items-center space-x-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-500 hover:to-indigo-500 transition-all ring-1 ring-blue-400/40 active:scale-95"
               >
-                <Navigation className="h-4 w-4" />
+                <Navigation className="h-3.5 w-3.5" />
                 <span>Buka Google Maps</span>
               </a>
             </div>
 
-            {/* Destination target preview */}
-            <div className="mt-3 rounded-xl bg-slate-800/70 p-2.5 border border-slate-700/60 flex items-center justify-between text-xs">
-              <div className="truncate pr-2">
-                <span className="text-slate-400 text-[10px] uppercase font-bold block">Tujuan Penggantian Meter:</span>
-                <strong className="text-slate-200 font-bold block truncate">{routedMeter.namaPelanggan}</strong>
-                <span className="text-slate-400 text-[11px]">ID: {routedMeter.idPelanggan} | {routedMeter.pnj}</span>
+            {/* Destination target preview (Compact 1-line strip) */}
+            <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 text-[11px]">
+              <div className="flex items-center gap-1.5 min-w-0 truncate">
+                <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                <span className="font-bold text-slate-200 truncate">{routedMeter.namaPelanggan}</span>
+                <span className="text-slate-400 font-mono text-[10px] shrink-0 truncate">
+                  ID: {routedMeter.idPelanggan} {routedMeter.pnj ? `| ${routedMeter.pnj}` : ""}
+                </span>
               </div>
               <button
+                type="button"
                 onClick={() => setShowSteps(!showSteps)}
-                className="shrink-0 flex items-center space-x-1 text-xs font-bold text-blue-400 hover:text-blue-300 py-1 px-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition-all border border-blue-500/20"
+                className="shrink-0 flex items-center space-x-1 text-[10px] font-bold text-blue-400 hover:text-blue-300 py-1 px-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition-all border border-blue-500/20 active:scale-95 cursor-pointer"
               >
                 <span>Langkah ({activeRoute.steps.length})</span>
                 {showSteps ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -1332,15 +1349,15 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
             {/* Turn-by-Turn Instruction List (Collapsible) */}
             {showSteps && activeRoute.steps.length > 0 && (
-              <div className="mt-2.5 max-h-44 overflow-y-auto space-y-1.5 rounded-xl bg-slate-950/80 p-2 border border-slate-800 scrollbar-thin text-xs animate-in fade-in duration-150">
+              <div className="mt-2 max-h-40 overflow-y-auto space-y-1.5 rounded-xl bg-slate-950/80 p-2 border border-slate-800 scrollbar-thin text-xs animate-in fade-in duration-150">
                 {activeRoute.steps.map((step, idx) => (
                   <div key={idx} className="flex items-start space-x-2 py-1 border-b border-slate-900 last:border-0 text-slate-300">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-900/60 text-[10px] font-bold text-blue-300 border border-blue-700/50">
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-900/60 text-[9px] font-bold text-blue-300 border border-blue-700/50">
                       {idx + 1}
                     </span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-[11px] leading-tight font-medium text-slate-200">{step.instruction}</p>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[9px] text-slate-400">
                         {step.distanceMeters > 0 ? `${step.distanceMeters} m` : ""}
                       </span>
                     </div>
@@ -1386,7 +1403,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
         {/* Floating Map Navigation & GPS Controls (Stacked vertically without overlapping) */}
         <div
           className={`absolute right-3.5 sm:right-6 z-[1000] flex flex-col items-end space-y-2 transition-all duration-200 ${
-            selectedMeter ? "bottom-[270px] sm:bottom-6" : "bottom-6"
+            selectedMeter ? "bottom-[195px] sm:bottom-6" : "bottom-6"
           }`}
         >
           {/* Locate / GPS User Position Button */}
@@ -1568,64 +1585,79 @@ export const PetaLokasiMap: React.FC<Props> = ({
           </div>
         )}
 
-        {/* Selected Meter Quick Actions Overlay */}
+        {/* Selected Meter Quick Actions Overlay (Compact & Proportional for Mobile & Desktop) */}
         {selectedMeter && (
-          <div className="absolute bottom-4 sm:bottom-6 left-3 right-3 sm:left-6 sm:right-6 z-[1000] max-w-xl mx-auto rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xl text-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="absolute bottom-3 sm:bottom-5 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 z-[1000] w-auto sm:w-full max-w-lg rounded-2xl border border-slate-200/90 bg-white/95 p-3 sm:p-4 shadow-xl backdrop-blur-md text-slate-800 animate-in fade-in slide-in-from-bottom-3 duration-200">
             {/* Mobile Sheet Drag Indicator */}
-            <div className="sm:hidden -mt-1 mb-2.5 flex justify-center">
-              <div className="w-10 h-1 bg-slate-300 rounded-full" />
+            <div className="sm:hidden -mt-0.5 mb-1.5 flex justify-center">
+              <div className="w-8 h-1 bg-slate-300 rounded-full" />
             </div>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="rounded-lg bg-blue-100 px-3 py-1 text-xs font-bold text-blue-600 tracking-wide">
+
+            {/* Header: Badges & Close Button */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1.5 min-w-0">
+                <span className="rounded-md bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 tracking-wide shrink-0">
                   {selectedMeter.jenis}
                 </span>
-                <span className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 tracking-wide uppercase">
+                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 tracking-wide uppercase shrink-0">
                   {selectedMeter.gantiMeter || "METER TUA"}
+                </span>
+                <span
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-bold shrink-0 ${
+                    selectedMeter.status === "SELESAI"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-amber-100 text-amber-700"
+                  }`}
+                >
+                  {selectedMeter.status === "SELESAI" ? "SELESAI" : "BELUM"}
                 </span>
               </div>
 
               <button
+                type="button"
                 onClick={() => setSelectedMeter(null)}
-                className="text-slate-400 hover:text-slate-700 p-1 text-lg font-bold leading-none transition-colors"
-                title="Tutup"
+                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1 rounded-lg transition-colors cursor-pointer"
+                title="Tutup Detail"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="mt-2.5">
-              <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
+            {/* Customer Name & Identification */}
+            <div className="mt-1.5">
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight truncate leading-tight">
                 {selectedMeter.namaPelanggan}
               </h3>
-              <p className="mt-0.5 text-xs text-slate-500 font-medium">
-                ID Pel: <span className="text-blue-600 font-bold">{selectedMeter.idPelanggan}</span>{" "}
+              <p className="mt-0.5 text-[11px] text-slate-500 font-medium truncate">
+                ID Pel: <span className="text-blue-600 font-bold font-mono">{selectedMeter.idPelanggan}</span>{" "}
                 <span className="text-slate-300">|</span> No Meter:{" "}
                 <span className="text-slate-700 font-semibold">{selectedMeter.noMeterLama || selectedMeter.jenis}</span>
               </p>
             </div>
 
-            <div className="mt-3.5 grid grid-cols-2 gap-x-6 gap-y-2.5 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 text-xs text-slate-600">
-              <div>
-                <span className="text-slate-500">Tarif / Daya:</span>{" "}
-                <strong className="text-slate-900 font-bold ml-1">{selectedMeter.tarif} / {selectedMeter.daya} VA</strong>
+            {/* Compact Details Grid */}
+            <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-1.5 rounded-xl border border-slate-100 bg-slate-50/80 p-2 text-[11px] text-slate-600">
+              <div className="min-w-0">
+                <span className="text-[9px] uppercase font-bold text-slate-400 block leading-tight">Tarif / Daya</span>
+                <span className="text-slate-900 font-bold truncate block">{selectedMeter.tarif} / {selectedMeter.daya} VA</span>
               </div>
-              <div>
-                <span className="text-slate-500">Petugas:</span>{" "}
-                <strong className="text-slate-900 font-bold ml-1">
-                  {selectedMeter.status === "SELESAI" ? selectedMeter.petugas : "-"}
-                </strong>
+              <div className="min-w-0">
+                <span className="text-[9px] uppercase font-bold text-slate-400 block leading-tight">Petugas</span>
+                <span className="text-slate-900 font-bold truncate block">
+                  {selectedMeter.status === "SELESAI" ? (selectedMeter.petugas || "-") : "-"}
+                </span>
               </div>
-              <div>
-                <span className="text-slate-500">Stand Bongkar:</span>{" "}
-                <strong className="text-slate-900 font-bold ml-1">{selectedMeter.standBongkar || "0 kWh"}</strong>
+              <div className="min-w-0">
+                <span className="text-[9px] uppercase font-bold text-slate-400 block leading-tight">Stand Bongkar</span>
+                <span className="text-slate-900 font-bold truncate block">{selectedMeter.standBongkar || "0 kWh"}</span>
               </div>
-              <div>
-                <span className="text-slate-500">Lokasi/PNJ:</span>
-                <div className="text-slate-900 font-bold uppercase mt-0.5 truncate">{selectedMeter.pnj || "-"}</div>
+              <div className="min-w-0">
+                <span className="text-[9px] uppercase font-bold text-slate-400 block leading-tight">Lokasi / PNJ</span>
+                <span className="text-slate-900 font-bold uppercase truncate block">{selectedMeter.pnj || "-"}</span>
               </div>
             </div>
 
+            {/* Actions Grid */}
             {(() => {
               const mLat = typeof selectedMeter.latitude === "number" ? selectedMeter.latitude : parseFloat(String(selectedMeter.latitude).replace(",", "."));
               const mLng = typeof selectedMeter.longitude === "number" ? selectedMeter.longitude : parseFloat(String(selectedMeter.longitude).replace(",", "."));
@@ -1634,68 +1666,67 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 : null;
 
               return (
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      onClick={() => handleStartDirection(selectedMeter)}
-                      disabled={isCalculatingRoute}
-                      className="flex items-center space-x-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3.5 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50"
-                    >
-                      <Navigation className="h-4 w-4" />
-                      <span>
-                        {isCalculatingRoute
-                          ? "Menghitung Rute..."
-                          : `Rute Arah ${distKm !== null ? `(${distKm.toFixed(1)} km)` : ""}`}
-                      </span>
-                    </button>
+                <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-1.5 border-t border-slate-100 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleStartDirection(selectedMeter)}
+                    disabled={isCalculatingRoute}
+                    className="flex items-center justify-center space-x-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-2 py-2 text-xs font-bold text-white shadow-xs hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
+                  >
+                    <Navigation className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">
+                      {isCalculatingRoute
+                        ? "Menghitung..."
+                        : `Rute ${distKm !== null ? `(${distKm.toFixed(1)} km)` : ""}`}
+                    </span>
+                  </button>
 
-                    <a
-                      href={getGoogleMapsNavigationUrl(
-                        userLocation?.lat || -3.6280,
-                        userLocation?.lng || 128.2570,
-                        mLat,
-                        mLng,
-                        travelMode
-                      )}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-xs"
-                      title="Buka Navigasi Langsung di Google Maps"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5 text-slate-500" />
-                      <span>Google Maps</span>
-                    </a>
-                  </div>
+                  <a
+                    href={getGoogleMapsNavigationUrl(
+                      userLocation?.lat || -3.6280,
+                      userLocation?.lng || 128.2570,
+                      mLat,
+                      mLng,
+                      travelMode
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center space-x-1 rounded-xl border border-slate-200 bg-white px-2 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-xs active:scale-95 cursor-pointer"
+                    title="Buka Navigasi Langsung di Google Maps"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                    <span className="truncate">Google Maps</span>
+                  </a>
 
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => {
-                        if (selectedMeter.status === "SELESAI") {
-                          handleMarkBelum(selectedMeter);
-                        } else {
-                          handleInitiateMarkSelesai(selectedMeter);
-                        }
-                      }}
-                      className={`flex items-center space-x-2 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all shadow-xs ${
-                        selectedMeter.status === "SELESAI"
-                          ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
-                          : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200"
-                      }`}
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                      <span>
-                        {selectedMeter.status === "SELESAI" ? "Tandai BELUM" : "Tandai SELESAI"}
-                      </span>
-                    </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedMeter.status === "SELESAI") {
+                        handleMarkBelum(selectedMeter);
+                      } else {
+                        handleInitiateMarkSelesai(selectedMeter);
+                      }
+                    }}
+                    className={`flex items-center justify-center space-x-1 rounded-xl px-2 py-2 text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer ${
+                      selectedMeter.status === "SELESAI"
+                        ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
+                        : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200"
+                    }`}
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">
+                      {selectedMeter.status === "SELESAI" ? "Tandai BELUM" : "Tandai SELESAI"}
+                    </span>
+                  </button>
 
-                    <button
-                      onClick={() => onSelectForDocument(selectedMeter)}
-                      className="flex items-center space-x-2 rounded-xl bg-blue-600 px-3.5 py-2.5 text-xs font-bold text-white shadow-xs shadow-blue-200 hover:bg-blue-700 transition-all"
-                    >
-                      <FileText className="h-4 w-4" />
-                      <span>Cetak PK</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onSelectForDocument(selectedMeter)}
+                    className="flex items-center justify-center space-x-1 rounded-xl bg-blue-600 px-2 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">Cetak PK</span>
+                  </button>
                 </div>
               );
             })()}
