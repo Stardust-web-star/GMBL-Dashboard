@@ -15,7 +15,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
+  Zap,
   ShieldCheck,
   RefreshCw,
 } from "lucide-react";
@@ -133,7 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <GMBLLogo size="md" showGlow={true} />
                   <div className="flex flex-col truncate">
                     <span className="text-slate-900 dark:text-white font-extrabold leading-none tracking-tight text-base flex items-center gap-1.5">
-                      GMBL <Sparkles className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 inline" />
+                      GMBL <Zap className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400 inline" />
                     </span>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider font-semibold truncate">
                       Ganti Meter Baguala
@@ -282,7 +282,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="flex flex-col truncate"
                 >
                   <span className="text-slate-900 dark:text-white font-extrabold leading-none tracking-tight text-lg flex items-center gap-1.5">
-                    GMBL <Sparkles className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 inline" />
+                    GMBL <Zap className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400 inline" />
                   </span>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider font-semibold truncate">
                     Ganti Meter Baguala
@@ -548,10 +548,6 @@ export const TopHeader: React.FC<{
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 text-xs font-medium shrink-0">
-        {/* Prominent Theme Toggle Switcher */}
-        <ThemeToggle variant="pill" className="hidden sm:inline-flex" />
-        <ThemeToggle variant="compact" className="sm:hidden" />
-
         {/* Firestore Real-Time Sync Indicator */}
         <button
           onClick={onManualSync}
