@@ -638,17 +638,17 @@ export const PetaLokasiMap: React.FC<Props> = ({
         disableClusteringAtZoom: 16,
         iconCreateFunction: (cluster: any) => {
           const childCount = cluster.getChildCount();
-          let bgGradient = "linear-gradient(135deg, #0284c7, #2563eb)";
-          let ringColor = "rgba(2, 132, 199, 0.4)";
+          let bgGradient = "linear-gradient(135deg, #0284c7, #0369a1)";
+          let ringColor = "rgba(2, 132, 199, 0.2)";
           let size = 38;
 
           if (childCount > 50) {
-            bgGradient = "linear-gradient(135deg, #f59e0b, #dc2626)";
-            ringColor = "rgba(245, 158, 11, 0.45)";
+            bgGradient = "linear-gradient(135deg, #d97706, #b45309)";
+            ringColor = "rgba(217, 119, 6, 0.22)";
             size = 46;
           } else if (childCount > 15) {
-            bgGradient = "linear-gradient(135deg, #6366f1, #9333ea)";
-            ringColor = "rgba(99, 102, 241, 0.45)";
+            bgGradient = "linear-gradient(135deg, #2563eb, #1d4ed8)";
+            ringColor = "rgba(37, 99, 235, 0.22)";
             size = 42;
           }
 
@@ -657,10 +657,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
               <div style="position: relative; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center;">
                 <div style="
                   position: absolute;
-                  inset: -5px;
+                  inset: -3px;
                   border-radius: 50%;
                   background: ${ringColor};
-                  filter: blur(3px);
+                  filter: blur(2px);
                 "></div>
                 <div style="
                   position: relative;
@@ -671,8 +671,8 @@ export const PetaLokasiMap: React.FC<Props> = ({
                   font-weight: 800;
                   font-size: ${childCount > 99 ? '11px' : '12px'};
                   border-radius: 50%;
-                  border: 2.5px solid #ffffff;
-                  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+                  border: 2px solid rgba(255,255,255,0.92);
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
                   display: flex;
                   align-items: center;
                   justify-content: center;
@@ -821,47 +821,47 @@ export const PetaLokasiMap: React.FC<Props> = ({
   };
 
   return (
-    <div className="relative flex h-full min-h-[calc(100vh-64px)] w-full flex-col overflow-hidden bg-slate-900 lg:flex-row">
+    <div className="relative flex h-full min-h-[calc(100vh-64px)] w-full flex-col overflow-hidden bg-slate-100 dark:bg-slate-900 lg:flex-row">
       {/* Side Filter Controls & Meter List (Desktop Only) */}
-      <div className="hidden lg:flex z-20 w-96 flex-col border-r border-slate-200 bg-white p-4 shadow-sm shrink-0 overflow-y-auto">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+      <div className="hidden lg:flex z-20 w-96 flex-col border-r border-slate-200 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-4 shadow-xl shrink-0 overflow-y-auto text-slate-800 dark:text-slate-200">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800/80">
           <div className="flex items-center space-x-2">
-            <MapPin className="h-4 w-4 text-blue-600" />
-            <h2 className="text-sm sm:text-base font-bold text-slate-900">Filter Tagging Lokasi</h2>
+            <MapPin className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">Filter Tagging Lokasi</h2>
           </div>
-          <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-600 border border-blue-100">
+          <span className="rounded-full bg-sky-100 dark:bg-sky-950/60 px-2.5 py-0.5 text-xs font-bold text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30">
             {filteredMeters.length} Points
           </span>
         </div>
 
         {/* Quick Filter Bar for JENIS (Prabayar vs Paskabayar) */}
-        <div className="mt-3 flex space-x-1 rounded-xl bg-slate-100 p-1">
+        <div className="mt-3 flex space-x-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1 border border-slate-200 dark:border-slate-700/60">
           <button
             onClick={() => setFilterJenis("ALL")}
-            className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all ${
+            className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all cursor-pointer ${
               filterJenis === "ALL"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
             }`}
           >
             Semua ({meters.length})
           </button>
           <button
             onClick={() => setFilterJenis("PRA BAYAR")}
-            className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all ${
+            className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all cursor-pointer ${
               filterJenis === "PRA BAYAR"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-sky-600 text-white shadow-xs"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
             }`}
           >
             Prabayar
           </button>
           <button
             onClick={() => setFilterJenis("PASKA BAYAR")}
-            className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all ${
+            className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all cursor-pointer ${
               filterJenis === "PASKA BAYAR"
-                ? "bg-purple-600 text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
             }`}
           >
             Paskabayar
@@ -876,35 +876,35 @@ export const PetaLokasiMap: React.FC<Props> = ({
             placeholder="Cari ID Pel, Nama, Lokasi, No Meter..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full text-xs p-2.5 pl-10 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+            className="w-full text-xs p-2.5 pl-10 border border-slate-200 dark:border-slate-700/70 rounded-xl bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
           />
         </div>
 
         {/* Detailed Filters Grid */}
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase">STATUS DIGANTI</label>
+            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">STATUS DIGANTI</label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="mt-1 w-full text-xs p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+              className="mt-1 w-full text-xs p-2 border border-slate-200 dark:border-slate-700/70 rounded-xl bg-slate-50 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 transition-all"
             >
-              <option value="ALL">Semua Status</option>
-              <option value="SELESAI">✓ SELESAI</option>
-              <option value="BELUM">! BELUM</option>
+              <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">Semua Status</option>
+              <option value="SELESAI" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">✓ SELESAI</option>
+              <option value="BELUM" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">! BELUM</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase">PETUGAS LAPANGAN</label>
+            <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">PETUGAS LAPANGAN</label>
             <select
               value={filterPetugas}
               onChange={(e) => setFilterPetugas(e.target.value)}
-              className="mt-1 w-full text-xs p-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+              className="mt-1 w-full text-xs p-2 border border-slate-200 dark:border-slate-700/70 rounded-xl bg-slate-50 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 transition-all"
             >
-              <option value="ALL">Semua Petugas</option>
+              <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">Semua Petugas</option>
               {PETUGAS_LIST.map((p) => (
-                <option key={p} value={p}>
+                <option key={p} value={p} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
                   {p}
                 </option>
               ))}
@@ -929,44 +929,44 @@ export const PetaLokasiMap: React.FC<Props> = ({
                     onClick={() => handleFlyToMeter(m)}
                     className={`cursor-pointer rounded-xl border p-3 transition-all ${
                       isSelected
-                        ? "border-blue-500 bg-blue-50 shadow-sm"
-                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                        ? "border-sky-500 bg-sky-50/80 dark:bg-sky-950/30 shadow-xs"
+                        : "border-slate-200 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700/80 hover:bg-white dark:hover:bg-slate-800/80"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-900 truncate max-w-[170px]">{m.namaPelanggan}</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate max-w-[170px]">{m.namaPelanggan}</span>
                       <div className="flex items-center space-x-1.5">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleStartDirection(m);
                           }}
-                          className="flex items-center space-x-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 hover:bg-blue-600 hover:text-white transition-all border border-blue-200"
+                          className="flex items-center space-x-1 rounded-lg bg-sky-100 dark:bg-sky-950/60 px-2 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300 hover:bg-sky-600 hover:text-white transition-all border border-sky-300 dark:border-sky-500/30"
                           title="Buat Rute Navigasi ke kWh Meter ini"
                         >
                           <Navigation className="h-2.5 w-2.5" />
                           <span>Rute</span>
                         </button>
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
                             isDone
-                              ? "bg-green-100 text-green-700"
-                              : "bg-orange-100 text-orange-700"
+                              ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30"
+                              : "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/30"
                           }`}
                         >
                           {m.status}
                         </span>
                       </div>
                     </div>
-                    <div className="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
-                      <span>ID Pel: <strong>{m.idPelanggan}</strong></span>
-                      <span className="font-semibold text-blue-600">{m.tarif} / {m.daya} VA</span>
+                    <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                      <span>ID Pel: <strong className="text-sky-600 dark:text-sky-300 font-mono font-bold">{m.idPelanggan}</strong></span>
+                      <span className="font-semibold text-sky-600 dark:text-sky-400">{m.tarif} / {m.daya} VA</span>
                     </div>
-                    <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400">
-                      <span>Jenis: <strong className="text-slate-700">{m.jenis}</strong></span>
-                      <span className="text-slate-500 truncate max-w-[120px]">{m.pnj}</span>
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                      <span>Jenis: <strong className="text-slate-700 dark:text-slate-200">{m.jenis}</strong></span>
+                      <span className="text-slate-400 truncate max-w-[120px]">{m.pnj}</span>
                     </div>
-                    <div className="mt-1 text-[10px] font-mono text-blue-600/80 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 flex items-center justify-between">
+                    <div className="mt-1 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950/60 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
                       <span>Lat: {m.latitude}</span>
                       <span>Lng: {m.longitude}</span>
                     </div>
@@ -977,7 +977,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
               {visibleCount < filteredMeters.length && (
                 <button
                   onClick={() => setVisibleCount((prev) => prev + 100)}
-                  className="w-full py-2.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all border border-blue-200 mt-2"
+                  className="w-full py-2.5 text-xs font-bold text-sky-600 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 rounded-xl transition-all border border-sky-300 dark:border-sky-500/30 mt-2 cursor-pointer"
                 >
                   Tampilkan Lebih Banyak ({visibleCount} dari {filteredMeters.length} data)
                 </button>
@@ -989,13 +989,13 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
       {/* Main Interactive Map View */}
       <div className="relative flex-1 h-full w-full">
-        <div ref={mapContainerRef} className="h-full w-full bg-slate-900" />
+        <div ref={mapContainerRef} className="h-full w-full bg-slate-100 dark:bg-slate-900" />
 
         {/* Mobile Google Maps Header & Search Bar (< lg) - Hidden during active navigation to maximize map view */}
         {!activeRoute && (
           <div className="lg:hidden absolute top-3 inset-x-3 z-[1000] flex flex-col gap-2 pointer-events-none">
           {/* Floating Search Pill */}
-          <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/95 shadow-xl border border-slate-200/90 px-3.5 py-2.5 backdrop-blur-md">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/95 dark:bg-slate-900/95 shadow-xl border border-slate-200 dark:border-slate-700/80 px-3.5 py-2.5 backdrop-blur-xl text-slate-800 dark:text-white">
             {/* Hamburger Menu Button */}
             {onOpenMobileMenu && (
               <button
@@ -1007,7 +1007,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 }}
                 onPointerDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
-                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center -ml-1 text-slate-700 hover:text-blue-600 hover:bg-slate-100 active:bg-slate-200 rounded-full transition-all shrink-0 active:scale-90 cursor-pointer"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center -ml-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 rounded-full transition-all shrink-0 active:scale-90 cursor-pointer"
                 aria-label="Buka Menu Navigasi"
                 title="Buka Menu Navigasi"
               >
@@ -1017,18 +1017,18 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
             {/* Search Input */}
             <div className="relative flex-1 flex items-center min-w-0">
-              <Search className="h-4 w-4 text-blue-600 shrink-0 mr-2" />
+              <Search className="h-4 w-4 text-sky-600 dark:text-sky-400 shrink-0 mr-2" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Telusuri ID Pel, Nama, Lokasi..."
-                className="w-full bg-transparent text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none"
+                className="w-full bg-transparent text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="text-slate-400 hover:text-slate-600 p-1"
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -1039,7 +1039,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
             {isSyncing && (
               <span className="flex h-2.5 w-2.5 relative shrink-0" title="Sinkronisasi Cloud Aktif">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
               </span>
             )}
 
@@ -1047,10 +1047,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => setMobileFilterModalOpen(true)}
-              className={`p-1.5 rounded-full transition-all shrink-0 active:scale-95 ${
+              className={`p-1.5 rounded-full transition-all shrink-0 active:scale-95 cursor-pointer ${
                 filterStatus !== "ALL" || filterPetugas !== "ALL"
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "text-slate-500 hover:bg-slate-100"
+                  ? "bg-sky-600 text-white shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
               }`}
               title="Filter Lengkap"
             >
@@ -1062,11 +1062,11 @@ export const PetaLokasiMap: React.FC<Props> = ({
           <div className="pointer-events-auto relative flex items-center w-full">
             {/* Modern Left Scroll Button with subtle gradient mask */}
             {canScrollLeft && (
-              <div className="absolute left-0 z-20 flex items-center h-full pl-0.5 pr-3 bg-gradient-to-r from-slate-950/70 via-slate-950/30 to-transparent rounded-l-full">
+              <div className="absolute left-0 z-20 flex items-center h-full pl-0.5 pr-3 bg-gradient-to-r from-white/90 dark:from-slate-950/80 via-white/50 dark:via-slate-950/40 to-transparent rounded-l-full">
                 <button
                   type="button"
                   onClick={() => handleScrollChips("left")}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-md border border-slate-200/90 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-slate-900/95 text-slate-600 dark:text-slate-300 shadow-md border border-slate-200 dark:border-slate-700/90 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-90 transition-all cursor-pointer"
                   aria-label="Geser ke kiri"
                   title="Geser ke kiri"
                 >
@@ -1088,10 +1088,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
             >
               <button
                 onClick={() => setFilterJenis("ALL")}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer ${
                   filterJenis === "ALL"
-                    ? "bg-blue-600 text-white shadow-blue-600/30 ring-1 ring-blue-400"
-                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                    ? "bg-slate-800 dark:bg-slate-700 text-white shadow-xs border border-slate-700 dark:border-slate-600"
+                    : "bg-white/95 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <span>Semua</span>
@@ -1100,10 +1100,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
               <button
                 onClick={() => setFilterJenis("PRA BAYAR")}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer ${
                   filterJenis === "PRA BAYAR"
-                    ? "bg-blue-600 text-white shadow-blue-600/30 ring-1 ring-blue-400"
-                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                    ? "bg-sky-600 text-white shadow-xs border border-sky-400/40"
+                    : "bg-white/95 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <span>⚡ Prabayar</span>
@@ -1112,10 +1112,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
               <button
                 onClick={() => setFilterJenis("PASKA BAYAR")}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer ${
                   filterJenis === "PASKA BAYAR"
-                    ? "bg-purple-600 text-white shadow-purple-600/30 ring-1 ring-purple-400"
-                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                    ? "bg-indigo-600 text-white shadow-xs border border-indigo-400/40"
+                    : "bg-white/95 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <span>🔌 Paskabayar</span>
@@ -1124,10 +1124,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
               <button
                 onClick={() => setFilterStatus(filterStatus === "BELUM" ? "ALL" : "BELUM")}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer ${
                   filterStatus === "BELUM"
-                    ? "bg-amber-600 text-white shadow-amber-600/30 ring-1 ring-amber-400"
-                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                    ? "bg-amber-600 text-white shadow-xs border border-amber-400/40"
+                    : "bg-white/95 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <span>⏳ Belum ({counts.belum})</span>
@@ -1135,10 +1135,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
               <button
                 onClick={() => setFilterStatus(filterStatus === "SELESAI" ? "ALL" : "SELESAI")}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 ${
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer ${
                   filterStatus === "SELESAI"
-                    ? "bg-emerald-600 text-white shadow-emerald-600/30 ring-1 ring-emerald-400"
-                    : "bg-white/95 text-slate-700 border border-slate-200 hover:bg-slate-100"
+                    ? "bg-emerald-600 text-white shadow-xs border border-emerald-400/40"
+                    : "bg-white/95 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <span>✅ Selesai ({counts.selesai})</span>
@@ -1146,7 +1146,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
               <button
                 onClick={() => setMobileListOpen(true)}
-                className="shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md bg-gradient-to-r from-blue-700 to-indigo-700 text-white flex items-center gap-1 backdrop-blur-md active:scale-95"
+                className="shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md bg-gradient-to-r from-sky-600 to-blue-600 text-white flex items-center gap-1 backdrop-blur-md border border-sky-400/30 active:scale-95 cursor-pointer"
               >
                 <List className="h-3.5 w-3.5" />
                 <span>Daftar Meter ({filteredMeters.length})</span>
@@ -1155,11 +1155,11 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
             {/* Modern Right Scroll Button with subtle gradient mask */}
             {canScrollRight && (
-              <div className="absolute right-0 z-20 flex items-center h-full pr-0.5 pl-3 bg-gradient-to-l from-slate-950/70 via-slate-950/30 to-transparent rounded-r-full">
+              <div className="absolute right-0 z-20 flex items-center h-full pr-0.5 pl-3 bg-gradient-to-l from-white/90 dark:from-slate-950/80 via-white/50 dark:via-slate-950/40 to-transparent rounded-r-full">
                 <button
                   type="button"
                   onClick={() => handleScrollChips("right")}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-md border border-slate-200/90 hover:bg-white active:scale-90 transition-all cursor-pointer"
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white dark:bg-slate-900/95 text-slate-600 dark:text-slate-300 shadow-md border border-slate-200 dark:border-slate-700/90 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-90 transition-all cursor-pointer"
                   aria-label="Geser ke kanan"
                   title="Geser ke kanan"
                 >
@@ -1175,19 +1175,19 @@ export const PetaLokasiMap: React.FC<Props> = ({
         <div className="lg:hidden absolute top-32 right-3.5 z-[950] flex flex-col gap-2">
           <button
             onClick={() => setMapTileType(mapTileType === "satellite" ? "streets" : "satellite")}
-            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900/90 text-white shadow-2xl border border-slate-700/70 backdrop-blur-md active:scale-95 transition-all"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/95 dark:bg-slate-900/90 text-slate-700 dark:text-white shadow-xl border border-slate-200 dark:border-slate-700/70 backdrop-blur-md active:scale-95 transition-all cursor-pointer"
             title={mapTileType === "satellite" ? "Beralih ke Peta Jalan" : "Beralih ke Satelit"}
             aria-label="Ubah Tipe Peta"
           >
-            <Layers className="h-5 w-5 text-blue-400" />
+            <Layers className="h-5 w-5 text-sky-600 dark:text-sky-400" />
           </button>
 
           <button
             onClick={() => setIsLegendOpen(!isLegendOpen)}
-            className={`flex h-10 w-10 items-center justify-center rounded-2xl shadow-2xl border backdrop-blur-md active:scale-95 transition-all ${
+            className={`flex h-10 w-10 items-center justify-center rounded-2xl shadow-xl border backdrop-blur-md active:scale-95 transition-all cursor-pointer ${
               isLegendOpen
-                ? "bg-blue-600 text-white border-blue-500 ring-2 ring-blue-400/40"
-                : "bg-slate-900/90 text-slate-300 border-slate-700/70 hover:text-white"
+                ? "bg-sky-600 text-white border-sky-400/50 shadow-xs"
+                : "bg-white/95 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/70 hover:text-slate-900 dark:hover:text-white"
             }`}
             title="Buka / Tutup Legenda Peta"
             aria-label="Legenda Peta"
@@ -1197,23 +1197,23 @@ export const PetaLokasiMap: React.FC<Props> = ({
         </div>
 
         {/* Map Type Control Bar (Desktop Only) */}
-        <div className="hidden lg:flex absolute top-4 left-4 z-[1000] items-center space-x-1.5 rounded-2xl border border-slate-800/80 bg-slate-900/90 p-1.5 shadow-2xl backdrop-blur-md">
+        <div className="hidden lg:flex absolute top-4 left-4 z-[1000] items-center space-x-1.5 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/90 p-1.5 shadow-xl backdrop-blur-md">
           <button
             onClick={() => setMapTileType("satellite")}
-            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
               mapTileType === "satellite"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50"
-                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                ? "bg-sky-600 text-white shadow-xs border border-sky-400/30"
+                : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <span>🛰️ Mode Satelit</span>
           </button>
           <button
             onClick={() => setMapTileType("streets")}
-            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            className={`flex items-center space-x-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
               mapTileType === "streets"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50"
-                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                ? "bg-sky-600 text-white shadow-xs border border-sky-400/30"
+                : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <span>🗺️ Peta Jalan</span>
@@ -1222,17 +1222,17 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
         {/* Floating Active Route / Navigation Bar (Google Maps & My Maps style - Compact & Proportional) */}
         {activeRoute && routedMeter && (
-          <div className="absolute top-3 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 z-[1050] w-auto sm:w-full max-w-sm sm:max-w-md rounded-2xl border border-slate-700/80 bg-slate-900/95 p-3 sm:p-3.5 shadow-2xl backdrop-blur-xl text-white animate-in slide-in-from-top-3 duration-200">
+          <div className="absolute top-3 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 z-[1050] w-auto sm:w-full max-w-sm sm:max-w-md rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white/95 dark:bg-slate-900/95 p-3 sm:p-3.5 shadow-2xl backdrop-blur-xl text-slate-800 dark:text-white animate-in slide-in-from-top-3 duration-200">
             {/* Header & Travel Mode Selection */}
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-              <div className="flex items-center space-x-1 bg-slate-800/90 p-0.5 rounded-xl border border-slate-700/60">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
+              <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800/90 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700/60">
                 <button
                   type="button"
                   onClick={() => handleStartDirection(routedMeter, "motorcycle")}
-                  className={`flex items-center space-x-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-all ${
+                  className={`flex items-center space-x-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-all cursor-pointer ${
                     travelMode === "motorcycle"
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                   title="Sepeda Motor"
                 >
@@ -1242,10 +1242,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => handleStartDirection(routedMeter, "driving")}
-                  className={`flex items-center space-x-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-all ${
+                  className={`flex items-center space-x-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-all cursor-pointer ${
                     travelMode === "driving"
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                   title="Mobil"
                 >
@@ -1255,10 +1255,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={() => handleStartDirection(routedMeter, "walking")}
-                  className={`flex items-center space-x-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-all ${
+                  className={`flex items-center space-x-1 rounded-lg px-2 py-1 text-[11px] font-bold transition-all cursor-pointer ${
                     travelMode === "walking"
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "text-slate-400 hover:text-white"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                   title="Jalan Kaki"
                 >
@@ -1276,7 +1276,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
                       mapInstanceRef.current.fitBounds(bounds, { padding: [80, 80] });
                     }
                   }}
-                  className="rounded-lg bg-slate-800/90 p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="rounded-lg bg-slate-100 dark:bg-slate-800/90 p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                   title="Pusatkan Rute"
                 >
                   <Locate className="h-3.5 w-3.5" />
@@ -1284,7 +1284,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={clearActiveRoute}
-                  className="rounded-lg bg-slate-800/90 p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                  className="rounded-lg bg-slate-100 dark:bg-slate-800/90 p-1.5 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
                   title="Tutup Navigasi"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -1296,15 +1296,15 @@ export const PetaLokasiMap: React.FC<Props> = ({
             <div className="mt-2 flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex items-baseline space-x-1.5">
-                  <span className="text-lg sm:text-xl font-black text-emerald-400 tracking-tight">
+                  <span className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
                     {activeRoute.durationMinutes} mnt
                   </span>
-                  <span className="text-xs font-bold text-slate-300">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                     ({activeRoute.distanceKm} km)
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-400 flex items-center space-x-1 mt-0.5 truncate">
-                  <Route className="h-3 w-3 text-blue-400 shrink-0" />
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center space-x-1 mt-0.5 truncate">
+                  <Route className="h-3 w-3 text-blue-600 dark:text-blue-400 shrink-0" />
                   <span className="truncate font-medium">
                     {activeRoute.summary || "Rute Tercepat"}
                   </span>
@@ -1329,18 +1329,18 @@ export const PetaLokasiMap: React.FC<Props> = ({
             </div>
 
             {/* Destination target preview (Compact 1-line strip) */}
-            <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 text-[11px]">
+            <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-2 text-[11px]">
               <div className="flex items-center gap-1.5 min-w-0 truncate">
                 <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
-                <span className="font-bold text-slate-200 truncate">{routedMeter.namaPelanggan}</span>
-                <span className="text-slate-400 font-mono text-[10px] shrink-0 truncate">
+                <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{routedMeter.namaPelanggan}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-mono text-[10px] shrink-0 truncate">
                   ID: {routedMeter.idPelanggan} {routedMeter.pnj ? `| ${routedMeter.pnj}` : ""}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowSteps(!showSteps)}
-                className="shrink-0 flex items-center space-x-1 text-[10px] font-bold text-blue-400 hover:text-blue-300 py-1 px-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 transition-all border border-blue-500/20 active:scale-95 cursor-pointer"
+                className="shrink-0 flex items-center space-x-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 py-1 px-2 rounded-lg bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all border border-blue-200 dark:border-blue-500/20 active:scale-95 cursor-pointer"
               >
                 <span>Langkah ({activeRoute.steps.length})</span>
                 {showSteps ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -1349,15 +1349,15 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
             {/* Turn-by-Turn Instruction List (Collapsible) */}
             {showSteps && activeRoute.steps.length > 0 && (
-              <div className="mt-2 max-h-40 overflow-y-auto space-y-1.5 rounded-xl bg-slate-950/80 p-2 border border-slate-800 scrollbar-thin text-xs animate-in fade-in duration-150">
+              <div className="mt-2 max-h-40 overflow-y-auto space-y-1.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 p-2 border border-slate-200 dark:border-slate-800 scrollbar-thin text-xs animate-in fade-in duration-150">
                 {activeRoute.steps.map((step, idx) => (
-                  <div key={idx} className="flex items-start space-x-2 py-1 border-b border-slate-900 last:border-0 text-slate-300">
-                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-900/60 text-[9px] font-bold text-blue-300 border border-blue-700/50">
+                  <div key={idx} className="flex items-start space-x-2 py-1 border-b border-slate-200 dark:border-slate-900 last:border-0 text-slate-700 dark:text-slate-300">
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/60 text-[9px] font-bold text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700/50">
                       {idx + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] leading-tight font-medium text-slate-200">{step.instruction}</p>
-                      <span className="text-[9px] text-slate-400">
+                      <p className="text-[11px] leading-tight font-medium text-slate-800 dark:text-slate-200">{step.instruction}</p>
+                      <span className="text-[9px] text-slate-500 dark:text-slate-400">
                         {step.distanceMeters > 0 ? `${step.distanceMeters} m` : ""}
                       </span>
                     </div>
@@ -1370,29 +1370,29 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
         {/* GPS Permission / Simulation Notice Banner */}
         {gpsErrorNotice && (
-          <div className="absolute top-16 left-4 right-4 sm:left-auto sm:right-4 z-[1000] max-w-sm rounded-2xl border border-amber-500/40 bg-amber-950/95 p-3.5 shadow-2xl backdrop-blur-md text-white text-xs animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="absolute top-16 left-4 right-4 sm:left-auto sm:right-4 z-[1000] max-w-sm rounded-2xl border border-amber-300 dark:border-amber-500/40 bg-amber-50/95 dark:bg-amber-950/95 p-3.5 shadow-2xl backdrop-blur-md text-slate-800 dark:text-white text-xs animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="flex items-start justify-between">
               <div className="flex items-start space-x-2">
-                <span className="text-amber-400 text-sm">📍</span>
+                <span className="text-amber-500 dark:text-amber-400 text-sm">📍</span>
                 <div>
-                  <strong className="font-bold text-amber-200 block text-xs">GPS Lokasi Terdeteksi:</strong>
-                  <span className="text-amber-100/80 text-[11px] leading-relaxed block mt-0.5">
+                  <strong className="font-bold text-amber-900 dark:text-amber-200 block text-xs">GPS Lokasi Terdeteksi:</strong>
+                  <span className="text-amber-800 dark:text-amber-100/80 text-[11px] leading-relaxed block mt-0.5">
                     {gpsErrorNotice}
                   </span>
                 </div>
               </div>
-              <button onClick={() => setGpsErrorNotice(null)} className="text-amber-400 hover:text-white ml-2 text-xs font-bold">✕</button>
+              <button onClick={() => setGpsErrorNotice(null)} className="text-amber-600 dark:text-amber-400 hover:text-slate-900 dark:hover:text-white ml-2 text-xs font-bold cursor-pointer">✕</button>
             </div>
             <div className="mt-2.5 flex space-x-2">
               <button
                 onClick={setSimulatedBagualaLocation}
-                className="flex-1 rounded-xl bg-amber-500/20 px-3 py-1.5 text-[11px] font-bold text-amber-300 hover:bg-amber-500/30 border border-amber-500/40 transition-all text-center"
+                className="flex-1 rounded-xl bg-amber-200/60 dark:bg-amber-500/20 px-3 py-1.5 text-[11px] font-bold text-amber-900 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-500/30 border border-amber-300 dark:border-amber-500/40 transition-all text-center cursor-pointer"
               >
                 📍 Pakai Titik ULP Baguala (Passo)
               </button>
               <button
                 onClick={() => startGpsTracking(true)}
-                className="rounded-xl bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700 transition-all"
+                className="rounded-xl bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700 transition-all cursor-pointer"
               >
                 Coba GPS Asli
               </button>
@@ -1415,11 +1415,11 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 startGpsTracking(true);
               }
             }}
-            className="relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-2xl border border-slate-700/70 bg-slate-900/90 text-white shadow-2xl backdrop-blur-md hover:bg-blue-600 hover:border-blue-500 transition-all group active:scale-95"
+            className="relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700/70 bg-white/95 dark:bg-slate-900/90 text-slate-700 dark:text-white shadow-xl backdrop-blur-md hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all group active:scale-95 cursor-pointer"
             title="Pusatkan ke Titik Lokasi Saya (GPS)"
             aria-label="Pusatkan Lokasi Saya"
           >
-            <Crosshair className={`h-5 w-5 ${gpsStatus === 'active' ? 'text-blue-400 group-hover:text-white' : 'text-slate-400'}`} />
+            <Crosshair className={`h-5 w-5 ${gpsStatus === 'active' ? 'text-blue-600 dark:text-blue-400 group-hover:text-white' : 'text-slate-500 dark:text-slate-400'}`} />
             {gpsStatus === 'active' && (
               <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -1429,14 +1429,14 @@ export const PetaLokasiMap: React.FC<Props> = ({
           </button>
 
           {/* Integrated Zoom In & Zoom Out Controls (Hidden on mobile when card is open to avoid clutter) */}
-          <div className={`${selectedMeter ? "hidden sm:flex" : "flex"} flex-col rounded-2xl border border-slate-700/70 bg-slate-900/90 shadow-2xl backdrop-blur-md overflow-hidden`}>
+          <div className={`${selectedMeter ? "hidden sm:flex" : "flex"} flex-col rounded-2xl border border-slate-200 dark:border-slate-700/70 bg-white/95 dark:bg-slate-900/90 shadow-xl backdrop-blur-md overflow-hidden`}>
             <button
               onClick={() => {
                 if (mapInstanceRef.current) {
                   mapInstanceRef.current.zoomIn();
                 }
               }}
-              className="flex h-9 w-10 sm:h-10 sm:w-11 items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors border-b border-slate-800 active:scale-95"
+              className="flex h-9 w-10 sm:h-10 sm:w-11 items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-200 dark:border-slate-800 active:scale-95 cursor-pointer"
               title="Perbesar Peta (+)"
               aria-label="Zoom In"
             >
@@ -1448,7 +1448,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
                   mapInstanceRef.current.zoomOut();
                 }
               }}
-              className="flex h-9 w-10 sm:h-10 sm:w-11 items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 transition-colors active:scale-95"
+              className="flex h-9 w-10 sm:h-10 sm:w-11 items-center justify-center text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95 cursor-pointer"
               title="Perkecil Peta (-)"
               aria-label="Zoom Out"
             >
@@ -1458,17 +1458,17 @@ export const PetaLokasiMap: React.FC<Props> = ({
         </div>
 
         {/* High-Tech Legend Overlay on Map (Desktop Only) */}
-        <div className="hidden lg:block absolute top-4 right-4 z-[1000] w-72 rounded-2xl border border-slate-800/90 bg-slate-900/90 p-3.5 shadow-2xl backdrop-blur-md text-white transition-all">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2.5">
+        <div className="hidden lg:block absolute top-4 right-4 z-[1000] w-72 rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white/95 dark:bg-slate-900/90 p-3.5 shadow-xl backdrop-blur-md text-slate-800 dark:text-white transition-all">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2 mb-2.5">
             <div className="flex items-center space-x-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
                 <Layers className="h-3.5 w-3.5" />
               </div>
-              <h4 className="font-extrabold text-xs text-slate-100 tracking-wide uppercase">Legenda Peta</h4>
+              <h4 className="font-extrabold text-xs text-slate-900 dark:text-slate-100 tracking-wide uppercase">Legenda Peta</h4>
             </div>
             <button
               onClick={() => setIsLegendOpen(!isLegendOpen)}
-              className="rounded-lg bg-slate-800 p-1 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              className="rounded-lg bg-slate-100 dark:bg-slate-800 p-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               title={isLegendOpen ? "Sembunyikan Legenda" : "Tampilkan Legenda"}
             >
               <span className="text-xs font-bold px-1">{isLegendOpen ? "▲" : "▼"}</span>
@@ -1478,65 +1478,65 @@ export const PetaLokasiMap: React.FC<Props> = ({
           {isLegendOpen && (
             <div className="space-y-2 text-xs animate-in fade-in duration-200">
               {/* Item 1: Selesai */}
-              <div className="flex items-center justify-between rounded-xl bg-slate-800/60 p-2 border border-slate-700/50">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-200 dark:border-slate-700/50">
                 <div className="flex items-center space-x-2.5">
-                  <div className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm shadow-emerald-900/50">
+                  <div className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-xs">
                     <CheckCircle2 className="h-3.5 w-3.5 text-white" />
                   </div>
                   <div>
-                    <div className="font-bold text-slate-100 text-[11px]">Meter SELESAI</div>
-                    <div className="text-[10px] text-slate-400">Penggantian Tuntas</div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-[11px]">Meter SELESAI</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Penggantian Tuntas</div>
                   </div>
                 </div>
-                <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-400 border border-emerald-500/30">
+                <span className="rounded bg-emerald-100 dark:bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
                   HIJAU
                 </span>
               </div>
 
               {/* Item 2: Prabayar Belum */}
-              <div className="flex items-center justify-between rounded-xl bg-slate-800/60 p-2 border border-slate-700/50">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-200 dark:border-slate-700/50">
                 <div className="flex items-center space-x-2.5">
-                  <div className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 shadow-sm shadow-blue-900/50">
+                  <div className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 shadow-xs">
                     <Zap className="h-3.5 w-3.5 text-white" />
                   </div>
                   <div>
-                    <div className="font-bold text-slate-100 text-[11px]">Prabayar (BELUM)</div>
-                    <div className="text-[10px] text-slate-400">Token / Pra Bayar</div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-[11px]">Prabayar (BELUM)</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Token / Pra Bayar</div>
                   </div>
                 </div>
-                <span className="rounded bg-sky-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-sky-400 border border-sky-500/30">
+                <span className="rounded bg-sky-100 dark:bg-sky-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/30">
                   BIRU (PR)
                 </span>
               </div>
 
               {/* Item 3: Paskabayar Belum */}
-              <div className="flex items-center justify-between rounded-xl bg-slate-800/60 p-2 border border-slate-700/50">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-200 dark:border-slate-700/50">
                 <div className="flex items-center space-x-2.5">
-                  <div className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-900/50">
+                  <div className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-xs">
                     <Clock className="h-3.5 w-3.5 text-white" />
                   </div>
                   <div>
-                    <div className="font-bold text-slate-100 text-[11px]">Paskabayar (BELUM)</div>
-                    <div className="text-[10px] text-slate-400">Pasca / Meter Tua</div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-[11px]">Paskabayar (BELUM)</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Pasca / Meter Tua</div>
                   </div>
                 </div>
-                <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-400 border border-amber-500/30">
+                <span className="rounded bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
                   KUNING (PS)
                 </span>
               </div>
 
               {/* Item 4: Cluster */}
-              <div className="flex items-center justify-between rounded-xl bg-slate-800/60 p-2 border border-slate-700/50">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-200 dark:border-slate-700/50">
                 <div className="flex items-center space-x-2.5">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-[10px] font-extrabold text-white ring-2 ring-indigo-400/40 shadow-md">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-[10px] font-extrabold text-white border border-white/80 shadow-xs">
                     25
                   </div>
                   <div>
-                    <div className="font-bold text-slate-100 text-[11px]">Cluster Titik Lokasi</div>
-                    <div className="text-[10px] text-slate-400">Kelompok Meter Area</div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-[11px]">Cluster Titik Lokasi</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Kelompok Meter Area</div>
                   </div>
                 </div>
-                <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-indigo-400 border border-indigo-500/30">
+                <span className="rounded bg-sky-100 dark:bg-sky-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-500/30">
                   CLUSTER
                 </span>
               </div>
@@ -1546,40 +1546,40 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
         {/* Mobile Floating Legend Card (Positioned to the left of layer controls without covering them) */}
         {isLegendOpen && (
-          <div className="lg:hidden absolute top-32 right-16 z-[960] w-64 rounded-2xl border border-slate-800/90 bg-slate-900/95 p-3 shadow-2xl backdrop-blur-xl text-white animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-1.5 mb-2">
-              <span className="font-bold text-xs text-slate-100 flex items-center gap-1.5">
-                <Layers className="h-3.5 w-3.5 text-blue-400" />
+          <div className="lg:hidden absolute top-32 right-16 z-[960] w-64 rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white/95 dark:bg-slate-900/95 p-3 shadow-2xl backdrop-blur-xl text-slate-800 dark:text-white animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-1.5 mb-2">
+              <span className="font-bold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                <Layers className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                 Legenda Peta
               </span>
               <button
                 onClick={() => setIsLegendOpen(false)}
-                className="rounded-full p-1 text-slate-400 hover:text-white hover:bg-slate-800"
+                className="rounded-full p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
             <div className="space-y-1.5 text-[11px]">
-              <div className="flex items-center justify-between rounded-lg bg-slate-800/60 p-1.5">
-                <span className="flex items-center gap-1.5 font-medium text-slate-200">
+              <div className="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-800/60 p-1.5 border border-slate-200 dark:border-transparent">
+                <span className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
                   Meter Selesai
                 </span>
-                <span className="text-[10px] font-bold text-emerald-400">HIJAU</span>
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">HIJAU</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-slate-800/60 p-1.5">
-                <span className="flex items-center gap-1.5 font-medium text-slate-200">
+              <div className="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-800/60 p-1.5 border border-slate-200 dark:border-transparent">
+                <span className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
                   <span className="h-2.5 w-2.5 rounded-full bg-sky-500"></span>
                   Prabayar Belum
                 </span>
-                <span className="text-[10px] font-bold text-sky-400">BIRU (PR)</span>
+                <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400">BIRU (PR)</span>
               </div>
-              <div className="flex items-center justify-between rounded-lg bg-slate-800/60 p-1.5">
-                <span className="flex items-center gap-1.5 font-medium text-slate-200">
+              <div className="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-800/60 p-1.5 border border-slate-200 dark:border-transparent">
+                <span className="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
                   <span className="h-2.5 w-2.5 rounded-full bg-amber-500"></span>
                   Paskabayar Belum
                 </span>
-                <span className="text-[10px] font-bold text-amber-400">KUNING (PS)</span>
+                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">KUNING (PS)</span>
               </div>
             </div>
           </div>
@@ -1587,26 +1587,26 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
         {/* Selected Meter Quick Actions Overlay (Compact & Proportional for Mobile & Desktop) */}
         {selectedMeter && (
-          <div className="absolute bottom-3 sm:bottom-5 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 z-[1000] w-auto sm:w-full max-w-lg rounded-2xl border border-slate-200/90 bg-white/95 p-3 sm:p-4 shadow-xl backdrop-blur-md text-slate-800 animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <div className="absolute bottom-3 sm:bottom-5 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 z-[1000] w-auto sm:w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-750/90 bg-white/95 dark:bg-slate-900/95 p-3 sm:p-4 shadow-2xl backdrop-blur-xl text-slate-800 dark:text-slate-100 animate-in fade-in slide-in-from-bottom-3 duration-200">
             {/* Mobile Sheet Drag Indicator */}
             <div className="sm:hidden -mt-0.5 mb-1.5 flex justify-center">
-              <div className="w-8 h-1 bg-slate-300 rounded-full" />
+              <div className="w-8 h-1 bg-slate-300 dark:bg-slate-700 rounded-full" />
             </div>
 
             {/* Header: Badges & Close Button */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1.5 min-w-0">
-                <span className="rounded-md bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 tracking-wide shrink-0">
+                <span className="rounded-md bg-sky-100 dark:bg-sky-950/70 border border-sky-300 dark:border-sky-500/30 px-2 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300 tracking-wide shrink-0">
                   {selectedMeter.jenis}
                 </span>
-                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 tracking-wide uppercase shrink-0">
+                <span className="rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/70 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300 tracking-wide uppercase shrink-0">
                   {selectedMeter.gantiMeter || "METER TUA"}
                 </span>
                 <span
-                  className={`rounded-md px-2 py-0.5 text-[10px] font-bold shrink-0 ${
+                  className={`rounded-md px-2 py-0.5 text-[10px] font-bold border shrink-0 ${
                     selectedMeter.status === "SELESAI"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-amber-100 text-amber-700"
+                      ? "bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30"
+                      : "bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/30"
                   }`}
                 >
                   {selectedMeter.status === "SELESAI" ? "SELESAI" : "BELUM"}
@@ -1616,7 +1616,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => setSelectedMeter(null)}
-                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1 rounded-lg transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 p-1 rounded-lg transition-colors cursor-pointer"
                 title="Tutup Detail"
               >
                 <X className="h-4 w-4" />
@@ -1625,35 +1625,35 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
             {/* Customer Name & Identification */}
             <div className="mt-1.5">
-              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight truncate leading-tight">
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight truncate leading-tight">
                 {selectedMeter.namaPelanggan}
               </h3>
-              <p className="mt-0.5 text-[11px] text-slate-500 font-medium truncate">
-                ID Pel: <span className="text-blue-600 font-bold font-mono">{selectedMeter.idPelanggan}</span>{" "}
-                <span className="text-slate-300">|</span> No Meter:{" "}
-                <span className="text-slate-700 font-semibold">{selectedMeter.noMeterLama || selectedMeter.jenis}</span>
+              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate">
+                ID Pel: <span className="text-sky-600 dark:text-sky-300 font-bold font-mono">{selectedMeter.idPelanggan}</span>{" "}
+                <span className="text-slate-300 dark:text-slate-600">|</span> No Meter:{" "}
+                <span className="text-slate-700 dark:text-slate-200 font-semibold">{selectedMeter.noMeterLama || selectedMeter.jenis}</span>
               </p>
             </div>
 
             {/* Compact Details Grid */}
-            <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-1.5 rounded-xl border border-slate-100 bg-slate-50/80 p-2 text-[11px] text-slate-600">
+            <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-800/60 p-2 text-[11px] text-slate-700 dark:text-slate-300">
               <div className="min-w-0">
-                <span className="text-[9px] uppercase font-bold text-slate-400 block leading-tight">Tarif / Daya</span>
-                <span className="text-slate-900 font-bold truncate block">{selectedMeter.tarif} / {selectedMeter.daya} VA</span>
+                <span className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block leading-tight">Tarif / Daya</span>
+                <span className="text-slate-900 dark:text-white font-bold truncate block">{selectedMeter.tarif} / {selectedMeter.daya} VA</span>
               </div>
               <div className="min-w-0">
-                <span className="text-[9px] uppercase font-bold text-slate-400 block leading-tight">Petugas</span>
-                <span className="text-slate-900 font-bold truncate block">
+                <span className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block leading-tight">Petugas</span>
+                <span className="text-slate-900 dark:text-white font-bold truncate block">
                   {selectedMeter.status === "SELESAI" ? (selectedMeter.petugas || "-") : "-"}
                 </span>
               </div>
               <div className="min-w-0">
-                <span className="text-[9px] uppercase font-bold text-slate-400 block leading-tight">Stand Bongkar</span>
-                <span className="text-slate-900 font-bold truncate block">{selectedMeter.standBongkar || "0 kWh"}</span>
+                <span className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block leading-tight">Stand Bongkar</span>
+                <span className="text-slate-900 dark:text-white font-bold truncate block">{selectedMeter.standBongkar || "0 kWh"}</span>
               </div>
               <div className="min-w-0">
-                <span className="text-[9px] uppercase font-bold text-slate-400 block leading-tight">Lokasi / PNJ</span>
-                <span className="text-slate-900 font-bold uppercase truncate block">{selectedMeter.pnj || "-"}</span>
+                <span className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 block leading-tight">Lokasi / PNJ</span>
+                <span className="text-slate-900 dark:text-white font-bold uppercase truncate block">{selectedMeter.pnj || "-"}</span>
               </div>
             </div>
 
@@ -1666,12 +1666,12 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 : null;
 
               return (
-                <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-1.5 border-t border-slate-100 pt-2">
+                <div className="mt-2.5 grid grid-cols-2 sm:grid-cols-4 gap-1.5 border-t border-slate-200 dark:border-slate-800/80 pt-2">
                   <button
                     type="button"
                     onClick={() => handleStartDirection(selectedMeter)}
                     disabled={isCalculatingRoute}
-                    className="flex items-center justify-center space-x-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-2 py-2 text-xs font-bold text-white shadow-xs hover:from-blue-700 hover:to-indigo-700 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
+                    className="flex items-center justify-center space-x-1 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 px-2 py-2 text-xs font-bold text-white shadow-xs hover:from-sky-500 hover:to-blue-500 border border-sky-400/30 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
                   >
                     <Navigation className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">
@@ -1691,10 +1691,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
                     )}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center space-x-1 rounded-xl border border-slate-200 bg-white px-2 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-xs active:scale-95 cursor-pointer"
+                    className="flex items-center justify-center space-x-1 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800 px-2 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700/80 hover:text-slate-900 dark:hover:text-white transition-all shadow-xs active:scale-95 cursor-pointer"
                     title="Buka Navigasi Langsung di Google Maps"
                   >
-                    <ExternalLink className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                    <ExternalLink className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
                     <span className="truncate">Google Maps</span>
                   </a>
 
@@ -1709,8 +1709,8 @@ export const PetaLokasiMap: React.FC<Props> = ({
                     }}
                     className={`flex items-center justify-center space-x-1 rounded-xl px-2 py-2 text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer ${
                       selectedMeter.status === "SELESAI"
-                        ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
-                        : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-200"
+                        ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700"
+                        : "bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-400/30 shadow-emerald-950/50"
                     }`}
                   >
                     <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
@@ -1722,7 +1722,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => onSelectForDocument(selectedMeter)}
-                    className="flex items-center justify-center space-x-1 rounded-xl bg-blue-600 px-2 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-700 transition-all active:scale-95 cursor-pointer"
+                    className="flex items-center justify-center space-x-1 rounded-xl bg-blue-600 px-2 py-2 text-xs font-bold text-white shadow-xs hover:bg-blue-500 border border-blue-400/30 transition-all active:scale-95 cursor-pointer"
                   >
                     <FileText className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">Cetak PK</span>
@@ -1735,22 +1735,22 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
         {/* Petugas Selection Modal Dialog when marking as SELESAI */}
         {meterToComplete && (
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden text-slate-800 animate-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-750 overflow-hidden text-slate-800 dark:text-slate-100 animate-in zoom-in-95 duration-200">
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-900 to-slate-800 px-5 py-4 text-white">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-5 py-4 text-slate-900 dark:text-white">
                 <div className="flex items-center space-x-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/40">
                     <UserCheck className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-extrabold tracking-tight">Pilih Petugas Ganti Meter</h3>
-                    <p className="text-[11px] text-slate-300">Tentukan petugas pelaksana untuk menandai SELESAI</p>
+                    <h3 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">Pilih Petugas Ganti Meter</h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Tentukan petugas pelaksana untuk menandai SELESAI</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setMeterToComplete(null)}
-                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -1758,25 +1758,25 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
               {/* Customer Info Card */}
               <div className="p-5 space-y-4">
-                <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3.5 text-xs text-slate-700">
+                <div className="rounded-xl border border-sky-200 dark:border-sky-500/30 bg-sky-50/70 dark:bg-sky-950/40 p-3.5 text-xs text-slate-700 dark:text-slate-200">
                   <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-slate-900 text-sm">{meterToComplete.namaPelanggan}</span>
-                    <span className="rounded bg-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-800">
+                    <span className="font-extrabold text-slate-900 dark:text-white text-sm">{meterToComplete.namaPelanggan}</span>
+                    <span className="rounded bg-sky-100 dark:bg-sky-500/20 border border-sky-300 dark:border-sky-400/30 px-2 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300">
                       {meterToComplete.jenis}
                     </span>
                   </div>
-                  <div className="mt-1.5 grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                  <div className="mt-1.5 grid grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300">
                     <div>
-                      ID Pel: <strong className="text-blue-700 font-mono font-bold">{meterToComplete.idPelanggan}</strong>
+                      ID Pel: <strong className="text-sky-600 dark:text-sky-300 font-mono font-bold">{meterToComplete.idPelanggan}</strong>
                     </div>
                     <div>
-                      Tarif/Daya: <strong className="text-slate-900">{meterToComplete.tarif} / {meterToComplete.daya} VA</strong>
+                      Tarif/Daya: <strong className="text-slate-900 dark:text-white">{meterToComplete.tarif} / {meterToComplete.daya} VA</strong>
                     </div>
                     <div>
-                      Meter Lama: <span className="font-mono text-slate-800">{meterToComplete.noMeterLama || "-"}</span>
+                      Meter Lama: <span className="font-mono text-slate-800 dark:text-slate-200">{meterToComplete.noMeterLama || "-"}</span>
                     </div>
                     <div className="truncate">
-                      Lokasi/PNJ: <span className="text-slate-800 font-medium">{meterToComplete.pnj || "-"}</span>
+                      Lokasi/PNJ: <span className="text-slate-800 dark:text-slate-200 font-medium">{meterToComplete.pnj || "-"}</span>
                     </div>
                   </div>
                 </div>
@@ -1784,15 +1784,15 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 {/* Petugas Selection */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <User className="h-3.5 w-3.5 text-blue-600" />
-                      Petugas Pelaksana Ganti Meter <span className="text-rose-500">*</span>
+                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
+                      Petugas Pelaksana Ganti Meter <span className="text-rose-500 dark:text-rose-400">*</span>
                     </label>
-                    <span className="text-[10px] text-slate-400 font-medium">Klik nama atau pilih dropdown</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Klik nama atau pilih dropdown</span>
                   </div>
 
                   {/* Quick Pick Pills / Grid */}
-                  <div className="grid grid-cols-4 sm:grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="grid grid-cols-4 sm:grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
                     {PETUGAS_LIST.map((pet) => {
                       const isSelected = selectedPetugasForCompletion === pet;
                       return (
@@ -1800,10 +1800,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
                           key={pet}
                           type="button"
                           onClick={() => setSelectedPetugasForCompletion(pet)}
-                          className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center ${
+                          className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center cursor-pointer ${
                             isSelected
-                              ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-400 scale-[1.02]"
-                              : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+                              ? "bg-sky-600 text-white shadow-xs ring-2 ring-sky-400/50 scale-[1.02]"
+                              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
                           }`}
                         >
                           {pet}
@@ -1814,11 +1814,11 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
                   {/* Dropdown Select Alternative */}
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-[11px] text-slate-500">Pilihan Terpilih:</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">Pilihan Terpilih:</span>
                     <select
                       value={selectedPetugasForCompletion}
                       onChange={(e) => setSelectedPetugasForCompletion(e.target.value as PetugasName)}
-                      className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                     >
                       {PETUGAS_LIST.map((p) => (
                         <option key={p} value={p}>
@@ -1832,45 +1832,45 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 {/* Optional inputs */}
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                      No. Meter Baru <span className="text-slate-400 font-normal">(Opsional)</span>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      No. Meter Baru <span className="text-slate-400 dark:text-slate-500 font-normal">(Opsional)</span>
                     </label>
                     <input
                       type="text"
                       value={customNoMeterBaru}
                       onChange={(e) => setCustomNoMeterBaru(e.target.value)}
                       placeholder="Contoh: 37119200481"
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Stand Bongkar <span className="text-slate-400 font-normal">(Opsional)</span>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Stand Bongkar <span className="text-slate-400 dark:text-slate-500 font-normal">(Opsional)</span>
                     </label>
                     <input
                       type="text"
                       value={customStandBongkar}
                       onChange={(e) => setCustomStandBongkar(e.target.value)}
                       placeholder="Contoh: 04891 kWh"
-                      className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Footer Actions */}
-              <div className="flex items-center justify-end space-x-2.5 border-t border-slate-100 bg-slate-50 px-5 py-3.5">
+              <div className="flex items-center justify-end space-x-2.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/80 px-5 py-3.5">
                 <button
                   type="button"
                   onClick={() => setMeterToComplete(null)}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="button"
                   onClick={handleConfirmMarkSelesai}
-                  className="flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-sm shadow-emerald-200 transition-all"
+                  className="flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 shadow-xs shadow-emerald-950 transition-all cursor-pointer"
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   <span>Simpan & Tandai SELESAI ({selectedPetugasForCompletion})</span>
@@ -1882,24 +1882,24 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
         {/* Mobile Google Maps Bottom Sheet Drawer for Meter List */}
         {mobileListOpen && (
-          <div className="lg:hidden fixed inset-x-0 bottom-0 top-16 z-[1200] flex flex-col bg-white rounded-t-3xl shadow-2xl border-t border-slate-200 animate-in slide-in-from-bottom duration-200">
+          <div className="lg:hidden fixed inset-x-0 bottom-0 top-16 z-[1200] flex flex-col bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl border-t border-slate-200 dark:border-slate-750 text-slate-800 dark:text-slate-100 animate-in slide-in-from-bottom duration-200">
             {/* Grab Handle */}
             <div className="pt-3 pb-1 flex justify-center cursor-pointer" onClick={() => setMobileListOpen(false)}>
-              <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
             </div>
 
             {/* Header */}
-            <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
-                  <List className="h-4 w-4 text-blue-600" />
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <List className="h-4 w-4 text-sky-600 dark:text-sky-400" />
                   Daftar Meter ({filteredMeters.length})
                 </h3>
-                <p className="text-[11px] text-slate-500">Ketuk meter untuk memusatkan peta ke lokasinya</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Ketuk meter untuk memusatkan peta ke lokasinya</p>
               </div>
               <button
                 onClick={() => setMobileListOpen(false)}
-                className="p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+                className="p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1908,7 +1908,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
             {/* List */}
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {filteredMeters.length === 0 ? (
-                <div className="py-12 text-center text-xs text-slate-400">
+                <div className="py-12 text-center text-xs text-slate-500 dark:text-slate-400">
                   Tidak ada data meter yang cocok dengan filter.
                 </div>
               ) : (
@@ -1925,29 +1925,29 @@ export const PetaLokasiMap: React.FC<Props> = ({
                         }}
                         className={`cursor-pointer rounded-2xl border p-3 transition-all active:scale-98 ${
                           isSelected
-                            ? "border-blue-500 bg-blue-50/70 shadow-sm"
-                            : "border-slate-200 bg-white hover:border-slate-300"
+                            ? "border-sky-500 bg-sky-50 dark:bg-sky-950/40 shadow-xs"
+                            : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-900 truncate max-w-[180px]">{m.namaPelanggan}</span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[180px]">{m.namaPelanggan}</span>
                           <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
                               isDone
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-amber-100 text-amber-700"
+                                ? "bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30"
+                                : "bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/30"
                             }`}
                           >
                             {m.status}
                           </span>
                         </div>
-                        <div className="mt-1 text-[11px] text-slate-500 flex items-center justify-between">
-                          <span>ID Pel: <strong className="text-slate-800">{m.idPelanggan}</strong></span>
-                          <span className="font-semibold text-blue-600">{m.tarif} / {m.daya} VA</span>
+                        <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                          <span>ID Pel: <strong className="text-sky-600 dark:text-sky-300 font-mono">{m.idPelanggan}</strong></span>
+                          <span className="font-semibold text-sky-600 dark:text-sky-400">{m.tarif} / {m.daya} VA</span>
                         </div>
-                        <div className="mt-1 text-[10px] text-slate-400 flex items-center justify-between">
-                          <span>Jenis: <strong className="text-slate-600">{m.jenis}</strong></span>
-                          <span className="truncate max-w-[140px]">{m.pnj}</span>
+                        <div className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                          <span>Jenis: <strong className="text-slate-700 dark:text-slate-300">{m.jenis}</strong></span>
+                          <span className="truncate max-w-[140px] text-slate-500 dark:text-slate-400">{m.pnj}</span>
                         </div>
                       </div>
                     );
@@ -1955,7 +1955,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
                   {visibleCount < filteredMeters.length && (
                     <button
                       onClick={() => setVisibleCount((prev) => prev + 100)}
-                      className="w-full py-2.5 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl mt-2 hover:bg-blue-100"
+                      className="w-full py-2.5 text-xs font-bold text-sky-600 dark:text-sky-400 bg-slate-100 dark:bg-slate-800 rounded-xl mt-2 hover:bg-slate-200 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700 cursor-pointer"
                     >
                       Tampilkan Lebih Banyak ({visibleCount} dari {filteredMeters.length})
                     </button>
@@ -1968,16 +1968,16 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
         {/* Mobile Filter Sheet Modal */}
         {mobileFilterModalOpen && (
-          <div className="lg:hidden fixed inset-0 z-[1300] flex items-end sm:items-center justify-center bg-slate-950/60 p-0 sm:p-4 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-slate-200 text-slate-800 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="lg:hidden fixed inset-0 z-[1300] flex items-end sm:items-center justify-center bg-slate-950/75 p-0 sm:p-4 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl border border-slate-200 dark:border-slate-750 text-slate-800 dark:text-slate-100 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                 <div className="flex items-center space-x-2">
-                  <SlidersHorizontal className="h-4 w-4 text-blue-600" />
-                  <h3 className="font-bold text-sm text-slate-900">Filter Data Meter</h3>
+                  <SlidersHorizontal className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">Filter Data Meter</h3>
                 </div>
                 <button
                   onClick={() => setMobileFilterModalOpen(false)}
-                  className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1985,17 +1985,17 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
               <div className="mt-4 space-y-3.5 text-xs">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1.5">Status Penggantian</label>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5">Status Penggantian</label>
                   <div className="grid grid-cols-3 gap-1.5">
                     {["ALL", "SELESAI", "BELUM"].map((st) => (
                       <button
                         key={st}
                         type="button"
                         onClick={() => setFilterStatus(st)}
-                        className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                           filterStatus === st
-                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                            ? "bg-sky-600 text-white border-sky-500 shadow-xs"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-750 hover:text-slate-900 dark:hover:text-white"
                         }`}
                       >
                         {st === "ALL" ? "Semua" : st === "SELESAI" ? "✓ Selesai" : "! Belum"}
@@ -2005,11 +2005,11 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1.5">Petugas Lapangan</label>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5">Petugas Lapangan</label>
                   <select
                     value={filterPetugas}
                     onChange={(e) => setFilterPetugas(e.target.value)}
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2.5 text-xs border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
                   >
                     <option value="ALL">Semua Petugas</option>
                     {PETUGAS_LIST.map((p) => (
@@ -2021,7 +2021,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1.5">Jenis Layanan</label>
+                  <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5">Jenis Layanan</label>
                   <div className="grid grid-cols-3 gap-1.5">
                     {[
                       { val: "ALL", label: "Semua" },
@@ -2032,10 +2032,10 @@ export const PetaLokasiMap: React.FC<Props> = ({
                         key={item.val}
                         type="button"
                         onClick={() => setFilterJenis(item.val)}
-                        className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                           filterJenis === item.val
-                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                            ? "bg-sky-600 text-white border-sky-500 shadow-xs"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-750 hover:text-slate-900 dark:hover:text-white"
                         }`}
                       >
                         {item.label}
@@ -2054,14 +2054,14 @@ export const PetaLokasiMap: React.FC<Props> = ({
                     setFilterJenis("ALL");
                     setSearchTerm("");
                   }}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-750 bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-750 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                 >
                   Reset
                 </button>
                 <button
                   type="button"
                   onClick={() => setMobileFilterModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all"
+                  className="flex-1 py-2.5 rounded-xl bg-sky-600 text-xs font-bold text-white hover:bg-sky-500 shadow-md shadow-sky-600/30 transition-all cursor-pointer"
                 >
                   Terapkan ({filteredMeters.length})
                 </button>

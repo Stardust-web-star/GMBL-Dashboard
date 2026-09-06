@@ -3,6 +3,7 @@ import { Lock, Mail, Eye, EyeOff, Shield, KeyRound, Zap, Clock } from "lucide-re
 import { UserAccount } from "../types";
 import { getStoredUsers, setCurrentSessionUser } from "../utils/storage";
 import { GMBLLogo } from "./GMBLLogo";
+import { ThemeToggle } from "./ThemeToggle";
 import bgInspectionImage from "../assets/images/kwh_inspection_bg_1788312592374.jpg";
 
 interface LoginProps {
@@ -87,7 +88,12 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center p-3 sm:p-6 font-['Plus_Jakarta_Sans',sans-serif] text-slate-800 overflow-hidden bg-slate-950">
+    <div className="relative flex min-h-screen w-full items-center justify-center p-3 sm:p-6 font-['Plus_Jakarta_Sans',sans-serif] text-slate-800 dark:text-slate-100 overflow-hidden bg-slate-950">
+      {/* Floating Theme Toggle in top right */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle variant="compact" />
+      </div>
+
       {/* Background Image of Technicians inspecting kWh meter */}
       <img
         src={bgInspectionImage}
@@ -100,7 +106,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
       <div className="absolute inset-0 bg-teal-950/30 mix-blend-overlay" />
 
       {/* Outer Card Container */}
-      <div className="relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border border-teal-500/20 bg-slate-900/90 shadow-2xl shadow-black/80 backdrop-blur-md grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
+      <div className="relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border border-teal-500/20 dark:border-teal-500/30 bg-slate-900/90 shadow-2xl shadow-black/80 backdrop-blur-md grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
         
         {/* Left Column: Dark Teal/Cyan Branding Panel */}
         <div className="relative lg:col-span-5 bg-gradient-to-br from-teal-950 via-teal-900 to-slate-950 p-8 flex flex-col justify-between overflow-hidden border-b lg:border-b-0 lg:border-r border-teal-800/40">
@@ -172,38 +178,38 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
         </div>
 
         {/* Right Column: Clean Login Form */}
-        <div className="relative lg:col-span-7 bg-white p-6 sm:p-10 flex flex-col justify-between">
+        <div className="relative lg:col-span-7 bg-white dark:bg-slate-900 p-6 sm:p-10 flex flex-col justify-between transition-colors">
           
           {/* Header Row */}
           <div>
-            <div className="flex items-start justify-between gap-4 pb-6 border-b border-slate-100">
+            <div className="flex items-start justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
               <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                   Login Sistem GMBL
                 </h2>
-                <p className="text-xs text-slate-500 mt-1 font-medium">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
                   Silakan masukkan akun terdaftar Anda
                 </p>
               </div>
 
               {/* Secure Portal Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-300/70 text-emerald-700 text-xs font-bold shadow-2xs shrink-0">
-                <Shield className="h-3.5 w-3.5 text-emerald-600" />
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300/70 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold shadow-2xs shrink-0">
+                <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span>Secure Portal</span>
               </div>
             </div>
 
             {/* Inactivity Logout Notification */}
             {logoutNotice && (
-              <div className="mt-4 rounded-xl border border-amber-300/80 bg-amber-50/90 p-3.5 text-xs text-amber-900 font-medium flex items-center gap-2.5 shadow-2xs animate-in fade-in duration-200">
-                <Clock className="h-4 w-4 text-amber-600 shrink-0" />
+              <div className="mt-4 rounded-xl border border-amber-300/80 dark:border-amber-500/30 bg-amber-50/90 dark:bg-amber-950/40 p-3.5 text-xs text-amber-900 dark:text-amber-300 font-medium flex items-center gap-2.5 shadow-2xs animate-in fade-in duration-200">
+                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>{logoutNotice}</span>
               </div>
             )}
 
             {/* Error Notification */}
             {errorMsg && (
-              <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-600 font-semibold text-center animate-in fade-in duration-200">
+              <div className="mt-4 rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-600 dark:text-rose-300 font-semibold text-center animate-in fade-in duration-200">
                 {errorMsg}
               </div>
             )}
@@ -211,49 +217,49 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
             {/* Form */}
             <form onSubmit={handleLogin} className="mt-6 space-y-5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   Email / User ID <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                  <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                   <input
                     type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Masukkan Email / User ID (cth: petugasgm)..."
-                    className="w-full text-xs p-3 pl-10 border border-slate-200 rounded-xl bg-slate-50/70 text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white focus:border-transparent transition-all shadow-2xs"
+                    className="w-full text-xs p-3 pl-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/70 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white dark:focus:bg-slate-800 focus:border-transparent transition-all shadow-2xs"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                     Password <span className="text-rose-500">*</span>
                   </label>
                   <button
                     type="button"
                     onClick={() => alert("Silakan hubungi Super Admin untuk reset password.")}
-                    className="text-xs font-bold text-cyan-600 hover:text-cyan-700 transition-colors"
+                    className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors"
                   >
                     Lupa Password?
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                  <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Masukkan kata sandi..."
-                    className="w-full text-xs p-3 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50/70 text-slate-800 placeholder-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white focus:border-transparent transition-all shadow-2xs"
+                    className="w-full text-xs p-3 pl-10 pr-10 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/70 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:bg-white dark:focus:bg-slate-800 focus:border-transparent transition-all shadow-2xs"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute right-3.5 top-3.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -263,7 +269,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-blue-500/25 hover:from-cyan-500 hover:to-indigo-500 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm active:scale-[0.99]"
+                className="w-full bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-blue-500/25 hover:from-cyan-500 hover:to-indigo-500 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm active:scale-[0.99] cursor-pointer"
               >
                 <KeyRound className="h-4 w-4" />
                 <span>{loading ? "Memverifikasi..." : "Masuk ke Dashboard GMBL"}</span>
@@ -272,12 +278,12 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
           </div>
 
           {/* Footer Info Row */}
-          <div className="pt-8 mt-6 border-t border-slate-100 flex items-center justify-between text-[11px] font-medium text-slate-500">
-            <div className="flex items-center gap-1.5 text-teal-700 font-semibold">
-              <Shield className="h-3.5 w-3.5 text-teal-600" />
+          <div className="pt-8 mt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-1.5 text-teal-700 dark:text-teal-400 font-semibold">
+              <Shield className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
               <span>Info Enkripsi Terproteksi</span>
             </div>
-            <span className="font-mono text-slate-400">v3.0.2 • 2026</span>
+            <span className="font-mono text-slate-400 dark:text-slate-500">v3.0.2 • 2026</span>
           </div>
 
         </div>

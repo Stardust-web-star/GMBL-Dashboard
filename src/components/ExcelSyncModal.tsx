@@ -220,130 +220,128 @@ export const ExcelSyncModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+      <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto text-slate-800 dark:text-slate-200">
         {/* Header Modal */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-white">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-white/15 rounded-xl backdrop-blur-md">
-              <FileSpreadsheet className="w-6 h-6 text-emerald-200" />
+        <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 dark:from-emerald-900/90 dark:via-teal-900/80 dark:to-slate-900 text-white border-b border-emerald-500/20 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-white/20 dark:bg-emerald-500/20 border border-white/30 dark:border-emerald-400/30 rounded-xl">
+              <FileSpreadsheet className="w-5 h-5 text-white dark:text-emerald-300" />
             </div>
             <div>
-              <h3 className="text-lg font-bold">Sinkronisasi Data Excel (.xlsx / .csv)</h3>
-              <p className="text-xs text-emerald-100">
+              <h3 className="text-sm sm:text-base font-bold text-white">Sinkronisasi Data Excel</h3>
+              <p className="text-[11px] text-emerald-100 dark:text-emerald-200/80">
                 Unggah spreadsheet Excel pelanggan PLN Transaksi Energi Unit Baguala
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-emerald-100 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+            aria-label="Tutup Modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-200 bg-slate-50 px-6 pt-3 gap-2">
+        <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-5 pt-2 gap-2 shrink-0">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl border-t border-x transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-t-xl border-t border-x transition-colors cursor-pointer ${
               activeTab === "upload"
-                ? "bg-white border-slate-200 text-emerald-700 shadow-sm"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                ? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900/40"
             }`}
           >
-            <Upload className="w-4 h-4" />
-            <span>Unggah File Excel</span>
+            <Upload className="w-3.5 h-3.5" />
+            <span>Unggah Excel</span>
           </button>
 
           <button
             onClick={() => setActiveTab("paste")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl border-t border-x transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-t-xl border-t border-x transition-colors cursor-pointer ${
               activeTab === "paste"
-                ? "bg-white border-slate-200 text-emerald-700 shadow-sm"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                ? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900/40"
             }`}
           >
-            <FileText className="w-4 h-4" />
-            <span>Salin & Tempel Baris</span>
+            <FileText className="w-3.5 h-3.5" />
+            <span>Salin Baris</span>
           </button>
 
           <button
             onClick={() => setActiveTab("export")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl border-t border-x transition-colors ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-t-xl border-t border-x transition-colors cursor-pointer ${
               activeTab === "export"
-                ? "bg-white border-slate-200 text-emerald-700 shadow-sm"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                ? "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900/40"
             }`}
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5" />
             <span>Unduh & Ekspor</span>
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 space-y-6">
+        {/* Modal Body (Scrollable) */}
+        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto max-h-[calc(85vh-125px)] scrollbar-thin">
           {/* Master Excel Data Active Info Banner */}
-          <div className="bg-gradient-to-r from-teal-900 via-emerald-900 to-slate-900 text-white p-4 rounded-2xl shadow-md border border-teal-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 bg-teal-500/20 rounded-xl border border-teal-400/30 shrink-0">
-                <FileSpreadsheet className="w-5 h-5 text-teal-300" />
+          <div className="bg-slate-50 dark:bg-slate-950/70 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-start gap-2.5">
+              <div className="p-2 bg-emerald-100 dark:bg-emerald-500/10 rounded-lg border border-emerald-300 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 shrink-0">
+                <FileSpreadsheet className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="text-sm font-bold text-teal-100">
-                    Master Data Excel Terintegrasi:
-                  </h4>
-                  <span className="px-2.5 py-0.5 rounded-full bg-teal-500/30 text-teal-200 border border-teal-400/30 text-[11px] font-mono font-bold">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">File Master:</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 text-[10px] font-mono font-bold">
                     {currentMeta?.fileName || "Master_Data_Meter_Baguala.xlsx"}
                   </span>
                 </div>
-                <p className="text-xs text-teal-200/80 mt-1">
-                  Tersimpan permanen untuk tagging lokasi, peta satelit, serta rekap informasi pelanggan & kWh meter. Total:{" "}
-                  <strong className="text-white">{meters.length} Pelanggan</strong> ({meters.filter((m) => m.latitude && m.longitude && m.latitude !== 0).length} Ter-tagging di Peta).
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Total: <strong className="text-slate-900 dark:text-white">{meters.length} Pelanggan</strong> ({meters.filter((m) => m.latitude && m.longitude && m.latitude !== 0).length} Ter-tagging di Peta).
                 </p>
               </div>
             </div>
 
             <button
               onClick={handleRestoreBackup}
-              className="px-3 py-1.5 bg-teal-800/80 hover:bg-teal-700 text-teal-100 border border-teal-600/40 rounded-xl text-xs font-semibold shrink-0 transition-colors flex items-center gap-1.5"
+              className="px-2.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold shrink-0 transition-colors flex items-center gap-1 cursor-pointer"
               title="Pulihkan data dari cadangan master Excel terakhir"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-teal-300" />
-              Pulihkan Backup Master
+              <RefreshCw className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+              <span>Restore Backup</span>
             </button>
           </div>
 
           {/* Merge Mode Selection */}
-          <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <span className="font-bold text-slate-700 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              Mode Pengolahan Data Excel:
+          <div className="bg-slate-50 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+            <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              Mode Pengolahan:
             </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setMergeMode("smart")}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   mergeMode === "smart"
-                    ? "bg-emerald-600 text-white shadow-sm"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-white dark:bg-slate-850 border border-slate-250 dark:border-slate-750 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
-                Smart Merge (Pertahankan Tagging Lokasi & Status)
+                Smart Merge (Pertahankan Tagging)
               </button>
               <button
                 type="button"
                 onClick={() => setMergeMode("replace")}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   mergeMode === "replace"
-                    ? "bg-amber-600 text-white shadow-sm"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                    ? "bg-amber-600 text-white shadow-xs"
+                    : "bg-white dark:bg-slate-850 border border-slate-250 dark:border-slate-750 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
-                Timpa Total Master
+                Timpa Total
               </button>
             </div>
           </div>
@@ -351,42 +349,42 @@ export const ExcelSyncModal: React.FC<Props> = ({
           {/* Notification Message */}
           {syncMessage && (
             <div
-              className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
+              className={`p-3 rounded-xl text-xs font-semibold flex items-center justify-between border ${
                 syncMessage.type === "success"
-                  ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                  : "bg-rose-50 text-rose-800 border-rose-200"
+                  ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30"
+                  : "bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-500/30"
               }`}
             >
               <div className="flex items-center gap-2">
                 {syncMessage.type === "success" ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                 )}
                 <span>{syncMessage.text}</span>
               </div>
               <button
                 onClick={() => setSyncMessage(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
 
           {/* TAB 1: UNGGAH FILE EXCEL */}
           {activeTab === "upload" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Dropzone Area */}
               <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+                className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
                   isDragging
-                    ? "border-emerald-500 bg-emerald-50/50 scale-[1.01]"
-                    : "border-slate-300 hover:border-emerald-400 hover:bg-slate-50"
+                    ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30"
+                    : "border-slate-300 dark:border-slate-700 hover:border-emerald-500/60 bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-950/70"
                 }`}
               >
                 <input
@@ -396,77 +394,66 @@ export const ExcelSyncModal: React.FC<Props> = ({
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                <div className="mx-auto w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 mb-4 shadow-inner">
-                  <Upload className="w-7 h-7" />
+                <div className="mx-auto w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2.5">
+                  <Upload className="w-5 h-5" />
                 </div>
-                <h4 className="text-base font-bold text-slate-800 mb-1">
+                <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mb-0.5">
                   Pilih atau Seret File Excel (.xlsx, .xls, .csv)
                 </h4>
-                <p className="text-xs text-slate-500 mb-4 max-w-md mx-auto">
-                  Unggah file Excel daftar pelanggan PLN. Sistem otomatis mendeteksi kolom{" "}
-                  <strong className="text-slate-700">ID Pel, NAMA, PNJ, TARIF, DAYA, JENIS, No Meter, Kordinat</strong> (atau terpisah Latitude, Longitude).
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 max-w-sm mx-auto">
+                  Sistem otomatis mendeteksi kolom: <span className="text-slate-800 dark:text-slate-200 font-semibold">ID Pel, NAMA, PNJ, TARIF, DAYA, JENIS, No Meter, Kordinat</span>.
                 </p>
-                <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm">
-                  <FileSpreadsheet className="w-4 h-4" />
-                  Cari File di Komputer
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-500 transition-colors shadow-xs">
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  Pilih File di Perangkat
                 </span>
                 {fileName && (
-                  <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold">
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40 rounded-lg text-xs font-bold">
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     <span>File Terpilih: {fileName}</span>
                   </div>
                 )}
               </div>
 
               {/* Format Column Guide */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="bg-slate-50 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Table className="w-4 h-4 text-emerald-600" />
-                    Format Kolom Master Data Excel (8 Kolom Sesuai Template):
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Table className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    Format Kolom Master:
                   </span>
                   <button
                     onClick={downloadExcelTemplateFile}
-                    className="text-[11px] text-emerald-700 font-bold hover:underline flex items-center gap-1"
+                    className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    <Download className="w-3.5 h-3.5" />
-                    Unduh Contoh Format (.xlsx)
+                    <Download className="w-3 h-3" />
+                    Unduh Format (.xlsx)
                   </button>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-[11px] text-left text-slate-600 border border-slate-200 rounded-lg overflow-hidden bg-white">
-                    <thead className="bg-slate-100 text-slate-700 uppercase font-mono font-semibold">
+                  <table className="w-full text-[10px] text-left text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
+                    <thead className="bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 uppercase font-mono font-semibold">
                       <tr>
-                        <th className="px-3 py-1.5 border-b">ID Pel</th>
-                        <th className="px-3 py-1.5 border-b">NAMA</th>
-                        <th className="px-3 py-1.5 border-b">PNJ</th>
-                        <th className="px-3 py-1.5 border-b">TARIF</th>
-                        <th className="px-3 py-1.5 border-b">DAYA</th>
-                        <th className="px-3 py-1.5 border-b">JENIS</th>
-                        <th className="px-3 py-1.5 border-b">No Meter</th>
-                        <th className="px-3 py-1.5 border-b text-emerald-700">Kordinat (Lat,Lng)</th>
+                        <th className="px-2.5 py-1 border-b border-slate-200 dark:border-slate-800">ID Pel</th>
+                        <th className="px-2.5 py-1 border-b border-slate-200 dark:border-slate-800">NAMA</th>
+                        <th className="px-2.5 py-1 border-b border-slate-200 dark:border-slate-800">PNJ</th>
+                        <th className="px-2.5 py-1 border-b border-slate-200 dark:border-slate-800">TARIF</th>
+                        <th className="px-2.5 py-1 border-b border-slate-200 dark:border-slate-800">DAYA</th>
+                        <th className="px-2.5 py-1 border-b border-slate-200 dark:border-slate-800">JENIS</th>
+                        <th className="px-2.5 py-1 border-b border-slate-200 dark:border-slate-800">No Meter</th>
+                        <th className="px-2.5 py-1 border-b border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400">Kordinat (Lat,Lng)</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-mono">
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-mono">
                       <tr>
-                        <td className="px-3 py-1 text-slate-900 font-bold">411340318513</td>
-                        <td className="px-3 py-1">LA ***</td>
-                        <td className="px-3 py-1">***ON MAN*** DEPAN ***</td>
-                        <td className="px-3 py-1">R1MT</td>
-                        <td className="px-3 py-1">900</td>
-                        <td className="px-3 py-1">PRABAYAR</td>
-                        <td className="px-3 py-1">36000810071</td>
-                        <td className="px-3 py-1 text-emerald-700 font-bold">-3.6037047905949,128.335212307342</td>
-                      </tr>
-                      <tr>
-                        <td className="px-3 py-1 text-slate-900 font-bold">411300228124</td>
-                        <td className="px-3 py-1">EDM** ******</td>
-                        <td className="px-3 py-1">***ERI LAMA,</td>
-                        <td className="px-3 py-1">R1T</td>
-                        <td className="px-3 py-1">2200</td>
-                        <td className="px-3 py-1">PRABAYAR</td>
-                        <td className="px-3 py-1">36002382194</td>
-                        <td className="px-3 py-1 text-emerald-700 font-bold">-3.62607190833329,128.243261310917</td>
+                        <td className="px-2.5 py-1 text-slate-800 dark:text-slate-200 font-bold">411340318513</td>
+                        <td className="px-2.5 py-1">LA ***</td>
+                        <td className="px-2.5 py-1">BAGUALA</td>
+                        <td className="px-2.5 py-1">R1MT</td>
+                        <td className="px-2.5 py-1">900</td>
+                        <td className="px-2.5 py-1">PRABAYAR</td>
+                        <td className="px-2.5 py-1">36000810071</td>
+                        <td className="px-2.5 py-1 text-emerald-600 dark:text-emerald-400 font-bold">-3.603704,128.335212</td>
                       </tr>
                     </tbody>
                   </table>
@@ -475,56 +462,49 @@ export const ExcelSyncModal: React.FC<Props> = ({
 
               {/* Preview Table */}
               {previewMeters && previewMeters.length > 0 && (
-                <div className="space-y-3 bg-emerald-50/50 p-4 rounded-xl border border-emerald-200">
+                <div className="space-y-2.5 bg-emerald-50 dark:bg-emerald-950/30 p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-500/30">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-emerald-600" />
-                      Pratinjau Hasil Impor Excel ({previewMeters.length} Pelanggan Baru):
+                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      Pratinjau ({previewMeters.length} Pelanggan):
                     </span>
                     <button
                       onClick={handleApplyData}
-                      className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors shadow-md flex items-center gap-1.5"
+                      className="px-3.5 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-500 transition-colors shadow-md flex items-center gap-1 cursor-pointer active:scale-95"
                     >
-                      <Check className="w-4 h-4" />
-                      Terapkan Data ke Master
+                      <Check className="w-3.5 h-3.5" />
+                      Terapkan Data
                     </button>
                   </div>
 
-                  <div className="max-h-56 overflow-y-auto border border-emerald-200 rounded-lg bg-white">
+                  <div className="max-h-44 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900">
                     <table className="w-full text-xs text-left">
-                      <thead className="bg-emerald-100 text-emerald-900 font-bold sticky top-0">
+                      <thead className="bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 font-bold sticky top-0">
                         <tr>
-                          <th className="px-3 py-2">#</th>
-                          <th className="px-3 py-2">ID Pelanggan</th>
-                          <th className="px-3 py-2">Nama</th>
-                          <th className="px-3 py-2">PNJ / Lokasi</th>
-                          <th className="px-3 py-2">Tarif/Daya</th>
-                          <th className="px-3 py-2">No Meter</th>
-                          <th className="px-3 py-2">Koordinat (Lat, Lng)</th>
+                          <th className="px-2.5 py-1.5">#</th>
+                          <th className="px-2.5 py-1.5">ID Pel</th>
+                          <th className="px-2.5 py-1.5">Nama</th>
+                          <th className="px-2.5 py-1.5">PNJ</th>
+                          <th className="px-2.5 py-1.5">Tarif/Daya</th>
+                          <th className="px-2.5 py-1.5">Koordinat</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {previewMeters.slice(0, 20).map((m, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50 font-mono text-[11px]">
-                            <td className="px-3 py-1.5 text-slate-400">{idx + 1}</td>
-                            <td className="px-3 py-1.5 font-bold text-slate-900">{m.idPelanggan}</td>
-                            <td className="px-3 py-1.5 text-slate-700 font-sans">{m.namaPelanggan}</td>
-                            <td className="px-3 py-1.5 text-slate-600 font-sans">{m.pnj}</td>
-                            <td className="px-3 py-1.5">{m.tarif} / {m.daya}VA</td>
-                            <td className="px-3 py-1.5">{m.noMeterLama || "-"}</td>
-                            <td className="px-3 py-1.5 text-emerald-700">
-                              {m.latitude.toFixed(6)}, {m.longitude.toFixed(6)}
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                        {previewMeters.slice(0, 15).map((m, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-850 font-mono text-[10px]">
+                            <td className="px-2.5 py-1 text-slate-400 dark:text-slate-500">{idx + 1}</td>
+                            <td className="px-2.5 py-1 font-bold text-slate-800 dark:text-slate-200">{m.idPelanggan}</td>
+                            <td className="px-2.5 py-1 text-slate-700 dark:text-slate-300 font-sans">{m.namaPelanggan}</td>
+                            <td className="px-2.5 py-1 text-slate-500 dark:text-slate-400 font-sans">{m.pnj}</td>
+                            <td className="px-2.5 py-1">{m.tarif} / {m.daya}VA</td>
+                            <td className="px-2.5 py-1 text-emerald-600 dark:text-emerald-400">
+                              {m.latitude.toFixed(4)}, {m.longitude.toFixed(4)}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                  {previewMeters.length > 20 && (
-                    <p className="text-[11px] text-emerald-800 text-center font-medium italic">
-                      ... dan {previewMeters.length - 20} data pelanggan lainnya siap dimasukkan.
-                    </p>
-                  )}
                 </div>
               )}
             </div>
@@ -532,34 +512,31 @@ export const ExcelSyncModal: React.FC<Props> = ({
 
           {/* TAB 2: COPY PASTE TEXT FROM EXCEL */}
           {activeTab === "paste" && (
-            <div className="space-y-4">
-              <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-3">
+              <div className="bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <p>
-                  Salin (Ctrl+C) sel dari spreadsheet Microsoft Excel Anda, lalu tempelkan (Ctrl+V) langsung ke dalam kotak di bawah ini.
+                  Salin (Ctrl+C) baris data dari Excel Anda, lalu tempelkan (Ctrl+V) ke kotak teks di bawah.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Tempelkan Baris Tabel Excel di Sini (Sesuai Kolom Master Data):
-                </label>
                 <textarea
-                  rows={8}
+                  rows={6}
                   value={pasteInput}
                   onChange={(e) => setPasteInput(e.target.value)}
-                  placeholder="411340318513	LA ***	***ON MAN***	R1MT	900	PRABAYAR	36000810071	-3.6037047905949,128.335212307342&#10;411300228124	EDM** ******	***ERI LAMA,	R1T	2200	PRABAYAR	36002382194	-3.62607190833329,128.243261310917"
-                  className="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-slate-50"
+                  placeholder="411340318513	LA ***	BAGUALA	R1MT	900	PRABAYAR	36000810071	-3.603704,128.335212"
+                  className="w-full p-2.5 font-mono text-xs border border-slate-300 dark:border-slate-800 rounded-xl focus:ring-1 focus:ring-emerald-500 outline-none bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-200"
                 />
               </div>
 
               <div className="flex justify-end">
                 <button
                   onClick={handleProcessPasteData}
-                  className="px-5 py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition-colors shadow-md flex items-center gap-2"
+                  className="px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-500 transition-colors shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  Memproses Baris Tempelan Excel
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Proses Tempelan Excel
                 </button>
               </div>
             </div>
@@ -567,43 +544,43 @@ export const ExcelSyncModal: React.FC<Props> = ({
 
           {/* TAB 3: UNDUH & EKSPOR EXCEL */}
           {activeTab === "export" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Export Current Data */}
-              <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50 space-y-3 flex flex-col justify-between">
+              <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950/60 space-y-2.5 flex flex-col justify-between">
                 <div>
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 mb-3">
-                    <Download className="w-5 h-5" />
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2">
+                    <Download className="w-4 h-4" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900">Ekspor Data Aktif ke Excel (.xlsx)</h4>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Unduh seluruh data {meters.length} meter tua yang saat ini tersimpan di dashboard ke dalam file Excel (.xlsx).
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">Ekspor Data Aktif (.xlsx)</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Unduh seluruh data {meters.length} meter tua ke dalam file Excel.
                   </p>
                 </div>
                 <button
                   onClick={() => exportMetersToExcelFile(meters)}
-                  className="w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                  className="w-full py-2 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:bg-emerald-500 transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                 >
-                  <Download className="w-4 h-4" />
-                  Unduh File Excel (.xlsx)
+                  <Download className="w-3.5 h-3.5" />
+                  Unduh File Excel
                 </button>
               </div>
 
               {/* Download Standard Template */}
-              <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50 space-y-3 flex flex-col justify-between">
+              <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950/60 space-y-2.5 flex flex-col justify-between">
                 <div>
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700 mb-3">
-                    <FileSpreadsheet className="w-5 h-5" />
+                  <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-950/80 border border-sky-300 dark:border-sky-500/30 flex items-center justify-center text-sky-600 dark:text-sky-400 mb-2">
+                    <FileSpreadsheet className="w-4 h-4" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900">Unduh Format Template Excel</h4>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Dapatkan template file Excel (.xlsx) kosong dengan susunan header kolom standar PLN Baguala.
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">Unduh Format Template</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Template Excel (.xlsx) kosong dengan header standar PLN Baguala.
                   </p>
                 </div>
                 <button
                   onClick={downloadExcelTemplateFile}
-                  className="w-full py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                  className="w-full py-2 bg-sky-600 text-white font-bold text-xs rounded-lg hover:bg-sky-500 transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                 >
-                  <FileSpreadsheet className="w-4 h-4" />
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
                   Unduh Template Kosong
                 </button>
               </div>
@@ -612,11 +589,11 @@ export const ExcelSyncModal: React.FC<Props> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-          <span>Format didukung: <strong>.xlsx, .xls, .csv</strong></span>
+        <div className="px-5 py-3 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 shrink-0">
+          <span className="text-[11px]">Format: <strong className="text-slate-700 dark:text-slate-300">.xlsx, .xls, .csv</strong></span>
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-slate-300 rounded-xl font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+            className="px-3.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Tutup
           </button>

@@ -188,15 +188,15 @@ export const InputDataGantiMeter: React.FC<Props> = ({
   return (
     <div className="mx-auto max-w-5xl p-4 sm:p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 flex items-center space-x-2">
-            <PlusCircle className="h-6 w-6 text-blue-600" />
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center space-x-2">
+            <PlusCircle className="h-6 w-6 text-sky-600 dark:text-sky-400" />
             <span>
               {editingMeter ? "Edit Data Ganti Meter" : "Input Data Ganti Meter (GMBL)"}
             </span>
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Formulir registrasi & pembaruan data penggantian kWh meter tua PLN JTC Transaksi Energi
           </p>
         </div>
@@ -205,7 +205,7 @@ export const InputDataGantiMeter: React.FC<Props> = ({
           <button
             type="button"
             onClick={onCancelEdit}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
             Batal Edit
           </button>
@@ -213,8 +213,8 @@ export const InputDataGantiMeter: React.FC<Props> = ({
       </div>
 
       {toastMsg && (
-        <div className="flex items-center space-x-2 rounded-xl border border-green-200 bg-green-50 p-4 text-xs font-bold text-green-700">
-          <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+        <div className="flex items-center space-x-2 rounded-xl border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/60 p-4 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+          <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{toastMsg}</span>
         </div>
       )}
@@ -222,54 +222,54 @@ export const InputDataGantiMeter: React.FC<Props> = ({
       {/* Main Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Informasi Pelanggan & Lokasi */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600 border-b border-slate-100 pb-2 flex items-center space-x-2">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center space-x-2">
             <User className="h-4 w-4" />
             <span>1. Data Pelanggan & Tarif</span>
           </h3>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">TANGGAL</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">TANGGAL</label>
               <input
                 type="date"
                 required
                 value={tanggal}
                 onChange={(e) => setTanggal(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">ID PELANGGAN *</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">ID PELANGGAN *</label>
               <input
                 type="text"
                 required
                 placeholder="Contoh: 411340318513"
                 value={idPelanggan}
                 onChange={(e) => setIdPelanggan(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-blue-600 font-bold placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 font-mono text-sky-600 dark:text-sky-400 font-bold placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">NAMA PELANGGAN *</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NAMA PELANGGAN *</label>
               <input
                 type="text"
                 required
                 placeholder="Contoh: LA UMAR"
                 value={namaPelanggan}
                 onChange={(e) => setNamaPelanggan(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">TARIF</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">TARIF</label>
               <select
                 value={tarif}
                 onChange={(e) => setTarif(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               >
                 <option value="R1">R1 (Subsidi)</option>
                 <option value="R1M">R1M (Mampu)</option>
@@ -282,11 +282,11 @@ export const InputDataGantiMeter: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">DAYA (VA)</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">DAYA (VA)</label>
               <select
                 value={daya}
                 onChange={(e) => setDaya(Number(e.target.value))}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               >
                 <option value={450}>450 VA</option>
                 <option value={900}>900 VA</option>
@@ -299,165 +299,165 @@ export const InputDataGantiMeter: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">PNJ / ALAMAT LOKASI</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">PNJ / ALAMAT LOKASI</label>
               <input
                 type="text"
                 placeholder="Contoh: KMP PISANG, BAGUALA"
                 value={pnj}
                 onChange={(e) => setPnj(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
           </div>
         </div>
 
         {/* Section 2: Spesifikasi kWh Meter & Material */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600 border-b border-slate-100 pb-2 flex items-center space-x-2">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center space-x-2">
             <Zap className="h-4 w-4" />
             <span>2. Data Meter & Material KWh Meter</span>
           </h3>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">NO METER LAMA</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NO METER LAMA</label>
               <input
                 type="text"
                 placeholder="Contoh: 36000810071"
                 value={noMeterLama}
                 onChange={(e) => setNoMeterLama(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 font-mono text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">NO METER BARU</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NO METER BARU</label>
               <input
                 type="text"
                 placeholder="Contoh: 37119200481"
                 value={noMeterBaru}
                 onChange={(e) => setNoMeterBaru(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-green-600 font-bold placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 font-mono text-emerald-600 dark:text-emerald-400 font-bold placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">NO AGENDA</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NO AGENDA</label>
               <input
                 type="text"
                 value={noAgenda}
                 onChange={(e) => setNoAgenda(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">NO SN MATERIAL KWH METER</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NO SN MATERIAL KWH METER</label>
               <input
                 type="text"
                 placeholder="Contoh: SN-KWH-99101"
                 value={noSnMaterialKwhMeter}
                 onChange={(e) => setNoSnMaterialKwhMeter(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">NO SN MATERIAL MCB</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NO SN MATERIAL MCB</label>
               <input
                 type="text"
                 placeholder="Contoh: SN-MCB-4A-01"
                 value={noSnMaterialMcb}
                 onChange={(e) => setNoSnMaterialMcb(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">KABEL TW</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">KABEL TW</label>
               <input
                 type="text"
                 placeholder="Contoh: 10 Meter / Standard 2x10mm"
                 value={kabelTw}
                 onChange={(e) => setKabelTw(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">SEGEL</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">SEGEL</label>
               <input
                 type="text"
                 placeholder="Contoh: TERPASANG 2 BUAH"
                 value={segel}
                 onChange={(e) => setSegel(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">STAND BONGKAR</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">STAND BONGKAR</label>
               <input
                 type="text"
                 placeholder="Contoh: 04891 kWh"
                 value={standBongkar}
                 onChange={(e) => setStandBongkar(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 font-mono text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               />
             </div>
           </div>
         </div>
 
         {/* Section 3: Klasifikasi & Pilihan Kategori Mandatori */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600 border-b border-slate-100 pb-2 flex items-center space-x-2">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center space-x-2">
             <FileCheck className="h-4 w-4" />
             <span>3. Klasifikasi Penugasan & Status (Mandatori)</span>
           </h3>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {/* JENIS Dropdown: Strictly PASKA BAYAR & PRA BAYAR */}
+            {/* JENIS Dropdown */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 JENIS (Strict Choice) *
               </label>
               <select
                 required
                 value={jenis}
                 onChange={(e) => setJenis(e.target.value as JenisMeter)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               >
                 <option value="PASKA BAYAR">PASKA BAYAR</option>
                 <option value="PRA BAYAR">PRA BAYAR</option>
               </select>
             </div>
 
-            {/* GANTI METER Dropdown: Strictly METER GANGGUAN & METER TUA */}
+            {/* GANTI METER Dropdown */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 GANTI METER (Strict Choice) *
               </label>
               <select
                 required
                 value={gantiMeter}
                 onChange={(e) => setGantiMeter(e.target.value as AlasanGanti)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               >
                 <option value="METER TUA">METER TUA</option>
                 <option value="METER GANGGUAN">METER GANGGUAN</option>
               </select>
             </div>
 
-            {/* PETUGAS Dropdown: Strictly the 16 officers */}
+            {/* PETUGAS Dropdown */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 PETUGAS LAPANGAN *
               </label>
               <select
                 required
                 value={petugas}
                 onChange={(e) => setPetugas(e.target.value as PetugasName)}
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 text-blue-600 font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-sky-600 dark:text-sky-400 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
               >
                 {PETUGAS_LIST.map((p) => (
                   <option key={p} value={p}>
@@ -467,19 +467,19 @@ export const InputDataGantiMeter: React.FC<Props> = ({
               </select>
             </div>
 
-            {/* STATUS Dropdown: Strictly SELESAI & BELUM */}
+            {/* STATUS Dropdown */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 STATUS *
               </label>
               <select
                 required
                 value={status}
                 onChange={(e) => setStatus(e.target.value as StatusGanti)}
-                className={`w-full text-xs p-2.5 border rounded-lg font-bold focus:outline-none ${
+                className={`w-full text-xs p-2.5 border rounded-xl font-bold focus:outline-none ${
                   status === "SELESAI"
-                    ? "border-green-300 bg-green-50 text-green-700"
-                    : "border-orange-300 bg-orange-50 text-orange-700"
+                    ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
+                    : "border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300"
                 }`}
               >
                 <option value="BELUM">BELUM</option>
@@ -490,33 +490,33 @@ export const InputDataGantiMeter: React.FC<Props> = ({
         </div>
 
         {/* Section 4: GPS Tagging Coordinates */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-blue-600 flex items-center space-x-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />
                 <span>4. Tagging Koordinat GPS Peta (Baguala Area)</span>
               </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Tanda koma (<span className="font-bold text-amber-600">,</span>) otomatis dikonversi menjadi titik (<span className="font-bold text-emerald-600">.</span>) agar posisi peta 100% akurat.
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Tanda koma (<span className="font-bold text-amber-600 dark:text-amber-400">,</span>) otomatis dikonversi menjadi titik (<span className="font-bold text-emerald-600 dark:text-emerald-400">.</span>) agar posisi peta 100% akurat.
               </p>
             </div>
             <button
               type="button"
               onClick={handleGenerateRandomCoords}
-              className="text-[11px] font-semibold text-blue-600 hover:underline shrink-0"
+              className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline shrink-0 cursor-pointer"
             >
               Set Koordinat Baguala Acak
             </button>
           </div>
 
           {/* Combined Kordinat Quick Input / Paste */}
-          <div className="bg-blue-50/60 p-3 rounded-xl border border-blue-200/80">
+          <div className="bg-sky-50 dark:bg-sky-950/30 p-3.5 rounded-xl border border-sky-200 dark:border-sky-500/30">
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-bold text-blue-900">
+              <label className="block text-xs font-bold text-sky-900 dark:text-sky-200">
                 TITIK KORDINAT (Format: -3.60370479,128.3352123)
               </label>
-              <span className="text-[10px] font-mono text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[10px] font-mono text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-full font-bold border border-sky-300 dark:border-sky-500/30">
                 Master Data Baguala Standard
               </span>
             </div>
@@ -525,9 +525,9 @@ export const InputDataGantiMeter: React.FC<Props> = ({
               value={kordinatCombinedInput}
               onChange={handleCombinedKordinatChange}
               placeholder="-3.6037047905949,128.335212307342"
-              className="w-full text-xs p-2.5 border border-blue-300 rounded-lg bg-white font-mono text-blue-950 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+              className="w-full text-xs p-2.5 border border-sky-300 dark:border-sky-500/40 rounded-xl bg-white dark:bg-slate-950 font-mono text-sky-900 dark:text-sky-200 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 transition-all shadow-xs"
             />
-            <p className="text-[10px] text-blue-700 mt-1">
+            <p className="text-[10px] text-sky-600 dark:text-sky-400/80 mt-1">
               Tempelkan langsung titik kordinat lengkap di atas, atau edit nilai Latitude dan Longitude secara terpisah di bawah.
             </p>
           </div>
@@ -535,8 +535,8 @@ export const InputDataGantiMeter: React.FC<Props> = ({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700">LATITUDE</label>
-                <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">LATITUDE</label>
+                <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-500/30">
                   Desimal: Titik (.)
                 </span>
               </div>
@@ -546,15 +546,15 @@ export const InputDataGantiMeter: React.FC<Props> = ({
                 value={latitudeInput}
                 onChange={handleLatitudeChange}
                 placeholder="-3.626000"
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950 transition-all shadow-xs"
               />
-              <p className="text-[10px] text-slate-400 mt-1">Contoh: -3.62966 atau -3.603704</p>
+              <p className="text-[10px] text-slate-500 mt-1">Contoh: -3.62966 atau -3.603704</p>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700">LONGITUDE</label>
-                <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">LONGITUDE</label>
+                <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-500/30">
                   Desimal: Titik (.)
                 </span>
               </div>
@@ -564,9 +564,9 @@ export const InputDataGantiMeter: React.FC<Props> = ({
                 value={longitudeInput}
                 onChange={handleLongitudeChange}
                 placeholder="128.250000"
-                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-slate-50 font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm"
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950 transition-all shadow-xs"
               />
-              <p className="text-[10px] text-slate-400 mt-1">Contoh: 128.258574 atau 128.335212</p>
+              <p className="text-[10px] text-slate-500 mt-1">Contoh: 128.258574 atau 128.335212</p>
             </div>
           </div>
         </div>
@@ -577,7 +577,7 @@ export const InputDataGantiMeter: React.FC<Props> = ({
             <button
               type="button"
               onClick={onCancelEdit}
-              className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               Batal
             </button>
@@ -585,7 +585,7 @@ export const InputDataGantiMeter: React.FC<Props> = ({
 
           <button
             type="submit"
-            className="flex items-center space-x-2 rounded-xl bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all"
+            className="flex items-center space-x-2 rounded-xl bg-sky-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-sky-600/30 hover:bg-sky-500 transition-all cursor-pointer active:scale-95"
           >
             <Save className="h-4 w-4" />
             <span>

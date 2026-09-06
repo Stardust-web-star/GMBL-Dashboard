@@ -26,12 +26,16 @@ import {
   ListFilter,
 } from "lucide-react";
 import { MeterRecord, PETUGAS_LIST } from "../types";
+import { useTheme } from "../context/ThemeContext";
 
 interface Props {
   meters: MeterRecord[];
 }
 
 export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [errorAi, setErrorAi] = useState<string | null>(null);
@@ -205,13 +209,13 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 flex items-center space-x-2">
-            <BarChart3 className="h-6 w-6 text-blue-600" />
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center space-x-2">
+            <BarChart3 className="h-6 w-6 text-sky-600 dark:text-sky-400" />
             <span>Informasi & Analisis Strategis GMBL</span>
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Analitik komprehensif kinerja penggantian meter tua & Rekomendasi Operasional AI PLN Baguala
           </p>
         </div>
@@ -219,7 +223,7 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
         <button
           onClick={handleGenerateAiAnalysis}
           disabled={loadingAi}
-          className="flex items-center space-x-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+          className="flex items-center space-x-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-sky-900/20 hover:bg-sky-500 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
         >
           <Sparkles className={`h-4 w-4 ${loadingAi ? "animate-spin" : ""}`} />
           <span>{loadingAi ? "Menganalisis Data..." : "Jalankan Analisis AI"}</span>
@@ -228,16 +232,16 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
 
       {/* AI Analysis Card Container */}
       {(aiAnalysis || loadingAi || errorAi) && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-6 shadow-sm">
-          <div className="flex items-center space-x-3 border-b border-blue-200/60 pb-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md shadow-blue-200">
+        <div className="rounded-2xl border border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-950/20 p-6 shadow-xs">
+          <div className="flex items-center space-x-3 border-b border-sky-200 dark:border-sky-500/20 pb-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white shadow-md shadow-sky-900/20">
               <Sparkles className="h-5 w-5 animate-pulse text-amber-300" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 Analisis & Rekomendasi Operasional AI
               </h3>
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-sky-700 dark:text-sky-300">
                 Laporan evaluasi otomatis untuk Manager & Supervisor JTC Transaksi Energi Baguala
               </p>
             </div>
@@ -245,16 +249,16 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
 
           <div className="mt-4">
             {loadingAi ? (
-              <div className="flex items-center space-x-3 py-6 text-xs text-blue-700">
-                <RefreshCw className="h-5 w-5 animate-spin text-blue-600" />
+              <div className="flex items-center space-x-3 py-6 text-xs text-sky-700 dark:text-sky-300">
+                <RefreshCw className="h-5 w-5 animate-spin text-sky-500 dark:text-sky-400" />
                 <span>AI sedang memproses data meter tua Baguala dan menghitung rasio efisiensi...</span>
               </div>
             ) : errorAi ? (
-              <div className="text-xs text-rose-700 bg-rose-50 p-4 rounded-xl border border-rose-200 leading-relaxed font-medium">
+              <div className="text-xs text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 p-4 rounded-xl border border-rose-200 dark:border-rose-500/30 leading-relaxed font-medium">
                 {errorAi}
               </div>
             ) : (
-              <div className="prose max-w-none text-xs leading-relaxed text-slate-800 whitespace-pre-line font-sans bg-white/80 p-5 rounded-xl border border-blue-100 shadow-2xs">
+              <div className="prose dark:prose-invert max-w-none text-xs leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-line font-sans bg-white dark:bg-slate-900/90 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
                 {aiAnalysis}
               </div>
             )}
@@ -265,12 +269,12 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
       {/* Row 1: Key Performance Metrics & Progress Gauge */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Progress Gauge */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between h-full">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex flex-col justify-between h-full">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Target Penyelesaian GMBL
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Rasio Penggantian Meter Tua Baguala</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Rasio Penggantian Meter Tua Baguala</p>
           </div>
 
           <div className="h-44 w-full my-2 flex items-center justify-center">
@@ -280,7 +284,7 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
                   cx="72"
                   cy="72"
                   r="60"
-                  stroke="#e2e8f0"
+                  stroke={isDark ? "#1e293b" : "#e2e8f0"}
                   strokeWidth="12"
                   fill="transparent"
                 />
@@ -298,39 +302,39 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
                 />
                 <defs>
                   <linearGradient id="gradientProgress" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#2563eb" />
+                    <stop offset="0%" stopColor="#0284c7" />
                     <stop offset="100%" stopColor="#10b981" />
                   </linearGradient>
                 </defs>
               </svg>
               <div className="absolute text-center">
-                <span className="text-3xl font-black text-slate-900">{progressPercent}%</span>
-                <span className="block text-[10px] uppercase tracking-widest text-emerald-600 font-bold">
+                <span className="text-3xl font-black text-slate-900 dark:text-white">{progressPercent}%</span>
+                <span className="block text-[10px] uppercase tracking-widest text-emerald-600 dark:text-emerald-400 font-bold">
                   TERCAPAI
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-center text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+          <div className="grid grid-cols-2 gap-2 text-center text-xs bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
             <div>
-              <span className="text-[10px] font-semibold text-slate-500 block">Target Total</span>
-              <p className="text-base font-bold text-slate-900">{totalMeters.toLocaleString()} Unit</p>
+              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block">Target Total</span>
+              <p className="text-base font-bold text-slate-900 dark:text-white">{totalMeters.toLocaleString()} Unit</p>
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-orange-600 block">Sisa Belum</span>
-              <p className="text-base font-bold text-orange-600">{totalBelum.toLocaleString()} Unit</p>
+              <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 block">Sisa Belum</span>
+              <p className="text-base font-bold text-amber-600 dark:text-amber-400">{totalBelum.toLocaleString()} Unit</p>
             </div>
           </div>
         </div>
 
         {/* Reason & Type Distribution */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between h-full">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex flex-col justify-between h-full">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Distribusi Jenis & Alasan Pergantian
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Kategori Meter Tua & Meter Gangguan</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Kategori Meter Tua & Meter Gangguan</p>
           </div>
 
           <div className="h-44 w-full my-2">
@@ -351,110 +355,111 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
                 </Pie>
                 <RechartsTooltip
                   contentStyle={{
-                    backgroundColor: "#ffffff",
-                    borderColor: "#e2e8f0",
-                    borderRadius: "8px",
-                    color: "#0f172a",
+                    backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                    borderColor: isDark ? "#334155" : "#e2e8f0",
+                    borderRadius: "12px",
+                    color: isDark ? "#f8fafc" : "#0f172a",
                     fontSize: "12px",
-                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                    boxShadow: isDark ? "0 10px 15px -3px rgba(0,0,0,0.5)" : "0 4px 6px -1px rgba(0,0,0,0.1)",
                   }}
+                  itemStyle={{ color: isDark ? "#f8fafc" : "#0f172a" }}
                 />
-                <Legend verticalAlign="bottom" height={24} iconSize={10} wrapperStyle={{ fontSize: "11px" }} />
+                <Legend verticalAlign="bottom" height={24} iconSize={10} wrapperStyle={{ fontSize: "11px", color: isDark ? "#94a3b8" : "#64748b" }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-center text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+          <div className="grid grid-cols-2 gap-2 text-center text-xs bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
             <div>
-              <span className="text-[10px] font-semibold text-blue-600 block">Meter Tua</span>
-              <p className="text-base font-bold text-slate-900">{meterTuaCount.toLocaleString()} Unit</p>
+              <span className="text-[10px] font-semibold text-sky-600 dark:text-sky-400 block">Meter Tua</span>
+              <p className="text-base font-bold text-slate-900 dark:text-white">{meterTuaCount.toLocaleString()} Unit</p>
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-orange-600 block">Meter Gangguan</span>
-              <p className="text-base font-bold text-slate-900">{meterGangguanCount.toLocaleString()} Unit</p>
+              <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 block">Meter Gangguan</span>
+              <p className="text-base font-bold text-slate-900 dark:text-white">{meterGangguanCount.toLocaleString()} Unit</p>
             </div>
           </div>
         </div>
 
         {/* Officer Leaderboard */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between h-full">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs flex flex-col justify-between h-full">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center space-x-1.5">
-              <Award className="h-4 w-4 text-amber-500 shrink-0" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+              <Award className="h-4 w-4 text-amber-500 dark:text-amber-400 shrink-0" />
               <span>Leaderboard Petugas Lapangan</span>
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">Top Performer Pergantian Terbanyak</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Top Performer Pergantian Terbanyak</p>
           </div>
 
           <div className="my-2 h-44 overflow-y-auto pr-1 space-y-2 scrollbar-thin">
             {leaderboard.slice(0, 6).map((pet, idx) => (
               <div
                 key={pet.name}
-                className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs"
+                className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-2 text-xs"
               >
                 <div className="flex items-center space-x-2.5">
                   <span
                     className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
                       idx === 0
-                        ? "bg-amber-400 text-slate-950"
+                        ? "bg-amber-400 text-slate-950 font-black"
                         : idx === 1
-                        ? "bg-slate-300 text-slate-950"
+                        ? "bg-slate-300 text-slate-950 font-black"
                         : idx === 2
-                        ? "bg-amber-700 text-white"
-                        : "bg-slate-200 text-slate-600"
+                        ? "bg-amber-600 text-white font-black"
+                        : "bg-slate-200 dark:bg-slate-750 text-slate-700 dark:text-slate-300 font-medium"
                     }`}
                   >
                     {idx + 1}
                   </span>
-                  <span className="font-bold text-slate-800">{pet.name}</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{pet.name}</span>
                 </div>
 
                 <div className="flex items-center space-x-2 text-[11px]">
-                  <span className="text-emerald-600 font-bold">{pet.Selesai} Selesai</span>
-                  <span className="text-slate-400">/ {pet.Total} Total</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">{pet.Selesai} Selesai</span>
+                  <span className="text-slate-400 dark:text-slate-500">/ {pet.Total} Total</span>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-center text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+          <div className="grid grid-cols-2 gap-2 text-center text-xs bg-slate-50 dark:bg-slate-950/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
             <div>
-              <span className="text-[10px] font-semibold text-slate-500 block">Total Petugas</span>
-              <p className="text-base font-bold text-slate-900">{PETUGAS_LIST.length} Orang</p>
+              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block">Total Petugas</span>
+              <p className="text-base font-bold text-slate-900 dark:text-white">{PETUGAS_LIST.length} Orang</p>
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-emerald-600 block">Total Selesai</span>
-              <p className="text-base font-bold text-emerald-600">{totalSelesai.toLocaleString()} Unit</p>
+              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 block">Total Selesai</span>
+              <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">{totalSelesai.toLocaleString()} Unit</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Row 2: Officer Performance Bar Chart & Detailed Breakdown Table */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-100 pb-4">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div>
             <div className="flex items-center space-x-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-500/30">
                 <BarChart3 className="h-4 w-4" />
               </div>
-              <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-800">
+              <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
                 Beban Kerja & Capaian per Petugas Lapangan
               </h3>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Perbandingan jumlah meter tua yang SELESAI vs BELUM dikerjakan oleh masing-masing petugas
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="inline-flex items-center space-x-1.5 rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-700 border border-blue-100">
+            <span className="inline-flex items-center space-x-1.5 rounded-full bg-sky-50 dark:bg-sky-950/60 px-3 py-1 font-semibold text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-500/30">
               <UserCheck className="h-3.5 w-3.5" />
               <span>{PETUGAS_LIST.length} Petugas Resmi</span>
             </span>
             {unassignedMasterCount > 0 && (
-              <span className="inline-flex items-center space-x-1.5 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600 border border-slate-200">
-                <Clock className="h-3.5 w-3.5 text-slate-500" />
+              <span className="inline-flex items-center space-x-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                <Clock className="h-3.5 w-3.5 text-slate-400" />
                 <span>{unassignedMasterCount.toLocaleString()} Target Belum Dialokasikan</span>
               </span>
             )}
@@ -462,47 +467,47 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
         </div>
 
         {/* Visual Bar Chart */}
-        <div className="bg-slate-50/60 p-4 rounded-xl border border-slate-100">
+        <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={officerChartData} margin={{ top: 15, right: 15, left: -15, bottom: 25 }}>
                 <XAxis
                   dataKey="name"
-                  stroke="#64748b"
+                  stroke={isDark ? "#94a3b8" : "#64748b"}
                   fontSize={10}
                   fontWeight={600}
                   interval={0}
                   angle={-35}
                   textAnchor="end"
                 />
-                <YAxis stroke="#64748b" fontSize={10} allowDecimals={false} />
+                <YAxis stroke={isDark ? "#94a3b8" : "#64748b"} fontSize={10} allowDecimals={false} />
                 <RechartsTooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs space-y-1.5 border border-slate-700 min-w-[160px]">
-                          <p className="font-bold text-amber-400 border-b border-slate-700 pb-1 text-sm">
+                        <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-3 rounded-xl shadow-xl text-xs space-y-1.5 border border-slate-200 dark:border-slate-700 min-w-[160px]">
+                          <p className="font-bold text-amber-600 dark:text-amber-400 border-b border-slate-200 dark:border-slate-700 pb-1 text-sm">
                             Petugas: {label}
                           </p>
-                          <div className="flex justify-between items-center text-slate-300">
+                          <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
                             <span>Pekerjaan Selesai:</span>
-                            <span className="font-bold text-emerald-400">{data.Selesai} Unit</span>
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400">{data.Selesai} Unit</span>
                           </div>
-                          <div className="flex justify-between items-center text-slate-300">
+                          <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
                             <span>Pekerjaan Belum:</span>
-                            <span className="font-bold text-amber-400">{data.Belum} Unit</span>
+                            <span className="font-bold text-amber-600 dark:text-amber-400">{data.Belum} Unit</span>
                           </div>
-                          <div className="flex justify-between items-center text-slate-300 font-semibold pt-1 border-t border-slate-800">
+                          <div className="flex justify-between items-center text-slate-800 dark:text-slate-300 font-semibold pt-1 border-t border-slate-200 dark:border-slate-800">
                             <span>Total Ditugaskan:</span>
-                            <span className="text-white">{data.Total} Unit</span>
+                            <span className="text-slate-900 dark:text-white">{data.Total} Unit</span>
                           </div>
                           <div className="pt-1">
-                            <div className="flex justify-between text-[10px] text-slate-400 mb-0.5">
+                            <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">
                               <span>Capaian</span>
-                              <span className="font-bold text-emerald-400">{data.Persen}%</span>
+                              <span className="font-bold text-emerald-600 dark:text-emerald-400">{data.Persen}%</span>
                             </div>
-                            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-emerald-500 rounded-full"
                                 style={{ width: `${data.Persen}%` }}
@@ -519,7 +524,7 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
                   verticalAlign="top"
                   align="right"
                   height={32}
-                  wrapperStyle={{ fontSize: "11px", paddingBottom: "10px" }}
+                  wrapperStyle={{ fontSize: "11px", paddingBottom: "10px", color: isDark ? "#94a3b8" : "#64748b" }}
                 />
                 <Bar name="Selesai" dataKey="Selesai" fill="#10b981" radius={[4, 4, 0, 0]} stackId="a" />
                 <Bar name="Belum Selesai" dataKey="Belum" fill="#f59e0b" radius={[4, 4, 0, 0]} stackId="a" />
@@ -531,18 +536,18 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
         {/* Detailed Officer Workload Table */}
         <div className="mt-6">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center space-x-1.5">
-              <ListFilter className="h-4 w-4 text-blue-600" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300 flex items-center space-x-1.5">
+              <ListFilter className="h-4 w-4 text-sky-600 dark:text-sky-400" />
               <span>Tabel Rincian Beban Kerja & Capaian Petugas</span>
             </h4>
-            <span className="text-[11px] text-slate-400 font-medium">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
               Data real-time berdasarkan penugasan aktif
             </span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
-            <table className="w-full text-left text-xs text-slate-700 border-collapse">
-              <thead className="bg-slate-100/80 text-[11px] uppercase font-bold text-slate-600 tracking-wider border-b border-slate-200">
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+            <table className="w-full text-left text-xs text-slate-700 dark:text-slate-200 border-collapse">
+              <thead className="bg-slate-50 dark:bg-slate-950 text-[11px] uppercase font-bold text-slate-600 dark:text-slate-400 tracking-wider border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="py-3 px-4 w-12 text-center">No</th>
                   <th className="py-3 px-4">Nama Petugas Lapangan</th>
@@ -553,7 +558,7 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
                   <th className="py-3 px-4 text-center">Status Evaluasi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 bg-white dark:bg-slate-900">
                 {officerChartData.map((pet, idx) => {
                   const statusLabel =
                     pet.Total === 0
@@ -566,33 +571,33 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
 
                   const statusBg =
                     pet.Total === 0
-                      ? "bg-slate-100 text-slate-500 border-slate-200"
+                      ? "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700"
                       : pet.Persen === 100
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200 font-bold"
+                      ? "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30 font-bold"
                       : pet.Selesai > 0
-                      ? "bg-blue-50 text-blue-700 border-blue-200 font-semibold"
-                      : "bg-amber-50 text-amber-700 border-amber-200";
+                      ? "bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-500/30 font-semibold"
+                      : "bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/30";
 
                   return (
                     <tr
                       key={pet.name}
-                      className="hover:bg-slate-50/80 transition-colors"
+                      className="hover:bg-slate-50 dark:hover:bg-slate-850/70 transition-colors"
                     >
-                      <td className="py-2.5 px-4 text-center font-medium text-slate-400">
+                      <td className="py-2.5 px-4 text-center font-medium text-slate-400 dark:text-slate-500">
                         {idx + 1}
                       </td>
-                      <td className="py-2.5 px-4 font-bold text-slate-900 flex items-center space-x-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 border border-slate-200">
+                      <td className="py-2.5 px-4 font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                           {pet.name.charAt(0)}
                         </div>
                         <span>{pet.name}</span>
                       </td>
                       <td className="py-2.5 px-4 text-center">
                         <span
-                          className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md font-bold ${
+                          className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md font-bold border ${
                             pet.Selesai > 0
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-slate-100 text-slate-400"
+                              ? "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700"
                           }`}
                         >
                           {pet.Selesai > 0 && <Check className="h-3 w-3" />}
@@ -601,33 +606,33 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
                       </td>
                       <td className="py-2.5 px-4 text-center">
                         <span
-                          className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md font-semibold ${
+                          className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md font-semibold border ${
                             pet.Belum > 0
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-slate-100 text-slate-400"
+                              ? "bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/30"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700"
                           }`}
                         >
                           <span>{pet.Belum} Meter</span>
                         </span>
                       </td>
-                      <td className="py-2.5 px-4 text-center font-bold text-slate-800">
+                      <td className="py-2.5 px-4 text-center font-bold text-slate-800 dark:text-slate-100">
                         {pet.Total} Meter
                       </td>
                       <td className="py-2.5 px-4 text-center">
                         <div className="flex items-center space-x-2">
-                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
+                          <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
                             <div
                               className={`h-full rounded-full transition-all duration-500 ${
                                 pet.Persen === 100
                                   ? "bg-emerald-500"
                                   : pet.Persen > 0
-                                  ? "bg-blue-500"
+                                  ? "bg-sky-500"
                                   : "bg-amber-400"
                               }`}
                               style={{ width: `${pet.Persen}%` }}
                             />
                           </div>
-                          <span className="text-[11px] font-bold text-slate-700 w-9 text-right">
+                          <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 w-9 text-right">
                             {pet.Persen}%
                           </span>
                         </div>

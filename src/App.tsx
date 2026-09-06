@@ -294,7 +294,7 @@ export default function App() {
   const completedCount = meters.filter((m) => m.status === "SELESAI").length;
 
   return (
-    <div className="relative h-screen w-full bg-slate-900 font-['Plus_Jakarta_Sans',sans-serif] text-slate-800 overflow-hidden">
+    <div className="relative h-screen w-full bg-slate-100 dark:bg-slate-950 font-['Plus_Jakarta_Sans',sans-serif] text-slate-800 dark:text-slate-200 overflow-hidden">
       <AnimatePresence mode="wait">
         {!currentUser ? (
           <motion.div
@@ -320,7 +320,7 @@ export default function App() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -15, filter: "blur(6px)" }}
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="flex h-screen w-full bg-slate-900 text-slate-800 overflow-hidden"
+            className="flex h-screen w-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-200 overflow-hidden"
           >
             {/* Left Floating Sidebar Navigation */}
             <Navbar
@@ -336,7 +336,7 @@ export default function App() {
             />
 
             {/* Main Content Workspace Column */}
-            <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-slate-50 lg:m-4 lg:rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden relative">
+            <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-white dark:bg-slate-900 lg:m-4 lg:rounded-3xl border border-slate-200/90 dark:border-slate-800/80 shadow-2xl overflow-hidden relative">
               {/* Top Header Bar (Hidden on mobile when on map view to give full Google Maps screen) */}
               <div className={activeTab === "peta" ? "hidden lg:block" : "block"}>
                 <TopHeader
@@ -350,7 +350,7 @@ export default function App() {
               </div>
 
               {/* View Container with Smooth Motion Transitions */}
-              <main className={`flex-1 ${activeTab === "peta" ? "overflow-hidden pb-0" : "overflow-y-auto pb-20"} lg:pb-0 relative bg-slate-50`}>
+              <main className={`flex-1 ${activeTab === "peta" ? "overflow-hidden pb-0 bg-slate-100 dark:bg-slate-900" : "overflow-y-auto pb-20 bg-slate-50/80 dark:bg-slate-950"} lg:pb-0 relative`}>
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}

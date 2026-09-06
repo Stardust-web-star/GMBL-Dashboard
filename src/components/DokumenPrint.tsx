@@ -43,13 +43,13 @@ export const DokumenPrint: React.FC<Props> = ({
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 space-y-6 font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Header & Controls (Hidden when printing) */}
-      <div className="print:hidden flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
+      <div className="print:hidden flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 flex items-center space-x-2">
-            <FileText className="h-6 w-6 text-blue-600" />
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center space-x-2">
+            <FileText className="h-6 w-6 text-sky-600 dark:text-sky-400" />
             <span>Dokumen & Surat Perintah Kerja (PK)</span>
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Cetak Berita Acara & Surat Tugas Penggantian Meter Tua PLN JTC Transaksi Energi Baguala
           </p>
         </div>
@@ -58,7 +58,7 @@ export const DokumenPrint: React.FC<Props> = ({
           <button
             onClick={handlePrint}
             disabled={!activeMeter}
-            className="flex items-center space-x-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all disabled:opacity-50"
+            className="flex items-center space-x-2 rounded-xl bg-sky-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-sky-600/30 hover:bg-sky-500 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
           >
             <Printer className="h-4 w-4" />
             <span>Cetak Dokumen Resmi</span>
@@ -69,8 +69,8 @@ export const DokumenPrint: React.FC<Props> = ({
       {/* Screen Controls Grid (Hidden when printing) */}
       <div className="print:hidden grid grid-cols-1 gap-4 lg:grid-cols-4">
         {/* Selector Meter */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             Pilih Data Meter Target
           </h3>
 
@@ -81,7 +81,7 @@ export const DokumenPrint: React.FC<Props> = ({
               placeholder="Cari ID Pelanggan / Nama..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full text-xs p-2 pl-8 border border-slate-200 rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+              className="w-full text-xs p-2 pl-8 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950"
             />
           </div>
 
@@ -92,16 +92,16 @@ export const DokumenPrint: React.FC<Props> = ({
                 <div
                   key={m.id}
                   onClick={() => onSelectMeter(m)}
-                  className={`cursor-pointer rounded-lg border p-2.5 text-xs transition-all ${
+                  className={`cursor-pointer rounded-xl border p-2.5 text-xs transition-all ${
                     isSelected
-                      ? "border-blue-500 bg-blue-50 text-blue-900 font-medium"
-                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      ? "border-sky-500 bg-sky-50 dark:bg-sky-950/40 text-slate-900 dark:text-white font-medium shadow-xs"
+                      : "border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-850 hover:border-slate-300 dark:hover:border-slate-700"
                   }`}
                 >
-                  <p className="font-bold text-slate-900 truncate">{m.namaPelanggan}</p>
-                  <div className="flex justify-between text-[11px] text-slate-500 mt-1">
+                  <p className="font-bold text-slate-900 dark:text-white truncate">{m.namaPelanggan}</p>
+                  <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                     <span>ID: {m.idPelanggan}</span>
-                    <span className="text-blue-600 font-semibold">
+                    <span className="text-sky-600 dark:text-sky-400 font-semibold">
                       {m.status === "SELESAI" ? m.petugas : "-"}
                     </span>
                   </div>
@@ -112,41 +112,41 @@ export const DokumenPrint: React.FC<Props> = ({
         </div>
 
         {/* Document Format Selector */}
-        <div className="lg:col-span-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
-          <div className="flex space-x-2 border-b border-slate-100 pb-3">
+        <div className="lg:col-span-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-4">
+          <div className="flex flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <button
               onClick={() => setDocType("pk")}
-              className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
                 docType === "pk"
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-sky-600 text-white shadow-xs"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               }`}
             >
               1. Surat Perintah Kerja (PK)
             </button>
             <button
               onClick={() => setDocType("ba")}
-              className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
                 docType === "ba"
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-sky-600 text-white shadow-xs"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               }`}
             >
               2. Berita Acara (BA) Penggantian
             </button>
             <button
               onClick={() => setDocType("st")}
-              className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
                 docType === "st"
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-sky-600 text-white shadow-xs"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               }`}
             >
               3. Surat Tugas Pemeliharaan
             </button>
           </div>
 
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Pratinjau dokumen resmi yang akan dicetak di bawah ini. Tekan tombol &quot;Cetak Dokumen Resmi&quot; untuk mengunduh versi PDF/Print.
           </p>
         </div>
