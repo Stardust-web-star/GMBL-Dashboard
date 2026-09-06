@@ -59,6 +59,7 @@ interface Props {
   onSelectForDocument: (meter: MeterRecord) => void;
   onOpenMobileMenu?: () => void;
   isSyncing?: boolean;
+  isActive?: boolean;
 }
 
 // Pre-defined static Leaflet DivIcons to prevent re-creating DOM strings for 6000+ items
@@ -67,7 +68,7 @@ const createCustomPinIcon = (startColor: string, endColor: string, innerContent:
     className: "custom-leaflet-teardrop-pin",
     html: `
       <div style="position: relative; width: 28px; height: 34px; cursor: pointer;">
-        <svg viewBox="0 0 28 36" width="28" height="34" style="filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.4)); overflow: visible;">
+        <svg viewBox="0 0 28 36" width="28" height="34" style="overflow: visible;">
           <defs>
             <linearGradient id="pin-grad-${label}-${startColor.replace('#', '')}" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="${startColor}" />
@@ -170,17 +171,28 @@ export const PetaLokasiMap: React.FC<Props> = ({
   onSelectForDocument,
   onOpenMobileMenu,
   isSyncing,
+  isActive = true,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const clusterGroupRef = useRef<any>(null);
+  const markerInstancesRef = useRef<Map<string, { marker: L.Marker; status: string; jenis: string }>>(new Map());
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [filterJenis, setFilterJenis] = useState<string>("ALL");
   const [filterGanti, setFilterGanti] = useState<string>("ALL");
   const [filterPetugas, setFilterPetugas] = useState<string>("ALL");
   const [selectedMeter, setSelectedMeter] = useState<MeterRecord | null>(null);
+
+  // Debounce search input so keystrokes remain silky smooth without lag
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 220);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const [mapTileType, setMapTileType] = useState<"satellite" | "streets">("satellite");
   const [isLegendOpen, setIsLegendOpen] = useState(() =>
@@ -204,6 +216,21 @@ export const PetaLokasiMap: React.FC<Props> = ({
       else belum++;
     }
     return { prabayar, paskabayar, selesai, belum };
+  }, [meters]);
+
+  // Pre-calculate and cache valid snapped coordinates once when `meters` changes,
+  // preventing millions of string parsing and zone checks during search/filter operations
+  const coordsCache = useMemo(() => {
+    const map = new Map<string, { lat: number; lng: number }>();
+    for (let i = 0; i < meters.length; i++) {
+      const m = meters[i];
+      const rawLat = typeof m.latitude === "number" ? m.latitude : parseFloat(String(m.latitude).replace(",", "."));
+      const rawLng = typeof m.longitude === "number" ? m.longitude : parseFloat(String(m.longitude).replace(",", "."));
+      if (isNaN(rawLat) || isNaN(rawLng) || (rawLat === 0 && rawLng === 0)) continue;
+      const snapped = snapToLandInBaguala(rawLat, rawLng, m.pnj, m.namaPelanggan, i);
+      map.set(m.id, snapped);
+    }
+    return map;
   }, [meters]);
 
   // Mobile horizontal filter chips scroll management
@@ -260,16 +287,16 @@ export const PetaLokasiMap: React.FC<Props> = ({
   const routeCoreRef = useRef<L.Polyline | null>(null);
   const destinationMarkerRef = useRef<L.Marker | null>(null);
 
-  const filterKey = `${searchTerm}-${filterStatus}-${filterJenis}-${filterGanti}-${filterPetugas}`;
+  const filterKey = `${debouncedSearchTerm}-${filterStatus}-${filterJenis}-${filterGanti}-${filterPetugas}`;
 
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(80);
-  }, [searchTerm, filterStatus, filterJenis, filterGanti, filterPetugas]);
+  }, [debouncedSearchTerm, filterStatus, filterJenis, filterGanti, filterPetugas]);
 
-  // Memoize filtered meters to avoid heavy string ops on every single render
+  // Memoize filtered meters using debouncedSearchTerm
   const filteredMeters = useMemo(() => {
-    const s = searchTerm.trim().toLowerCase();
+    const s = debouncedSearchTerm.trim().toLowerCase();
     return meters.filter((m) => {
       const matchesSearch =
         !s ||
@@ -288,7 +315,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
       return matchesSearch && matchesStatus && matchesJenis && matchesGanti && matchesPetugas;
     });
-  }, [meters, searchTerm, filterStatus, filterJenis, filterGanti, filterPetugas]);
+  }, [meters, debouncedSearchTerm, filterStatus, filterJenis, filterGanti, filterPetugas]);
 
   // Visible items for sidebar list to prevent 6000+ DOM cards overload
   const visibleSidebarMeters = useMemo(() => {
@@ -401,8 +428,8 @@ export const PetaLokasiMap: React.FC<Props> = ({
           accuracyCircleRef.current.setRadius(Math.min(accuracy || 25, 150));
         }
 
-        // Fly to user on initial access or explicit button click
-        if (flyToUser || !hasCenteredOnUserRef.current) {
+        // Fly to user ONLY on explicit button click
+        if (flyToUser) {
           map.flyTo([latitude, longitude], 15, { duration: 1 });
           hasCenteredOnUserRef.current = true;
         }
@@ -601,85 +628,98 @@ export const PetaLokasiMap: React.FC<Props> = ({
     }
   };
 
+  // Invalidate map size when tab becomes active (switching from another tab)
+  useEffect(() => {
+    if (isActive && mapInstanceRef.current) {
+      const timer = setTimeout(() => {
+        mapInstanceRef.current?.invalidateSize();
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [isActive]);
+
   // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
-      // Base center on Baguala / Suli / Ambon area
+      // Base center on Baguala / Suli / Ambon area with hardware-accelerated Canvas renderer
       const map = L.map(mapContainerRef.current, {
         center: [-3.6210, 128.3150],
         zoom: 13,
         zoomControl: false,
+        preferCanvas: true,
+        wheelPxPerZoomLevel: 120,
+        zoomAnimation: true,
+        fadeAnimation: true,
+        markerZoomAnimation: true,
       });
 
-      // Tile layer
+      // Tile layer with memory buffer for fast pan/zoom
       const satelliteUrl = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
       const streetsUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
       const tileLayer = L.tileLayer(mapTileType === "satellite" ? satelliteUrl : streetsUrl, {
         attribution:
           mapTileType === "satellite"
-            ? "&copy; Esri &mdash; Satellite Imagery | GMBL PLN Baguala"
-            : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | GMBL PLN',
+            ? "&copy; Esri World Imagery | GMBL PLN Baguala"
+            : '&copy; OpenStreetMap | GMBL PLN',
         maxZoom: 19,
         maxNativeZoom: mapTileType === "satellite" ? 17 : 19,
+        keepBuffer: 4,
+        updateWhenZooming: false,
+        updateInterval: 100,
       }).addTo(map);
 
       tileLayerRef.current = tileLayer;
 
-      // Initialize Leaflet MarkerCluster Group with upgraded glowing cluster icons
+      // Initialize Leaflet MarkerCluster Group with ultra-smooth settings and clean CSS glow
       const clusterGroup = (L as any).markerClusterGroup({
         chunkedLoading: true,
+        chunkInterval: 100,
+        chunkDelay: 10,
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: false,
         zoomToBoundsOnClick: true,
-        maxClusterRadius: 45,
-        disableClusteringAtZoom: 16,
+        maxClusterRadius: 60,
+        disableClusteringAtZoom: 17,
+        animate: true,
+        animateAddingMarkers: false,
+        removeOutsideVisibleBounds: true,
         iconCreateFunction: (cluster: any) => {
           const childCount = cluster.getChildCount();
           let bgGradient = "linear-gradient(135deg, #0284c7, #0369a1)";
-          let ringColor = "rgba(2, 132, 199, 0.2)";
-          let size = 38;
+          let shadowRing = "0 0 0 3px rgba(2, 132, 199, 0.25), 0 3px 8px rgba(0,0,0,0.35)";
+          let size = 36;
 
           if (childCount > 50) {
             bgGradient = "linear-gradient(135deg, #d97706, #b45309)";
-            ringColor = "rgba(217, 119, 6, 0.22)";
-            size = 46;
+            shadowRing = "0 0 0 3.5px rgba(217, 119, 6, 0.3), 0 4px 10px rgba(0,0,0,0.4)";
+            size = 44;
           } else if (childCount > 15) {
             bgGradient = "linear-gradient(135deg, #2563eb, #1d4ed8)";
-            ringColor = "rgba(37, 99, 235, 0.22)";
-            size = 42;
+            shadowRing = "0 0 0 3px rgba(37, 99, 235, 0.3), 0 3.5px 9px rgba(0,0,0,0.35)";
+            size = 40;
           }
 
           return L.divIcon({
             html: `
-              <div style="position: relative; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center;">
-                <div style="
-                  position: absolute;
-                  inset: -3px;
-                  border-radius: 50%;
-                  background: ${ringColor};
-                  filter: blur(2px);
-                "></div>
-                <div style="
-                  position: relative;
-                  width: ${size}px;
-                  height: ${size}px;
-                  background: ${bgGradient};
-                  color: white;
-                  font-weight: 800;
-                  font-size: ${childCount > 99 ? '11px' : '12px'};
-                  border-radius: 50%;
-                  border: 2px solid rgba(255,255,255,0.92);
-                  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  letter-spacing: -0.3px;
-                ">
-                  <span>${childCount}</span>
-                </div>
+              <div style="
+                width: ${size}px;
+                height: ${size}px;
+                background: ${bgGradient};
+                color: white;
+                font-weight: 800;
+                font-size: ${childCount > 99 ? '11px' : '12px'};
+                border-radius: 50%;
+                border: 2px solid rgba(255,255,255,0.92);
+                box-shadow: ${shadowRing};
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                letter-spacing: -0.3px;
+              ">
+                <span>${childCount}</span>
               </div>
             `,
             className: "custom-marker-cluster-icon",
@@ -692,7 +732,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
       clusterGroupRef.current = clusterGroup;
       mapInstanceRef.current = map;
 
-      // Automatically initialize real-time GPS connection upon opening map
+      // Automatically initialize real-time GPS connection upon opening map without abrupt jumping
       startGpsTracking(false);
     }
 
@@ -710,6 +750,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
       routeOutlineRef.current = null;
       routeCoreRef.current = null;
       destinationMarkerRef.current = null;
+      markerInstancesRef.current.clear();
     };
   }, [startGpsTracking]);
 
@@ -731,59 +772,69 @@ export const PetaLokasiMap: React.FC<Props> = ({
           : '&copy; OpenStreetMap | GMBL PLN',
       maxZoom: 19,
       maxNativeZoom: mapTileType === "satellite" ? 17 : 19,
+      keepBuffer: 4,
+      updateWhenZooming: false,
+      updateInterval: 100,
     }).addTo(mapInstanceRef.current);
 
     tileLayerRef.current = newTileLayer;
   }, [mapTileType]);
 
-  // Update Markers & Fit Bounds on Filtered Meters Change
+  // Update Markers & Fit Bounds on Filtered Meters Change with Marker Instance Reuse & Cached Coordinates
   useEffect(() => {
     if (!mapInstanceRef.current || !clusterGroupRef.current) return;
 
-    // Use a short delay so tab opening motion animations finish completely before placing markers
     const frameId = requestAnimationFrame(() => {
       if (!clusterGroupRef.current) return;
 
-      clusterGroupRef.current.clearLayers();
+      const clusterGroup = clusterGroupRef.current;
+      clusterGroup.clearLayers();
 
       const bounds: L.LatLngTuple[] = [];
       const markersList: L.Marker[] = [];
+      const markerCache = markerInstancesRef.current;
 
-      filteredMeters.forEach((m, idx) => {
-        // Parsing Data: Extract Latitude & Longitude precisely
-        const rawLat = typeof m.latitude === "number" ? m.latitude : parseFloat(String(m.latitude).replace(",", "."));
-        const rawLng = typeof m.longitude === "number" ? m.longitude : parseFloat(String(m.longitude).replace(",", "."));
+      for (let i = 0; i < filteredMeters.length; i++) {
+        const m = filteredMeters[i];
+        const coords = coordsCache.get(m.id);
+        if (!coords) continue;
 
-        // Skip invalid numeric coordinates
-        if (isNaN(rawLat) || isNaN(rawLng) || (rawLat === 0 && rawLng === 0)) return;
-
-        // Ensure coordinate is strictly on land in Ambon/Baguala
-        const snapped = snapToLandInBaguala(rawLat, rawLng, m.pnj, m.namaPelanggan, idx);
-        const lat = snapped.lat;
-        const lng = snapped.lng;
+        const { lat, lng } = coords;
+        bounds.push([lat, lng]);
 
         const isSelesai = m.status === "SELESAI";
         const isPrabayar = m.jenis === "PRA BAYAR";
 
-        bounds.push([lat, lng]);
-
-        // Use pre-cached shared icon to avoid creating 6000+ SVG DOM strings
-        const customIcon = getMeterIcon(isSelesai, isPrabayar);
-        const marker = L.marker([lat, lng], { icon: customIcon });
-
-        // Click listener on marker: set selected meter & pan map smoothly WITHOUT zooming out!
-        marker.on("click", () => {
-          setSelectedMeter(m);
-          if (mapInstanceRef.current) {
-            mapInstanceRef.current.panTo([lat, lng], { animate: true });
+        // Reuse existing L.Marker instance if available to avoid thousands of object allocations
+        const cached = markerCache.get(m.id);
+        if (cached) {
+          if (cached.status !== m.status || cached.jenis !== m.jenis) {
+            cached.marker.setIcon(getMeterIcon(isSelesai, isPrabayar));
+            cached.status = m.status;
+            cached.jenis = m.jenis;
           }
-        });
+          markersList.push(cached.marker);
+        } else {
+          const marker = L.marker([lat, lng], {
+            icon: getMeterIcon(isSelesai, isPrabayar),
+          });
+          marker.on("click", () => {
+            setSelectedMeter(m);
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.panTo([lat, lng], { animate: true });
+            }
+          });
+          markerCache.set(m.id, {
+            marker,
+            status: m.status,
+            jenis: m.jenis,
+          });
+          markersList.push(marker);
+        }
+      }
 
-        markersList.push(marker);
-      });
-
-      // Bulk add all markers in one single pass for maximum MarkerCluster efficiency
-      clusterGroupRef.current.addLayers(markersList);
+      // Bulk add all markers in one single chunked pass
+      clusterGroup.addLayers(markersList);
 
       // Auto-fit Bounds ONLY on initial load OR when user changes filter inputs explicitly
       const filterChanged = prevFilterKeyRef.current !== filterKey;
@@ -797,14 +848,13 @@ export const PetaLokasiMap: React.FC<Props> = ({
         prevFilterKeyRef.current = filterKey;
       }
 
-      // Ensure map layout calculates properly
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
       }
     });
 
     return () => cancelAnimationFrame(frameId);
-  }, [filteredMeters, filterKey]);
+  }, [filteredMeters, filterKey, coordsCache]);
 
   const handleFlyToMeter = (m: MeterRecord) => {
     setSelectedMeter(m);

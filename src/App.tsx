@@ -350,70 +350,77 @@ export default function App() {
               </div>
 
               {/* View Container with Smooth Motion Transitions */}
-              <main className={`flex-1 ${activeTab === "peta" ? "overflow-hidden pb-0 bg-slate-100 dark:bg-slate-900" : "overflow-y-auto pb-20 bg-slate-50/80 dark:bg-slate-950"} lg:pb-0 relative`}>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 12, scale: 0.995 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.995 }}
-                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                    className="h-full w-full"
-                  >
-                    {activeTab === "peta" && (
-                      <PetaLokasiMap
-                        meters={meters}
-                        onUpdateMeterStatus={handleUpdateMeterStatus}
-                        onSelectForDocument={handleSelectForDocument}
-                        onOpenMobileMenu={() => setMobileMenuOpen(true)}
-                        isSyncing={isSyncing}
-                      />
-                    )}
+              <main className="flex-1 h-full min-h-0 relative overflow-hidden bg-slate-100 dark:bg-slate-900">
+                {/* Preserved PetaLokasiMap container: kept alive so Leaflet instance, tile caches, and 6,000+ cluster markers are not destroyed on tab change */}
+                <div className={`h-full w-full ${activeTab === "peta" ? "block" : "hidden"}`}>
+                  <PetaLokasiMap
+                    meters={meters}
+                    onUpdateMeterStatus={handleUpdateMeterStatus}
+                    onSelectForDocument={handleSelectForDocument}
+                    onOpenMobileMenu={() => setMobileMenuOpen(true)}
+                    isSyncing={isSyncing}
+                    isActive={activeTab === "peta"}
+                  />
+                </div>
 
-                    {currentUser.role !== "petugas" && activeTab === "data" && (
-                      <DataMeterTua
-                        meters={meters}
-                        onUpdateMeterStatus={handleUpdateMeterStatus}
-                        onDeleteMeter={handleDeleteMeter}
-                        onSelectForDocument={handleSelectForDocument}
-                        onOpenEditModal={handleOpenEditModal}
-                        onOpenAddNew={() => {
-                          setEditingMeter(null);
-                          setActiveTab("input");
-                        }}
-                      />
-                    )}
+                {/* Other views with standard scrolling and motion transitions */}
+                {activeTab !== "peta" && (
+                  <div className="h-full w-full overflow-y-auto pb-20 lg:pb-0 bg-slate-50/80 dark:bg-slate-950">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 12, scale: 0.995 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.995 }}
+                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                        className="min-h-full w-full"
+                      >
+                        {currentUser.role !== "petugas" && activeTab === "data" && (
+                          <DataMeterTua
+                            meters={meters}
+                            onUpdateMeterStatus={handleUpdateMeterStatus}
+                            onDeleteMeter={handleDeleteMeter}
+                            onSelectForDocument={handleSelectForDocument}
+                            onOpenEditModal={handleOpenEditModal}
+                            onOpenAddNew={() => {
+                              setEditingMeter(null);
+                              setActiveTab("input");
+                            }}
+                          />
+                        )}
 
-                    {currentUser.role !== "petugas" && activeTab === "input" && (
-                      <InputDataGantiMeter
-                        onSave={handleSaveMeterRecord}
-                        editingMeter={editingMeter}
-                        onCancelEdit={() => setEditingMeter(null)}
-                      />
-                    )}
+                        {currentUser.role !== "petugas" && activeTab === "input" && (
+                          <InputDataGantiMeter
+                            onSave={handleSaveMeterRecord}
+                            editingMeter={editingMeter}
+                            onCancelEdit={() => setEditingMeter(null)}
+                          />
+                        )}
 
-                    {currentUser.role !== "petugas" && activeTab === "informasi" && (
-                      <InformasiAnalytics meters={meters} />
-                    )}
+                        {currentUser.role !== "petugas" && activeTab === "informasi" && (
+                          <InformasiAnalytics meters={meters} />
+                        )}
 
-                    {currentUser.role !== "petugas" && activeTab === "dokumen" && (
-                      <DokumenPrint
-                        meters={meters}
-                        selectedMeter={selectedMeterForDoc}
-                        onSelectMeter={(m) => setSelectedMeterForDoc(m)}
-                      />
-                    )}
+                        {currentUser.role !== "petugas" && activeTab === "dokumen" && (
+                          <DokumenPrint
+                            meters={meters}
+                            selectedMeter={selectedMeterForDoc}
+                            onSelectMeter={(m) => setSelectedMeterForDoc(m)}
+                          />
+                        )}
 
-                    {currentUser.role !== "petugas" && activeTab === "users" && (
-                      <ManagementUser
-                        users={users}
-                        currentUser={currentUser}
-                        onAddUser={handleAddUser}
-                        onDeleteUser={handleDeleteUser}
-                      />
-                    )}
-                  </motion.div>
-                </AnimatePresence>
+                        {currentUser.role !== "petugas" && activeTab === "users" && (
+                          <ManagementUser
+                            users={users}
+                            currentUser={currentUser}
+                            onAddUser={handleAddUser}
+                            onDeleteUser={handleDeleteUser}
+                          />
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                )}
               </main>
             </div>
 

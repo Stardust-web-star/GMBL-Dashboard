@@ -34,6 +34,25 @@
   animation: destination-bounce 1.5s ease-in-out infinite;
 }
 
+/* GPU Hardware Acceleration for Leaflet and Markers */
+.leaflet-container {
+  font-family: inherit;
+  background-color: #0f172a !important;
+}
+
+.leaflet-tile-container {
+  will-change: transform;
+}
+
+.custom-leaflet-teardrop-pin {
+  will-change: transform;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+}
+
+.custom-marker-cluster-icon {
+  will-change: transform;
+}
+
 /* Hide default browser scrollbar while keeping scroll functionality */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
