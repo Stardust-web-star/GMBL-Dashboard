@@ -18,9 +18,11 @@ import {
   UserCheck,
   User,
   X,
+  MessageSquare,
 } from "lucide-react";
 import { MeterRecord, PetugasName, PETUGAS_LIST } from "../types";
 import { exportMetersToCSV, getMasterExcelMeta } from "../utils/storage";
+import { WhatsAppBroadcastModal } from "./WhatsAppBroadcastModal";
 
 interface Props {
   meters: MeterRecord[];
@@ -50,6 +52,11 @@ export const DataMeterTua: React.FC<Props> = ({
   const [filterJenis, setFilterJenis] = useState<string>("ALL");
   const [filterPetugas, setFilterPetugas] = useState<string>("ALL");
   const [filterGanti, setFilterGanti] = useState<string>("ALL");
+
+  // WhatsApp Broadcast Modal State
+  const [isWaModalOpen, setIsWaModalOpen] = useState(false);
+  const [waInitialType, setWaInitialType] = useState<"ringkasan" | "petugas" | "analisis" | "pelanggan">("ringkasan");
+  const [selectedWaMeter, setSelectedWaMeter] = useState<MeterRecord | null>(null);
 
   // Modal for selecting Petugas when marking SELESAI
   const [meterToComplete, setMeterToComplete] = useState<MeterRecord | null>(null);
@@ -157,7 +164,19 @@ export const DataMeterTua: React.FC<Props> = ({
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => {
+              setWaInitialType("ringkasan");
+              setSelectedWaMeter(null);
+              setIsWaModalOpen(true);
+            }}
+            className="flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-900/20 hover:bg-emerald-500 transition-all cursor-pointer active:scale-95"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Broadcast WA</span>
+          </button>
+
           <button
             onClick={onOpenAddNew}
             className="flex items-center space-x-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-sky-900/20 hover:bg-sky-500 transition-all cursor-pointer active:scale-95"
@@ -486,6 +505,17 @@ export const DataMeterTua: React.FC<Props> = ({
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center space-x-1">
                           <button
+                            onClick={() => {
+                              setSelectedWaMeter(m);
+                              setWaInitialType("pelanggan");
+                              setIsWaModalOpen(true);
+                            }}
+                            className="rounded-lg p-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition-colors"
+                            title="Broadcast WA Pelanggan Ini"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </button>
+                          <button
                             onClick={() => onSelectForDocument(m)}
                             className="rounded-lg p-1.5 text-sky-600 dark:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             title="Cetak Surat Tugas / PK"
@@ -698,6 +728,14 @@ export const DataMeterTua: React.FC<Props> = ({
           </div>
         </div>
       )}
+
+      <WhatsAppBroadcastModal
+        isOpen={isWaModalOpen}
+        onClose={() => setIsWaModalOpen(false)}
+        meters={meters || []}
+        initialType={waInitialType}
+        selectedMeter={selectedWaMeter}
+      />
     </div>
   );
 };

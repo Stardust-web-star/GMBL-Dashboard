@@ -24,9 +24,11 @@ import {
   UserCheck,
   Check,
   ListFilter,
+  MessageSquare,
 } from "lucide-react";
 import { MeterRecord, PETUGAS_LIST } from "../types";
 import { useTheme } from "../context/ThemeContext";
+import { WhatsAppBroadcastModal } from "./WhatsAppBroadcastModal";
 
 interface Props {
   meters: MeterRecord[];
@@ -39,6 +41,9 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [errorAi, setErrorAi] = useState<string | null>(null);
+
+  const [isWaModalOpen, setIsWaModalOpen] = useState(false);
+  const [waInitialType, setWaInitialType] = useState<"ringkasan" | "petugas" | "analisis" | "pelanggan">("ringkasan");
 
   // Compute Metrics
   const totalMeters = meters.length;
@@ -220,31 +225,59 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
           </p>
         </div>
 
-        <button
-          onClick={handleGenerateAiAnalysis}
-          disabled={loadingAi}
-          className="flex items-center space-x-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-sky-900/20 hover:bg-sky-500 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
-        >
-          <Sparkles className={`h-4 w-4 ${loadingAi ? "animate-spin" : ""}`} />
-          <span>{loadingAi ? "Menganalisis Data..." : "Jalankan Analisis AI"}</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => {
+              setWaInitialType("ringkasan");
+              setIsWaModalOpen(true);
+            }}
+            className="flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-900/20 hover:bg-emerald-500 transition-all cursor-pointer active:scale-95"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Broadcast WhatsApp</span>
+          </button>
+
+          <button
+            onClick={handleGenerateAiAnalysis}
+            disabled={loadingAi}
+            className="flex items-center space-x-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-sky-900/20 hover:bg-sky-500 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+          >
+            <Sparkles className={`h-4 w-4 ${loadingAi ? "animate-spin" : ""}`} />
+            <span>{loadingAi ? "Menganalisis Data..." : "Jalankan Analisis AI"}</span>
+          </button>
+        </div>
       </div>
 
       {/* AI Analysis Card Container */}
       {(aiAnalysis || loadingAi || errorAi) && (
         <div className="rounded-2xl border border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-950/20 p-6 shadow-xs">
-          <div className="flex items-center space-x-3 border-b border-sky-200 dark:border-sky-500/20 pb-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white shadow-md shadow-sky-900/20">
-              <Sparkles className="h-5 w-5 animate-pulse text-amber-300" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-sky-200 dark:border-sky-500/20 pb-3">
+            <div className="flex items-center space-x-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-600 text-white shadow-md shadow-sky-900/20">
+                <Sparkles className="h-5 w-5 animate-pulse text-amber-300" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Analisis & Rekomendasi Operasional AI
+                </h3>
+                <p className="text-xs text-sky-700 dark:text-sky-300">
+                  Laporan evaluasi otomatis untuk Manager & Supervisor JTC Transaksi Energi Baguala
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Analisis & Rekomendasi Operasional AI
-              </h3>
-              <p className="text-xs text-sky-700 dark:text-sky-300">
-                Laporan evaluasi otomatis untuk Manager & Supervisor JTC Transaksi Energi Baguala
-              </p>
-            </div>
+
+            {aiAnalysis && (
+              <button
+                onClick={() => {
+                  setWaInitialType("analisis");
+                  setIsWaModalOpen(true);
+                }}
+                className="flex items-center justify-center space-x-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-500 transition-all cursor-pointer active:scale-95 shrink-0"
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+                <span>Kirim Hasil ke WA</span>
+              </button>
+            )}
           </div>
 
           <div className="mt-4">
@@ -652,6 +685,14 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
           </div>
         </div>
       </div>
+
+      <WhatsAppBroadcastModal
+        isOpen={isWaModalOpen}
+        onClose={() => setIsWaModalOpen(false)}
+        meters={meters || []}
+        aiAnalysis={aiAnalysis}
+        initialType={waInitialType}
+      />
     </div>
   );
 };
