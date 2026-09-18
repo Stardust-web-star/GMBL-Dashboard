@@ -219,11 +219,15 @@ export function snapToLandInBaguala(
   lng: number,
   pnj?: string,
   namaPelanggan?: string,
-  index: number = 0
+  index: number = 0,
+  idPelanggan?: string
 ): { lat: number; lng: number } {
+  const pLat = parseCoordinate(lat);
+  const pLng = parseCoordinate(lng);
+
   // If coordinates are valid and provided, retain the exact genuine coordinates
-  if (lat && lng && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0 && !isWaterCoordinate(lat, lng)) {
-    return { lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)) };
+  if (pLat !== null && pLng !== null && pLat !== 0 && pLng !== 0 && !isWaterCoordinate(pLat, pLng)) {
+    return { lat: Number(pLat.toFixed(6)), lng: Number(pLng.toFixed(6)) };
   }
 
   // Find matching land locality zone for missing coordinates
@@ -237,10 +241,19 @@ export function snapToLandInBaguala(
     }
   }
 
-  // Calculate realistic street/neighborhood offset on residential land
+  // Generate deterministic seed hash from idPelanggan / namaPelanggan / index
+  // so fallback position is 100% IDENTICAL across all devices, browsers, OS & screen sizes
+  const seedString = idPelanggan || namaPelanggan || String(index);
+  let hash = 0;
+  for (let c = 0; c < seedString.length; c++) {
+    hash = (hash << 5) - hash + seedString.charCodeAt(c);
+    hash |= 0;
+  }
+  const positiveHash = Math.abs(hash);
+
   const goldenAngle = 137.5 * (Math.PI / 180);
-  const angle = (index * goldenAngle) % (2 * Math.PI);
-  const radius = 0.0006 + ((index * 13) % 25) * 0.00012;
+  const angle = (positiveHash * goldenAngle) % (2 * Math.PI);
+  const radius = 0.0006 + ((positiveHash % 25) * 0.00012);
   const latOffset = radius * Math.cos(angle);
   const lngOffset = radius * Math.sin(angle);
 
@@ -504,7 +517,7 @@ export function parseCsvToMeters(csvText: string): MeterRecord[] {
     const statusStr = (statusIdx >= 0 ? cols[statusIdx] : cols[16] || "").toUpperCase();
     const noMeter = (noMeterIdx >= 0 ? cols[noMeterIdx] : "") || initialMatch?.noMeterLama || "";
 
-    const snapped = snapToLandInBaguala(finalLat, finalLng, pnjVal, nama, i);
+    const snapped = snapToLandInBaguala(finalLat, finalLng, pnjVal, nama, i, idPel);
 
     results.push({
       id: `mtr-csv-${i}-${Date.now()}`,
@@ -608,7 +621,7 @@ export function sanitizeAndRepairMeters(meters: MeterRecord[]): MeterRecord[] {
       }
     }
 
-    const snapped = snapToLandInBaguala(lat, lng, m.pnj, currentNama, idx);
+    const snapped = snapToLandInBaguala(lat, lng, m.pnj, currentNama, idx, currentIdPel || m.id);
 
     return {
       ...m,

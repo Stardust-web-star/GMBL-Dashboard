@@ -13,6 +13,7 @@ import { db } from "../lib/firebase";
 import { MeterRecord, UserAccount } from "../types";
 import { saveStoredMeters, getStoredMeters, saveStoredUsers, getStoredUsers } from "./storage";
 import { pushToCloud } from "./cloudSync";
+import { parseCoordinate } from "./csvParser";
 
 export enum OperationType {
   CREATE = "create",
@@ -29,13 +30,25 @@ export interface FirestoreErrorInfo {
   path: string | null;
 }
 
+let isQuotaExceeded = false;
+
+export function checkIsQuotaExceeded(): boolean {
+  return isQuotaExceeded;
+}
+
 export function handleFirestoreError(
   error: unknown,
   operationType: OperationType,
   path: string | null
 ) {
+  const errStr = error instanceof Error ? error.message : String(error);
+  if (errStr.includes("Quota exceeded") || errStr.toLowerCase().includes("quota")) {
+    isQuotaExceeded = true;
+    console.warn(`[Firestore Quota] Limit Harian Firestore Terlampaui untuk path: ${path}. Berpindah ke Mode Cache Lokal (Offline).`);
+    return;
+  }
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: errStr,
     operationType,
     path,
   };
@@ -87,8 +100,8 @@ function sanitizeMeterForFirestore(m: MeterRecord): Record<string, any> {
     petugas: m.petugas || "",
     status: m.status || "BELUM",
     pnj: m.pnj || "",
-    latitude: Number(m.latitude) || -3.65,
-    longitude: Number(m.longitude) || 128.2,
+    latitude: parseCoordinate(m.latitude) ?? -3.626,
+    longitude: parseCoordinate(m.longitude) ?? 128.243,
     updatedAt: m.updatedAt || new Date().toISOString(),
   };
   return clean;
@@ -146,8 +159,8 @@ function compactMeterForStorage(m: MeterRecord) {
     petugas: m.petugas || "",
     status: m.status || "BELUM",
     pnj: m.pnj || "",
-    latitude: Number(m.latitude) || -3.65,
-    longitude: Number(m.longitude) || 128.2,
+    latitude: parseCoordinate(m.latitude) ?? -3.626,
+    longitude: parseCoordinate(m.longitude) ?? 128.243,
     updatedAt: m.updatedAt || "",
   };
 }
@@ -283,6 +296,7 @@ export async function fetchMasterDatasetFromFirestore(): Promise<{
   updatedAt?: string;
   source?: string;
 }> {
+  if (isQuotaExceeded) return { success: false, meters: null };
   try {
     const metaDocRef = doc(db, "sync_state", SYNC_STATE_DOC);
     const metaSnap = await getDoc(metaDocRef);
@@ -445,6 +459,9 @@ export function subscribeToFirestoreMeterUpdates(
 export async function fetchInitialFirestoreUpdates(
   currentMeters: MeterRecord[]
 ): Promise<{ updatedMeters: MeterRecord[]; changesApplied: number }> {
+  if (isQuotaExceeded) {
+    return { updatedMeters: currentMeters, changesApplied: 0 };
+  }
   try {
     // 1. Check if master dataset exists in Firestore
     const masterRes = await fetchMasterDatasetFromFirestore();
@@ -523,6 +540,7 @@ export async function syncUsersToFirestore(users: UserAccount[]): Promise<void> 
 }
 
 export async function fetchUsersFromFirestore(): Promise<UserAccount[] | null> {
+  if (isQuotaExceeded) return null;
   try {
     const snap = await getDoc(doc(db, "sync_state", USERS_STATE_DOC));
     if (snap.exists() && snap.data().usersJson) {

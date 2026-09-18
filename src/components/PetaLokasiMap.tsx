@@ -224,10 +224,14 @@ export const PetaLokasiMap: React.FC<Props> = ({
     const map = new Map<string, { lat: number; lng: number }>();
     for (let i = 0; i < meters.length; i++) {
       const m = meters[i];
-      const rawLat = typeof m.latitude === "number" ? m.latitude : parseFloat(String(m.latitude).replace(",", "."));
-      const rawLng = typeof m.longitude === "number" ? m.longitude : parseFloat(String(m.longitude).replace(",", "."));
-      if (isNaN(rawLat) || isNaN(rawLng) || (rawLat === 0 && rawLng === 0)) continue;
-      const snapped = snapToLandInBaguala(rawLat, rawLng, m.pnj, m.namaPelanggan, i);
+      const snapped = snapToLandInBaguala(
+        m.latitude,
+        m.longitude,
+        m.pnj,
+        m.namaPelanggan,
+        i,
+        m.idPelanggan || m.id
+      );
       map.set(m.id, snapped);
     }
     return map;
@@ -538,16 +542,9 @@ export const PetaLokasiMap: React.FC<Props> = ({
     meter: MeterRecord,
     mode: "motorcycle" | "driving" | "walking" = travelMode
   ) => {
-    const rawLat = typeof meter.latitude === "number" ? meter.latitude : parseFloat(String(meter.latitude).replace(",", "."));
-    const rawLng = typeof meter.longitude === "number" ? meter.longitude : parseFloat(String(meter.longitude).replace(",", "."));
-    if (isNaN(rawLat) || isNaN(rawLng)) {
-      alert("Koordinat kWh meter ini tidak valid.");
-      return;
-    }
-
-    const snapped = snapToLandInBaguala(rawLat, rawLng, meter.pnj, meter.namaPelanggan);
-    const destLat = snapped.lat;
-    const destLng = snapped.lng;
+    const coords = coordsCache.get(meter.id) || snapToLandInBaguala(meter.latitude, meter.longitude, meter.pnj, meter.namaPelanggan, 0, meter.idPelanggan || meter.id);
+    const destLat = coords.lat;
+    const destLng = coords.lng;
 
     let startLat = userLocation?.lat;
     let startLng = userLocation?.lng;
@@ -858,13 +855,12 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
   const handleFlyToMeter = (m: MeterRecord) => {
     setSelectedMeter(m);
-    const lat = typeof m.latitude === "number" ? m.latitude : parseFloat(String(m.latitude).replace(",", "."));
-    const lng = typeof m.longitude === "number" ? m.longitude : parseFloat(String(m.longitude).replace(",", "."));
+    const coords = coordsCache.get(m.id) || snapToLandInBaguala(m.latitude, m.longitude, m.pnj, m.namaPelanggan, 0, m.idPelanggan || m.id);
     
-    if (mapInstanceRef.current && !isNaN(lat) && !isNaN(lng)) {
+    if (mapInstanceRef.current) {
       const curZoom = mapInstanceRef.current.getZoom();
       const targetZoom = Math.max(curZoom, 15);
-      mapInstanceRef.current.flyTo([lat, lng], targetZoom, {
+      mapInstanceRef.current.flyTo([coords.lat, coords.lng], targetZoom, {
         duration: 0.8,
       });
     }
@@ -1017,8 +1013,8 @@ export const PetaLokasiMap: React.FC<Props> = ({
                       <span className="text-slate-400 truncate max-w-[120px]">{m.pnj}</span>
                     </div>
                     <div className="mt-1 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950/60 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
-                      <span>Lat: {m.latitude}</span>
-                      <span>Lng: {m.longitude}</span>
+                      <span>Lat: {coordsCache.get(m.id)?.lat.toFixed(6) ?? m.latitude}</span>
+                      <span>Lng: {coordsCache.get(m.id)?.lng.toFixed(6) ?? m.longitude}</span>
                     </div>
                   </div>
                 );
@@ -1362,13 +1358,16 @@ export const PetaLokasiMap: React.FC<Props> = ({
               </div>
 
               <a
-                href={getGoogleMapsNavigationUrl(
-                  userLocation?.lat || -3.6280,
-                  userLocation?.lng || 128.2570,
-                  typeof routedMeter.latitude === "number" ? routedMeter.latitude : parseFloat(String(routedMeter.latitude).replace(",", ".")),
-                  typeof routedMeter.longitude === "number" ? routedMeter.longitude : parseFloat(String(routedMeter.longitude).replace(",", ".")),
-                  travelMode
-                )}
+                href={(() => {
+                  const rCoords = coordsCache.get(routedMeter.id) || snapToLandInBaguala(routedMeter.latitude, routedMeter.longitude, routedMeter.pnj, routedMeter.namaPelanggan, 0, routedMeter.idPelanggan || routedMeter.id);
+                  return getGoogleMapsNavigationUrl(
+                    userLocation?.lat || -3.6280,
+                    userLocation?.lng || 128.2570,
+                    rCoords.lat,
+                    rCoords.lng,
+                    travelMode
+                  );
+                })()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="shrink-0 flex items-center space-x-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:from-blue-500 hover:to-indigo-500 transition-all ring-1 ring-blue-400/40 active:scale-95"
@@ -1709,8 +1708,9 @@ export const PetaLokasiMap: React.FC<Props> = ({
 
             {/* Actions Grid */}
             {(() => {
-              const mLat = typeof selectedMeter.latitude === "number" ? selectedMeter.latitude : parseFloat(String(selectedMeter.latitude).replace(",", "."));
-              const mLng = typeof selectedMeter.longitude === "number" ? selectedMeter.longitude : parseFloat(String(selectedMeter.longitude).replace(",", "."));
+              const selCoords = coordsCache.get(selectedMeter.id) || snapToLandInBaguala(selectedMeter.latitude, selectedMeter.longitude, selectedMeter.pnj, selectedMeter.namaPelanggan, 0, selectedMeter.idPelanggan || selectedMeter.id);
+              const mLat = selCoords.lat;
+              const mLng = selCoords.lng;
               const distKm = (userLocation && !isNaN(mLat) && !isNaN(mLng))
                 ? calculateHaversineDistanceKm(userLocation.lat, userLocation.lng, mLat, mLng)
                 : null;
