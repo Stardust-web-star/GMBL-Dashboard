@@ -169,7 +169,7 @@ export const DokumenPrint: React.FC<Props> = ({
                   UP3 AMBON - ULP BAGUALA • JTC TRANSAKSI ENERGI
                 </h2>
                 <p className="text-[10px] text-slate-500">
-                  Jl. Laksdya Leo Wattimena, Baguala, Kota Ambon, Maluku
+                  Jalan Waitatiri Raya, Suli, Kec. Salahutu, Kota Ambon, Maluku
                 </p>
               </div>
             </div>
@@ -205,7 +205,7 @@ export const DokumenPrint: React.FC<Props> = ({
                 Petugas Lapangan: <strong>{activeMeter.petugas}</strong>
               </div>
               <div>
-                Unit / Jabatan: <strong>JTC Transaksi Energi Baguala</strong>
+                Unit : <strong>ULP Baguala</strong>
               </div>
             </div>
 
@@ -292,7 +292,6 @@ export const DokumenPrint: React.FC<Props> = ({
                 Verification Stamp
               </div>
               <p className="font-bold text-slate-900 underline">{activeMeter.petugas}</p>
-              <p className="text-[10px] text-slate-500">JTC Transaksi Energi</p>
             </div>
 
             <div>
