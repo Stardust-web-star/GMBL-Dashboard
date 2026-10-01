@@ -36,6 +36,7 @@ import { InformasiAnalytics } from "./components/InformasiAnalytics";
 import { DokumenPrint } from "./components/DokumenPrint";
 import { ManagementUser } from "./components/ManagementUser";
 import { ExcelSyncModal } from "./components/ExcelSyncModal";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(() =>
@@ -435,6 +436,9 @@ export default function App() {
                 pushToCloud(newMeters).catch(() => {});
               }}
             />
+
+            {/* PWA Offline Connectivity Banner */}
+            <OfflineIndicator />
           </motion.div>
         )}
       </AnimatePresence>

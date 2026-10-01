@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { GMBLLogo } from "./GMBLLogo";
 import { ThemeToggle } from "./ThemeToggle";
+import { PWAInstallButton } from "./PWAInstallButton";
 import {
   MapPin,
   Table,
@@ -193,6 +194,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* Drawer Bottom Actions & User Profile */}
               <div className="p-3 border-t border-slate-200 dark:border-slate-800/80 space-y-2.5 shrink-0 bg-slate-50/70 dark:bg-slate-900/90">
+                <PWAInstallButton variant="banner" />
+
                 {/* Theme Mode Toggle in Drawer */}
                 <div className="flex items-center justify-between p-2 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 shadow-xs">
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Pilihan Mode</span>
@@ -367,6 +370,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Bottom Floating Card & User Profile */}
           <div className="p-3 border-t border-slate-200 dark:border-slate-800/80 space-y-2 shrink-0">
+            {/* PWA Install Button */}
+            {!isCollapsed ? (
+              <PWAInstallButton variant="button" className="w-full" />
+            ) : (
+              <PWAInstallButton variant="compact" className="w-full justify-center px-1" />
+            )}
+
             {/* Theme Toggle inside Desktop Sidebar */}
             {!isCollapsed ? (
               <div className="flex items-center justify-between p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 shadow-xs">
@@ -548,6 +558,8 @@ export const TopHeader: React.FC<{
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 text-xs font-medium shrink-0">
+        <PWAInstallButton variant="compact" />
+
         {/* Firestore Real-Time Sync Indicator */}
         <button
           onClick={onManualSync}
