@@ -88,9 +88,9 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center p-3 sm:p-6 font-['Plus_Jakarta_Sans',sans-serif] text-slate-800 dark:text-slate-100 overflow-hidden bg-slate-950">
+    <div className="relative flex min-h-[100dvh] w-full items-center justify-center p-3 sm:p-6 font-['Plus_Jakarta_Sans',sans-serif] text-slate-800 dark:text-slate-100 bg-slate-950 overflow-y-auto scrollbar-thin">
       {/* Floating Theme Toggle in top right */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-3 right-3 sm:top-4 sm:right-4 z-50">
         <ThemeToggle variant="compact" />
       </div>
 
@@ -98,35 +98,32 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
       <img
         src={bgInspectionImage}
         alt="Petugas PLN Pengecekan kWh Meter"
-        className="absolute inset-0 h-full w-full object-cover filter brightness-[0.55] contrast-[1.1] scale-105"
+        className="fixed inset-0 h-full w-full object-cover filter brightness-[0.55] contrast-[1.1] scale-105"
         referrerPolicy="no-referrer"
       />
       {/* Dark Vignette & Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-slate-950/80 backdrop-blur-[2px]" />
-      <div className="absolute inset-0 bg-teal-950/30 mix-blend-overlay" />
+      <div className="fixed inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-slate-950/80 backdrop-blur-[2px]" />
+      <div className="fixed inset-0 bg-teal-950/30 mix-blend-overlay" />
 
       {/* Outer Card Container */}
-      <div className="relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border border-teal-500/20 dark:border-teal-500/30 bg-slate-900/90 shadow-2xl shadow-black/80 backdrop-blur-md grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
+      <div className="relative z-10 w-full max-w-5xl my-auto rounded-2xl sm:rounded-3xl border border-teal-500/20 dark:border-teal-500/30 bg-slate-900/95 shadow-2xl shadow-black/90 backdrop-blur-md grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         
         {/* Left Column: Dark Teal/Cyan Branding Panel */}
-        <div className="relative lg:col-span-5 bg-gradient-to-br from-teal-950 via-teal-900 to-slate-950 p-8 flex flex-col justify-between overflow-hidden border-b lg:border-b-0 lg:border-r border-teal-800/40">
+        <div className="relative lg:col-span-5 bg-gradient-to-br from-teal-950 via-teal-900 to-slate-950 p-4 sm:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-teal-800/40">
           {/* Background Subtle Glows */}
           <div className="absolute -top-24 -left-24 w-72 h-72 bg-teal-500/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
 
           {/* Top PLN Branding Box & GMBL Logo */}
-          <div className="relative z-10 space-y-6">
-            <div>
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-teal-950/60 backdrop-blur-md border border-teal-500/30 shadow-md">
-                {/* PLN Official Yellow Emblem (Yellow Box, Blue Waves & Red Lightning) */}
-                <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-[#FFD700] overflow-hidden p-0.5 shadow-xs border border-yellow-300/80">
+          <div className="relative z-10 space-y-3 sm:space-y-6">
+            <div className="flex items-center justify-between lg:block">
+              <div className="inline-flex items-center gap-2.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-teal-950/60 backdrop-blur-md border border-teal-500/30 shadow-md">
+                {/* PLN Official Yellow Emblem */}
+                <div className="relative flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-sm bg-[#FFD700] overflow-hidden p-0.5 shadow-xs border border-yellow-300/80">
                   <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* 3 Blue Waves */}
                     <path d="M 8 32 Q 28 24 50 32 T 92 32" stroke="#0284C7" strokeWidth="7" fill="none" strokeLinecap="round" />
                     <path d="M 8 50 Q 28 42 50 50 T 92 50" stroke="#0284C7" strokeWidth="7" fill="none" strokeLinecap="round" />
                     <path d="M 8 68 Q 28 60 50 68 T 92 68" stroke="#0284C7" strokeWidth="7" fill="none" strokeLinecap="round" />
-                    
-                    {/* Red Lightning Bolt */}
                     <path
                       d="M 58 6 L 30 52 L 50 52 L 38 94 L 72 44 L 52 44 Z"
                       fill="#DC2626"
@@ -138,70 +135,76 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
                 </div>
 
                 <div className="flex flex-col">
-                  <span className="text-cyan-400 font-black text-sm tracking-tight leading-none">
+                  <span className="text-cyan-400 font-black text-xs sm:text-sm tracking-tight leading-none">
                     PLN
                   </span>
-                  <span className="text-[10px] font-bold text-teal-200/90 tracking-wider leading-none mt-1 uppercase">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-teal-200/90 tracking-wider leading-none mt-0.5 uppercase">
                     ULP BAGUALA
                   </span>
                 </div>
               </div>
+
+              {/* Compact Logo for Mobile Header */}
+              <div className="lg:hidden">
+                <GMBLLogo className="h-10 w-10 sm:h-12 sm:w-12" showGlow={false} />
+              </div>
             </div>
 
-            {/* GMBL Gear Logo placed directly below PLN ULP BAGUALA */}
-            <div className="pt-1">
-              <GMBLLogo className="h-20 w-20 sm:h-24 sm:w-24" showGlow={true} />
+            {/* GMBL Gear Logo (Full view on desktop) */}
+            <div className="hidden lg:block pt-1">
+              <GMBLLogo className="h-24 w-24" showGlow={true} />
             </div>
 
             {/* Middle Content Branding */}
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-none drop-shadow-sm">
+            <div className="space-y-1.5 sm:space-y-3">
+              <div className="space-y-0.5 sm:space-y-1">
+                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-none drop-shadow-sm">
                   GMBL
                 </h1>
-                <p className="text-xs font-bold text-teal-300 tracking-wider uppercase">
+                <p className="text-[10px] sm:text-xs font-bold text-teal-300 tracking-wider uppercase">
                   GANTI METER BAGUALA
                 </p>
               </div>
 
-              <p className="text-xs text-teal-100/75 leading-relaxed font-normal pt-2 border-t border-teal-800/40">
-                Sistem Terpadu Monitoring & Rekap kWh Meter Tua <span className="whitespace-nowrap">ULP Baguala.</span> Terintegrasi langsung dengan database <span className="whitespace-nowrap">METER BAGUALA GEMILANG.</span>
+              <p className="text-xs text-teal-100/80 leading-relaxed font-normal pt-1.5 sm:pt-2 border-t border-teal-800/40">
+                Sistem Terpadu Monitoring & Rekap kWh Meter Tua ULP Baguala PLN JTC Transaksi Energi.
               </p>
             </div>
           </div>
 
-          {/* Left Panel Footer decoration */}
-          <div className="relative z-10 pt-4 border-t border-teal-800/30 flex items-center justify-between text-[10px] text-teal-300/60 font-mono">
+          {/* Left Panel Footer decoration (Desktop) */}
+          <div className="hidden lg:flex relative z-10 pt-4 border-t border-teal-800/30 items-center justify-between text-[10px] text-teal-300/60 font-mono mt-4">
             <span>PLN JTC Transaksi Energi</span>
             <span>2026 Edition</span>
           </div>
         </div>
 
         {/* Right Column: Clean Login Form */}
-        <div className="relative lg:col-span-7 bg-white dark:bg-slate-900 p-6 sm:p-10 flex flex-col justify-between transition-colors">
+        <div className="relative lg:col-span-7 bg-white dark:bg-slate-900 p-4 sm:p-8 lg:p-10 flex flex-col justify-between transition-colors">
           
-          {/* Header Row */}
+          {/* Form Header & Inputs */}
           <div>
-            <div className="flex items-start justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-start justify-between gap-3 pb-3.5 sm:pb-6 border-b border-slate-100 dark:border-slate-800">
               <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                   Login Sistem GMBL
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 font-medium">
                   Silakan masukkan akun terdaftar Anda
                 </p>
               </div>
 
               {/* Secure Portal Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300/70 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold shadow-2xs shrink-0">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300/70 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[11px] sm:text-xs font-bold shadow-2xs shrink-0">
                 <Shield className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>Secure Portal</span>
+                <span className="hidden sm:inline">Secure Portal</span>
+                <span className="sm:hidden">Secure</span>
               </div>
             </div>
 
             {/* Inactivity Logout Notification */}
             {logoutNotice && (
-              <div className="mt-4 rounded-xl border border-amber-300/80 dark:border-amber-500/30 bg-amber-50/90 dark:bg-amber-950/40 p-3.5 text-xs text-amber-900 dark:text-amber-300 font-medium flex items-center gap-2.5 shadow-2xs animate-in fade-in duration-200">
+              <div className="mt-3 rounded-xl border border-amber-300/80 dark:border-amber-500/30 bg-amber-50/90 dark:bg-amber-950/40 p-3 text-xs text-amber-900 dark:text-amber-300 font-medium flex items-center gap-2 shadow-2xs animate-in fade-in duration-200">
                 <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>{logoutNotice}</span>
               </div>
@@ -209,13 +212,13 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
 
             {/* Error Notification */}
             {errorMsg && (
-              <div className="mt-4 rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-600 dark:text-rose-300 font-semibold text-center animate-in fade-in duration-200">
+              <div className="mt-3 rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-600 dark:text-rose-300 font-semibold text-center animate-in fade-in duration-200">
                 {errorMsg}
               </div>
             )}
 
             {/* Form */}
-            <form onSubmit={handleLogin} className="mt-6 space-y-5">
+            <form onSubmit={handleLogin} className="mt-4 sm:mt-6 space-y-4 sm:space-y-5">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   Email / User ID <span className="text-rose-500">*</span>
@@ -241,7 +244,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
                   <button
                     type="button"
                     onClick={() => alert("Silakan hubungi Super Admin untuk reset password.")}
-                    className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors"
+                    className="text-[11px] sm:text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors"
                   >
                     Lupa Password?
                   </button>
@@ -269,7 +272,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-blue-500/25 hover:from-cyan-500 hover:to-indigo-500 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm active:scale-[0.99] cursor-pointer"
+                className="w-full bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white font-extrabold py-3 sm:py-3.5 rounded-xl shadow-lg shadow-blue-500/25 hover:from-cyan-500 hover:to-indigo-500 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm active:scale-[0.99] cursor-pointer"
               >
                 <KeyRound className="h-4 w-4" />
                 <span>{loading ? "Memverifikasi..." : "Masuk ke Dashboard GMBL"}</span>
@@ -278,7 +281,7 @@ export const LoginScreen: React.FC<LoginProps> = ({ onLoginSuccess, logoutNotice
           </div>
 
           {/* Footer Info Row */}
-          <div className="pt-8 mt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
+          <div className="pt-3.5 sm:pt-6 mt-4 sm:mt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-1.5 text-teal-700 dark:text-teal-400 font-semibold">
               <Shield className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
               <span>Info Enkripsi Terproteksi</span>
