@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
@@ -95,11 +96,11 @@ Format laporan analisis Anda dalam bahasa Indonesia yang formal, terstruktur, da
 
 Gunakan bahasa PLN yang teknis dan apresiatif. Singkat, padat, dan berdampak tinggi.`;
 
-      // Array of fallback models to ensure zero 503 errors during traffic spikes
+      // Array of standard Gemini models
       const candidateModels = [
-        "gemini-3.8-flash",
-        "gemini-flash-latest",
-        "gemini-3.1-flash-lite",
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
       ];
 
       let lastError: any = null;
@@ -136,6 +137,17 @@ Gunakan bahasa PLN yang teknis dan apresiatif. Singkat, padat, dan berdampak tin
       appType: "spa",
     });
     app.use(vite.middlewares);
+    app.use("*", async (req, res, next) => {
+      const url = req.originalUrl;
+      try {
+        let template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } catch (e: any) {
+        vite.ssrFixStacktrace(e);
+        next(e);
+      }
+    });
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));

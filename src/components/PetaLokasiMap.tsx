@@ -331,12 +331,14 @@ export const PetaLokasiMap: React.FC<Props> = ({
   const [selectedPetugasForCompletion, setSelectedPetugasForCompletion] = useState<PetugasName>("ABDUL");
   const [customStandBongkar, setCustomStandBongkar] = useState<string>("");
   const [customNoMeterBaru, setCustomNoMeterBaru] = useState<string>("");
+  const [kondisiMeter, setKondisiMeter] = useState<string>("Meter Dalam Rumah");
 
   const handleInitiateMarkSelesai = (meter: MeterRecord) => {
     setMeterToComplete(meter);
     setSelectedPetugasForCompletion(meter.petugas || "ABDUL");
     setCustomStandBongkar(meter.standBongkar || "0 kWh");
     setCustomNoMeterBaru(meter.noMeterBaru || "");
+    setKondisiMeter(meter.kondisiMeter || "Meter Dalam Rumah");
   };
 
   const handleConfirmMarkSelesai = () => {
@@ -344,6 +346,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
     const additional: Partial<MeterRecord> = {};
     if (customStandBongkar.trim()) additional.standBongkar = customStandBongkar.trim();
     if (customNoMeterBaru.trim()) additional.noMeterBaru = customNoMeterBaru.trim();
+    if (kondisiMeter) additional.kondisiMeter = kondisiMeter;
 
     onUpdateMeterStatus(
       meterToComplete.id,
@@ -1862,19 +1865,18 @@ export const PetaLokasiMap: React.FC<Props> = ({
                     })}
                   </div>
 
-                  {/* Dropdown Select Alternative */}
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400">Pilihan Terpilih:</span>
+                  {/* Kondisi kWh Meter Selection */}
+                  <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 bg-slate-50 dark:bg-slate-950/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                      Kondisi kWh Meter:
+                    </span>
                     <select
-                      value={selectedPetugasForCompletion}
-                      onChange={(e) => setSelectedPetugasForCompletion(e.target.value as PetugasName)}
-                      className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                      value={kondisiMeter}
+                      onChange={(e) => setKondisiMeter(e.target.value)}
+                      className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-2xs cursor-pointer"
                     >
-                      {PETUGAS_LIST.map((p) => (
-                        <option key={p} value={p}>
-                          Petugas: {p}
-                        </option>
-                      ))}
+                      <option value="Meter Dalam Rumah">Meter Dalam Rumah</option>
+                      <option value="Rumah Kosong">Rumah Kosong</option>
                     </select>
                   </div>
                 </div>

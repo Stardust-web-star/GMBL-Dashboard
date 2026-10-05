@@ -46,6 +46,7 @@ export interface MeterRecord {
   latitude: number;
   longitude: number;
   updatedAt?: string;
+  kondisiMeter?: "Meter Dalam Rumah" | "Rumah Kosong" | string;
 }
 
 export interface UserAccount {

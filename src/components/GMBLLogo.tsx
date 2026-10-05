@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 
 interface GMBLLogoProps {
   className?: string;
@@ -11,6 +11,9 @@ export const GMBLLogo: React.FC<GMBLLogoProps> = ({
   size = "md",
   showGlow = true,
 }) => {
+  const rawId = useId();
+  const idPrefix = `gmbl_logo_${rawId.replace(/[^a-zA-Z0-9]/g, "")}`;
+
   const sizeMap = {
     sm: "h-7 w-7",
     md: "h-10 w-10",
@@ -29,38 +32,38 @@ export const GMBLLogo: React.FC<GMBLLogoProps> = ({
         viewBox="0 0 200 200"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full relative z-10 drop-shadow-lg select-none"
+        className="w-full h-full relative z-10 drop-shadow-xl select-none overflow-visible"
       >
         <defs>
           {/* Blue/Cyan Gradient for Left Gear & Accent */}
-          <linearGradient id="blueGearGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={`${idPrefix}_blueGearGrad`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#00E5FF" />
             <stop offset="50%" stopColor="#0084FF" />
             <stop offset="100%" stopColor="#0052D4" />
           </linearGradient>
 
           {/* Orange/Gold Gradient for Right Gear & Arrows */}
-          <linearGradient id="orangeGearGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FFC107" />
+          <linearGradient id={`${idPrefix}_orangeGearGrad`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFD54F" />
             <stop offset="50%" stopColor="#FF9100" />
             <stop offset="100%" stopColor="#DD2C00" />
           </linearGradient>
 
           {/* Lightning Bolt Gradient */}
-          <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={`${idPrefix}_boltGrad`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#00F2FE" />
             <stop offset="50%" stopColor="#38BDF8" />
             <stop offset="100%" stopColor="#0284C7" />
           </linearGradient>
 
           {/* Meter Body Gradient */}
-          <linearGradient id="meterBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <linearGradient id={`${idPrefix}_meterBodyGrad`} x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#1E293B" />
             <stop offset="100%" stopColor="#0F172A" />
           </linearGradient>
 
           {/* Screen Display Gradient */}
-          <linearGradient id="screenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id={`${idPrefix}_screenGrad`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#38BDF8" />
             <stop offset="100%" stopColor="#0284C7" />
           </linearGradient>
@@ -71,23 +74,22 @@ export const GMBLLogo: React.FC<GMBLLogoProps> = ({
 
         {/* --- LEFT HALF GEAR (Cyan/Blue) --- */}
         <g id="left-gear">
-          {/* Outer Left Gear Teeth */}
+          {/* Outer Left Gear Arc Ring */}
           <path
-            d="M 100 14
-               A 86 86 0 0 0 14 100
-               A 86 86 0 0 0 100 186
-               L 100 164
-               A 64 64 0 0 1 36 100
-               A 64 64 0 0 1 100 36
+            d="M 100 16 
+               A 84 84 0 0 0 16 100 
+               A 84 84 0 0 0 100 184 
+               L 100 160 
+               A 60 60 0 0 1 40 100 
+               A 60 60 0 0 1 100 40 
                Z"
-            fill="url(#blueGearGrad)"
+            fill={`url(#${idPrefix}_blueGearGrad)`}
           />
-          {/* Gear Teeth Left */}
-          {Array.from({ length: 6 }).map((_, i) => {
-            const angle = 120 + i * 24;
+          {/* Gear Teeth Left Side */}
+          {[120, 145, 170, 195, 220, 240].map((angle, i) => {
             const rad = (angle * Math.PI) / 180;
-            const x = 100 + 86 * Math.cos(rad);
-            const y = 100 + 86 * Math.sin(rad);
+            const x = 100 + 84 * Math.cos(rad);
+            const y = 100 + 84 * Math.sin(rad);
             return (
               <rect
                 key={i}
@@ -95,8 +97,8 @@ export const GMBLLogo: React.FC<GMBLLogoProps> = ({
                 y={y - 8}
                 width="16"
                 height="16"
-                rx="3"
-                fill="url(#blueGearGrad)"
+                rx="4"
+                fill={`url(#${idPrefix}_blueGearGrad)`}
                 transform={`rotate(${angle + 90}, ${x}, ${y})`}
               />
             );
@@ -105,22 +107,22 @@ export const GMBLLogo: React.FC<GMBLLogoProps> = ({
 
         {/* --- RIGHT HALF GEAR (Orange/Gold) --- */}
         <g id="right-gear">
+          {/* Outer Right Gear Arc Ring */}
           <path
-            d="M 100 14
-               A 86 86 0 0 1 186 100
-               A 86 86 0 0 1 100 186
-               L 100 164
-               A 64 64 0 0 0 164 100
-               A 64 64 0 0 0 100 36
+            d="M 100 16 
+               A 84 84 0 0 1 184 100 
+               A 84 84 0 0 1 100 184 
+               L 100 160 
+               A 60 60 0 0 0 160 100 
+               A 60 60 0 0 0 100 40 
                Z"
-            fill="url(#orangeGearGrad)"
+            fill={`url(#${idPrefix}_orangeGearGrad)`}
           />
-          {/* Gear Teeth Right */}
-          {Array.from({ length: 6 }).map((_, i) => {
-            const angle = -60 + i * 24;
+          {/* Gear Teeth Right Side */}
+          {[-60, -35, -10, 15, 40, 60].map((angle, i) => {
             const rad = (angle * Math.PI) / 180;
-            const x = 100 + 86 * Math.cos(rad);
-            const y = 100 + 86 * Math.sin(rad);
+            const x = 100 + 84 * Math.cos(rad);
+            const y = 100 + 84 * Math.sin(rad);
             return (
               <rect
                 key={i}
@@ -128,8 +130,8 @@ export const GMBLLogo: React.FC<GMBLLogoProps> = ({
                 y={y - 8}
                 width="16"
                 height="16"
-                rx="3"
-                fill="url(#orangeGearGrad)"
+                rx="4"
+                fill={`url(#${idPrefix}_orangeGearGrad)`}
                 transform={`rotate(${angle + 90}, ${x}, ${y})`}
               />
             );
@@ -140,88 +142,77 @@ export const GMBLLogo: React.FC<GMBLLogoProps> = ({
         <g id="electric-meter">
           {/* Meter Box Outer Shadow/Border */}
           <rect
-            x="60"
-            y="54"
-            width="80"
-            height="96"
-            rx="16"
-            fill="url(#meterBodyGrad)"
+            x="58"
+            y="52"
+            width="84"
+            height="98"
+            rx="18"
+            fill={`url(#${idPrefix}_meterBodyGrad)`}
             stroke="#38BDF8"
-            strokeWidth="5"
+            strokeWidth="4"
           />
           {/* Meter Screen */}
           <rect
-            x="70"
-            y="66"
-            width="60"
-            height="32"
-            rx="6"
+            x="68"
+            y="64"
+            width="64"
+            height="34"
+            rx="8"
             fill="#0F172A"
             stroke="#1E293B"
             strokeWidth="2"
           />
           {/* Screen Digital Bars */}
-          <rect x="76" y="74" width="8" height="16" rx="2" fill="url(#screenGrad)" />
-          <rect x="87" y="74" width="8" height="16" rx="2" fill="url(#screenGrad)" />
-          <rect x="98" y="74" width="8" height="16" rx="2" fill="url(#screenGrad)" />
-          <rect x="109" y="74" width="8" height="16" rx="2" fill="url(#screenGrad)" />
-          <rect x="120" y="74" width="4" height="16" rx="1" fill="#334155" />
+          <rect x="74" y="72" width="9" height="18" rx="2" fill={`url(#${idPrefix}_screenGrad)`} />
+          <rect x="86" y="72" width="9" height="18" rx="2" fill={`url(#${idPrefix}_screenGrad)`} />
+          <rect x="98" y="72" width="9" height="18" rx="2" fill={`url(#${idPrefix}_screenGrad)`} />
+          <rect x="110" y="72" width="9" height="18" rx="2" fill={`url(#${idPrefix}_screenGrad)`} />
+          <rect x="122" y="72" width="4" height="18" rx="1" fill="#334155" />
 
-          {/* Meter Buttons */}
-          <rect x="72" y="106" width="16" height="6" rx="2" fill="#475569" />
-          <rect x="92" y="106" width="16" height="6" rx="2" fill="#475569" />
-          <rect x="112" y="106" width="16" height="6" rx="2" fill="#FF9100" />
+          {/* Meter Keypad Buttons */}
+          <rect x="70" y="106" width="16" height="7" rx="2" fill="#475569" />
+          <rect x="92" y="106" width="16" height="7" rx="2" fill="#475569" />
+          <rect x="114" y="106" width="16" height="7" rx="2" fill="#FF9100" />
 
           {/* Lightning Token Circle at Bottom Meter */}
-          <circle cx="100" cy="130" r="10" fill="#FF9100" stroke="#FFF" strokeWidth="1.5" />
+          <circle cx="100" cy="131" r="11" fill="#FF9100" stroke="#FFF" strokeWidth="1.5" />
           {/* Small Bolt inside circle */}
-          <path d="M 101 123 L 96 131 L 100 131 L 99 137 L 104 129 L 100 129 Z" fill="#FFF" />
+          <path d="M 101 123 L 95 132 L 100 132 L 99 139 L 105 130 L 100 130 Z" fill="#FFF" />
         </g>
 
-        {/* --- DYNAMIC STYLIZED "G" & "M" ARROWS (Orange & Gold) --- */}
+        {/* --- DYNAMIC STYLIZED REPLACEMENT ARROWS (Orange & Cyan) --- */}
         <g id="gm-arrows">
-          {/* Left Arrow "G" swoop */}
+          {/* Top Left Replacement Arrow */}
           <path
-            d="M 52 118 
-               C 42 98, 48 72, 72 60 
-               L 80 66 
-               C 62 76, 58 96, 64 112 
-               Z"
-            fill="url(#orangeGearGrad)"
+            d="M 50 100 A 50 50 0 0 1 100 50"
+            fill="none"
+            stroke={`url(#${idPrefix}_blueGearGrad)`}
+            strokeWidth="5"
+            strokeLinecap="round"
           />
+          {/* Bottom Right Replacement Arrow */}
           <path
-            d="M 55 125 L 42 110 L 65 110 Z"
-            fill="url(#orangeGearGrad)"
-          />
-
-          {/* Right Arrow "M" swoop */}
-          <path
-            d="M 148 82 
-               C 158 102, 152 128, 128 140 
-               L 120 134 
-               C 138 124, 142 104, 136 88 
-               Z"
-            fill="url(#orangeGearGrad)"
-          />
-          <path
-            d="M 145 75 L 158 90 L 135 90 Z"
-            fill="url(#orangeGearGrad)"
+            d="M 150 100 A 50 50 0 0 1 100 150"
+            fill="none"
+            stroke={`url(#${idPrefix}_orangeGearGrad)`}
+            strokeWidth="5"
+            strokeLinecap="round"
           />
         </g>
 
         {/* --- TOP LIGHTNING BOLT & SPARKS (PLN Power) --- */}
         <g id="top-lightning">
           <path
-            d="M 106 4 L 90 32 L 100 32 L 94 54 L 114 24 L 102 24 Z"
-            fill="url(#boltGrad)"
+            d="M 106 2 L 88 32 L 100 32 L 93 56 L 115 24 L 102 24 Z"
+            fill={`url(#${idPrefix}_boltGrad)`}
             stroke="#FFF"
             strokeWidth="1.5"
           />
           {/* Sparks */}
-          <circle cx="82" cy="16" r="3" fill="#00E5FF" />
-          <circle cx="120" cy="14" r="2.5" fill="#FFC107" />
-          <path d="M 76 26 L 82 22" stroke="#00E5FF" strokeWidth="2" strokeLinecap="round" />
-          <path d="M 124 24 L 128 20" stroke="#FFC107" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="80" cy="14" r="3" fill="#00E5FF" />
+          <circle cx="122" cy="12" r="2.5" fill="#FFC107" />
+          <path d="M 74 24 L 80 20" stroke="#00E5FF" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M 124 22 L 129 18" stroke="#FFC107" strokeWidth="2.5" strokeLinecap="round" />
         </g>
       </svg>
     </div>

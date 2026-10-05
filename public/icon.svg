@@ -7,7 +7,7 @@
     </linearGradient>
 
     <linearGradient id="orangeGearGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFC107" />
+      <stop offset="0%" stop-color="#FFD54F" />
       <stop offset="50%" stop-color="#FF9100" />
       <stop offset="100%" stop-color="#DD2C00" />
     </linearGradient>
@@ -29,59 +29,59 @@
     </linearGradient>
   </defs>
 
-  <!-- Outer Ring Backing -->
+  <!-- Outer Dark Ring Backing -->
   <circle cx="100" cy="100" r="92" fill="#0B1329" stroke="#1E293B" stroke-width="4" />
 
   <!-- LEFT HALF GEAR (Cyan/Blue) -->
   <g id="left-gear">
     <path
-      d="M 100 14 A 86 86 0 0 0 14 100 A 86 86 0 0 0 100 186 L 100 164 A 64 64 0 0 1 36 100 A 64 64 0 0 1 100 36 Z"
+      d="M 100 16 A 84 84 0 0 0 16 100 A 84 84 0 0 0 100 184 L 100 160 A 60 60 0 0 1 40 100 A 60 60 0 0 1 100 40 Z"
       fill="url(#blueGearGrad)"
     />
-    <rect x="19" y="47" width="16" height="16" rx="3" fill="url(#blueGearGrad)" transform="rotate(210 27 55)" />
-    <rect x="2" y="92" width="16" height="16" rx="3" fill="url(#blueGearGrad)" transform="rotate(234 10 100)" />
-    <rect x="5" y="138" width="16" height="16" rx="3" fill="url(#blueGearGrad)" transform="rotate(258 13 146)" />
-    <rect x="28" y="177" width="16" height="16" rx="3" fill="url(#blueGearGrad)" transform="rotate(282 36 185)" />
-    <rect x="68" y="196" width="16" height="16" rx="3" fill="url(#blueGearGrad)" transform="rotate(306 76 204)" />
-    <rect x="114" y="192" width="16" height="16" rx="3" fill="url(#blueGearGrad)" transform="rotate(330 122 200)" />
+    <rect x="19" y="47" width="16" height="16" rx="4" fill="url(#blueGearGrad)" transform="rotate(210 27 55)" />
+    <rect x="2" y="92" width="16" height="16" rx="4" fill="url(#blueGearGrad)" transform="rotate(234 10 100)" />
+    <rect x="5" y="138" width="16" height="16" rx="4" fill="url(#blueGearGrad)" transform="rotate(258 13 146)" />
+    <rect x="28" y="177" width="16" height="16" rx="4" fill="url(#blueGearGrad)" transform="rotate(282 36 185)" />
+    <rect x="68" y="196" width="16" height="16" rx="4" fill="url(#blueGearGrad)" transform="rotate(306 76 204)" />
+    <rect x="114" y="192" width="16" height="16" rx="4" fill="url(#blueGearGrad)" transform="rotate(330 122 200)" />
   </g>
 
   <!-- RIGHT HALF GEAR (Orange/Gold) -->
   <g id="right-gear">
     <path
-      d="M 100 14 A 86 86 0 0 1 186 100 A 86 86 0 0 1 100 186 L 100 164 A 64 64 0 0 0 164 100 A 64 64 0 0 0 100 36 Z"
+      d="M 100 16 A 84 84 0 0 1 184 100 A 84 84 0 0 1 100 184 L 100 160 A 60 60 0 0 0 160 100 A 60 60 0 0 0 100 40 Z"
       fill="url(#orangeGearGrad)"
     />
-    <rect x="165" y="47" width="16" height="16" rx="3" fill="url(#orangeGearGrad)" transform="rotate(30 173 55)" />
-    <rect x="182" y="92" width="16" height="16" rx="3" fill="url(#orangeGearGrad)" transform="rotate(54 190 100)" />
-    <rect x="179" y="138" width="16" height="16" rx="3" fill="url(#orangeGearGrad)" transform="rotate(78 187 146)" />
-    <rect x="156" y="177" width="16" height="16" rx="3" fill="url(#orangeGearGrad)" transform="rotate(102 164 185)" />
-    <rect x="116" y="196" width="16" height="16" rx="3" fill="url(#orangeGearGrad)" transform="rotate(126 124 204)" />
-    <rect x="70" y="192" width="16" height="16" rx="3" fill="url(#orangeGearGrad)" transform="rotate(150 78 200)" />
+    <rect x="165" y="47" width="16" height="16" rx="4" fill="url(#orangeGearGrad)" transform="rotate(30 173 55)" />
+    <rect x="182" y="92" width="16" height="16" rx="4" fill="url(#orangeGearGrad)" transform="rotate(54 190 100)" />
+    <rect x="179" y="138" width="16" height="16" rx="4" fill="url(#orangeGearGrad)" transform="rotate(78 187 146)" />
+    <rect x="156" y="177" width="16" height="16" rx="4" fill="url(#orangeGearGrad)" transform="rotate(102 164 185)" />
+    <rect x="116" y="196" width="16" height="16" rx="4" fill="url(#orangeGearGrad)" transform="rotate(126 124 204)" />
+    <rect x="70" y="192" width="16" height="16" rx="4" fill="url(#orangeGearGrad)" transform="rotate(150 78 200)" />
   </g>
 
   <!-- CENTER ELECTRIC METER -->
   <g id="electric-meter">
-    <rect x="60" y="54" width="80" height="96" rx="16" fill="url(#meterBodyGrad)" stroke="#38BDF8" stroke-width="5" />
-    <rect x="70" y="66" width="60" height="32" rx="6" fill="#0F172A" stroke="#1E293B" stroke-width="2" />
-    <rect x="76" y="74" width="8" height="16" rx="2" fill="url(#screenGrad)" />
-    <rect x="87" y="74" width="8" height="16" rx="2" fill="url(#screenGrad)" />
-    <rect x="98" y="74" width="8" height="16" rx="2" fill="url(#screenGrad)" />
-    <rect x="109" y="74" width="8" height="16" rx="2" fill="url(#screenGrad)" />
-    <rect x="120" y="74" width="4" height="16" rx="1" fill="#334155" />
+    <rect x="58" y="52" width="84" height="98" rx="18" fill="url(#meterBodyGrad)" stroke="#38BDF8" stroke-width="4" />
+    <rect x="68" y="64" width="64" height="34" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="2" />
+    <rect x="74" y="72" width="9" height="18" rx="2" fill="url(#screenGrad)" />
+    <rect x="86" y="72" width="9" height="18" rx="2" fill="url(#screenGrad)" />
+    <rect x="98" y="72" width="9" height="18" rx="2" fill="url(#screenGrad)" />
+    <rect x="110" y="72" width="9" height="18" rx="2" fill="url(#screenGrad)" />
+    <rect x="122" y="72" width="4" height="18" rx="1" fill="#334155" />
 
-    <rect x="72" y="106" width="16" height="6" rx="2" fill="#475569" />
-    <rect x="92" y="106" width="16" height="6" rx="2" fill="#475569" />
-    <rect x="112" y="106" width="16" height="6" rx="2" fill="#FF9100" />
+    <rect x="70" y="106" width="16" height="7" rx="2" fill="#475569" />
+    <rect x="92" y="106" width="16" height="7" rx="2" fill="#475569" />
+    <rect x="114" y="106" width="16" height="7" rx="2" fill="#FF9100" />
 
-    <circle cx="100" cy="130" r="10" fill="#FF9100" stroke="#FFF" stroke-width="1.5" />
-    <path d="M 101 123 L 96 131 L 100 131 L 99 137 L 104 129 L 100 129 Z" fill="#FFF" />
+    <circle cx="100" cy="131" r="11" fill="#FF9100" stroke="#FFF" stroke-width="1.5" />
+    <path d="M 101 123 L 95 132 L 100 132 L 99 139 L 105 130 L 100 130 Z" fill="#FFF" />
   </g>
 
   <!-- TOP LIGHTNING BOLT -->
   <g id="top-lightning">
-    <path d="M 106 4 L 90 32 L 100 32 L 94 54 L 114 24 L 102 24 Z" fill="url(#boltGrad)" stroke="#FFF" stroke-width="1.5" />
-    <circle cx="82" cy="16" r="3" fill="#00E5FF" />
-    <circle cx="120" cy="14" r="2.5" fill="#FFC107" />
+    <path d="M 106 2 L 88 32 L 100 32 L 93 56 L 115 24 L 102 24 Z" fill="url(#boltGrad)" stroke="#FFF" stroke-width="1.5" />
+    <circle cx="80" cy="14" r="3" fill="#00E5FF" />
+    <circle cx="122" cy="12" r="2.5" fill="#FFC107" />
   </g>
 </svg>

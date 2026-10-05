@@ -53,6 +53,7 @@ export const InputDataGantiMeter: React.FC<Props> = ({
   const [gantiMeter, setGantiMeter] = useState<AlasanGanti>("METER TUA");
   const [petugas, setPetugas] = useState<PetugasName>("ABDUL");
   const [status, setStatus] = useState<StatusGanti>("BELUM");
+  const [kondisiMeter, setKondisiMeter] = useState("Meter Dalam Rumah");
   const [pnj, setPnj] = useState("BAGUALA, PASSO");
   const [latitudeInput, setLatitudeInput] = useState<string>("-3.626");
   const [longitudeInput, setLongitudeInput] = useState<string>("128.25");
@@ -80,6 +81,7 @@ export const InputDataGantiMeter: React.FC<Props> = ({
       setGantiMeter(editingMeter.gantiMeter);
       setPetugas(editingMeter.petugas);
       setStatus(editingMeter.status);
+      setKondisiMeter(editingMeter.kondisiMeter || "Meter Dalam Rumah");
       setPnj(editingMeter.pnj);
       const latStr = String(editingMeter.latitude || -3.626).replace(/,/g, ".");
       const lngStr = String(editingMeter.longitude || 128.25).replace(/,/g, ".");
@@ -142,6 +144,7 @@ export const InputDataGantiMeter: React.FC<Props> = ({
       gantiMeter,
       petugas,
       status,
+      kondisiMeter,
       pnj,
       latitude: parsedLat,
       longitude: parsedLng,
@@ -484,6 +487,21 @@ export const InputDataGantiMeter: React.FC<Props> = ({
               >
                 <option value="BELUM">BELUM</option>
                 <option value="SELESAI">SELESAI</option>
+              </select>
+            </div>
+
+            {/* KONDISI KWH METER Dropdown */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                KONDISI KWH METER
+              </label>
+              <select
+                value={kondisiMeter}
+                onChange={(e) => setKondisiMeter(e.target.value)}
+                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950 cursor-pointer"
+              >
+                <option value="Meter Dalam Rumah">Meter Dalam Rumah</option>
+                <option value="Rumah Kosong">Rumah Kosong</option>
               </select>
             </div>
           </div>
