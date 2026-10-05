@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { MeterRecord, UserAccount, PetugasName } from "./types";
+import { MeterRecord, UserAccount, PetugasName, StatusGanti } from "./types";
 import {
   addMeterRecord,
   addUserAccount,
@@ -208,7 +208,7 @@ export default function App() {
   // Sync state with storage and cloud when changed
   const handleUpdateMeterStatus = (
     id: string,
-    newStatus: "SELESAI" | "BELUM",
+    newStatus: StatusGanti,
     petugas?: PetugasName,
     additionalData?: Partial<MeterRecord>
   ) => {

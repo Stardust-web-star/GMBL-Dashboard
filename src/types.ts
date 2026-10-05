@@ -1,6 +1,14 @@
 export type JenisMeter = "PASKA BAYAR" | "PRA BAYAR";
 export type AlasanGanti = "METER GANGGUAN" | "METER TUA";
-export type StatusGanti = "SELESAI" | "BELUM";
+export type StatusGanti = "SELESAI" | "KENDALA" | "BELUM";
+
+export const KENDALA_OPTIONS = [
+  "Pelanggan menolak",
+  "Rumah kosong",
+  "Meter dalam bangunan",
+] as const;
+
+export type KendalaType = (typeof KENDALA_OPTIONS)[number];
 
 export const PETUGAS_LIST = [
   "ABDUL",
@@ -42,11 +50,11 @@ export interface MeterRecord {
   gantiMeter: AlasanGanti;
   petugas: PetugasName;
   status: StatusGanti;
+  kendala?: string;
   pnj: string;
   latitude: number;
   longitude: number;
   updatedAt?: string;
-  kondisiMeter?: "Meter Dalam Rumah" | "Rumah Kosong" | string;
 }
 
 export interface UserAccount {

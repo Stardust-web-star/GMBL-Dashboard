@@ -38,8 +38,10 @@ import {
   SlidersHorizontal,
   List,
   Info,
+  AlertTriangle,
+  XCircle,
 } from "lucide-react";
-import { MeterRecord, PetugasName, PETUGAS_LIST } from "../types";
+import { MeterRecord, PetugasName, PETUGAS_LIST, StatusGanti, KENDALA_OPTIONS } from "../types";
 import { snapToLandInBaguala } from "../utils/csvParser";
 import {
   fetchDirections,
@@ -52,7 +54,7 @@ interface Props {
   meters: MeterRecord[];
   onUpdateMeterStatus: (
     id: string,
-    newStatus: "SELESAI" | "BELUM",
+    newStatus: StatusGanti,
     petugas?: PetugasName,
     additionalData?: Partial<MeterRecord>
   ) => void;
@@ -155,12 +157,17 @@ const createDestinationPinIcon = () => {
 
 const ICON_SELESAI_PR = createCustomPinIcon("#10b981", "#059669", `<path d="M11 13.5l2 2 4-4" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`, "linear-gradient(135deg, #0284c7, #0369a1)", "PR");
 const ICON_SELESAI_PS = createCustomPinIcon("#10b981", "#059669", `<path d="M11 13.5l2 2 4-4" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`, "linear-gradient(135deg, #8b5cf6, #6d28d9)", "PS");
+const ICON_KENDALA_PR = createCustomPinIcon("#ef4444", "#dc2626", `<text x="14" y="17.5" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff">!</text>`, "linear-gradient(135deg, #0284c7, #0369a1)", "PR");
+const ICON_KENDALA_PS = createCustomPinIcon("#ef4444", "#dc2626", `<text x="14" y="17.5" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff">!</text>`, "linear-gradient(135deg, #8b5cf6, #6d28d9)", "PS");
 const ICON_BELUM_PR = createCustomPinIcon("#38bdf8", "#0284c7", `<path d="M14.5 7.5L9.5 14h3.5l-1.5 5.5 5.5-6.5h-3.5l1.5-5.5z" fill="#ffffff"/>`, "linear-gradient(135deg, #0284c7, #0369a1)", "PR");
 const ICON_BELUM_PS = createCustomPinIcon("#fbbf24", "#d97706", `<text x="14" y="16.5" text-anchor="middle" font-size="10" font-weight="900" fill="#ffffff">!</text>`, "linear-gradient(135deg, #8b5cf6, #6d28d9)", "PS");
 
-const getMeterIcon = (isSelesai: boolean, isPrabayar: boolean) => {
-  if (isSelesai) {
+const getMeterIcon = (status: StatusGanti, isPrabayar: boolean) => {
+  if (status === "SELESAI") {
     return isPrabayar ? ICON_SELESAI_PR : ICON_SELESAI_PS;
+  }
+  if (status === "KENDALA") {
+    return isPrabayar ? ICON_KENDALA_PR : ICON_KENDALA_PS;
   }
   return isPrabayar ? ICON_BELUM_PR : ICON_BELUM_PS;
 };
@@ -207,15 +214,17 @@ export const PetaLokasiMap: React.FC<Props> = ({
     let prabayar = 0;
     let paskabayar = 0;
     let selesai = 0;
+    let kendala = 0;
     let belum = 0;
     for (let i = 0; i < meters.length; i++) {
       const m = meters[i];
       if (m.jenis === "PRA BAYAR") prabayar++;
       else paskabayar++;
       if (m.status === "SELESAI") selesai++;
+      else if (m.status === "KENDALA") kendala++;
       else belum++;
     }
-    return { prabayar, paskabayar, selesai, belum };
+    return { prabayar, paskabayar, selesai, kendala, belum };
   }, [meters]);
 
   // Pre-calculate and cache valid snapped coordinates once when `meters` changes,
@@ -326,19 +335,19 @@ export const PetaLokasiMap: React.FC<Props> = ({
     return filteredMeters.slice(0, visibleCount);
   }, [filteredMeters, visibleCount]);
 
-  // Modal for selecting Petugas when marking SELESAI
+  // Modal for selecting Petugas and Kendala when marking status
   const [meterToComplete, setMeterToComplete] = useState<MeterRecord | null>(null);
   const [selectedPetugasForCompletion, setSelectedPetugasForCompletion] = useState<PetugasName>("ABDUL");
+  const [selectedKendala, setSelectedKendala] = useState<string>("NONE");
   const [customStandBongkar, setCustomStandBongkar] = useState<string>("");
   const [customNoMeterBaru, setCustomNoMeterBaru] = useState<string>("");
-  const [kondisiMeter, setKondisiMeter] = useState<string>("Meter Dalam Rumah");
 
   const handleInitiateMarkSelesai = (meter: MeterRecord) => {
     setMeterToComplete(meter);
     setSelectedPetugasForCompletion(meter.petugas || "ABDUL");
+    setSelectedKendala(meter.status === "KENDALA" && meter.kendala ? meter.kendala : "NONE");
     setCustomStandBongkar(meter.standBongkar || "0 kWh");
     setCustomNoMeterBaru(meter.noMeterBaru || "");
-    setKondisiMeter(meter.kondisiMeter || "Meter Dalam Rumah");
   };
 
   const handleConfirmMarkSelesai = () => {
@@ -346,11 +355,14 @@ export const PetaLokasiMap: React.FC<Props> = ({
     const additional: Partial<MeterRecord> = {};
     if (customStandBongkar.trim()) additional.standBongkar = customStandBongkar.trim();
     if (customNoMeterBaru.trim()) additional.noMeterBaru = customNoMeterBaru.trim();
-    if (kondisiMeter) additional.kondisiMeter = kondisiMeter;
+
+    const isKendala = selectedKendala !== "NONE";
+    const targetStatus: StatusGanti = isKendala ? "KENDALA" : "SELESAI";
+    additional.kendala = isKendala ? selectedKendala : "";
 
     onUpdateMeterStatus(
       meterToComplete.id,
-      "SELESAI",
+      targetStatus,
       selectedPetugasForCompletion,
       additional
     );
@@ -358,7 +370,7 @@ export const PetaLokasiMap: React.FC<Props> = ({
     if (selectedMeter && selectedMeter.id === meterToComplete.id) {
       setSelectedMeter({
         ...selectedMeter,
-        status: "SELESAI",
+        status: targetStatus,
         petugas: selectedPetugasForCompletion,
         ...additional,
       });
@@ -802,21 +814,20 @@ export const PetaLokasiMap: React.FC<Props> = ({
         const { lat, lng } = coords;
         bounds.push([lat, lng]);
 
-        const isSelesai = m.status === "SELESAI";
         const isPrabayar = m.jenis === "PRA BAYAR";
 
         // Reuse existing L.Marker instance if available to avoid thousands of object allocations
         const cached = markerCache.get(m.id);
         if (cached) {
           if (cached.status !== m.status || cached.jenis !== m.jenis) {
-            cached.marker.setIcon(getMeterIcon(isSelesai, isPrabayar));
+            cached.marker.setIcon(getMeterIcon(m.status, isPrabayar));
             cached.status = m.status;
             cached.jenis = m.jenis;
           }
           markersList.push(cached.marker);
         } else {
           const marker = L.marker([lat, lng], {
-            icon: getMeterIcon(isSelesai, isPrabayar),
+            icon: getMeterIcon(m.status, isPrabayar),
           });
           marker.on("click", () => {
             setSelectedMeter(m);
@@ -939,7 +950,8 @@ export const PetaLokasiMap: React.FC<Props> = ({
               className="mt-1 w-full text-xs p-2 border border-slate-200 dark:border-slate-700/70 rounded-xl bg-slate-50 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 transition-all"
             >
               <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">Semua Status</option>
-              <option value="SELESAI" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">✓ SELESAI</option>
+              <option value="SELESAI" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">✓ SELESAI (HIJAU)</option>
+              <option value="KENDALA" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">⚠️ KENDALA (MERAH)</option>
               <option value="BELUM" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">! BELUM</option>
             </select>
           </div>
@@ -1191,6 +1203,17 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 }`}
               >
                 <span>✅ Selesai ({counts.selesai})</span>
+              </button>
+
+              <button
+                onClick={() => setFilterStatus(filterStatus === "KENDALA" ? "ALL" : "KENDALA")}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-md backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer ${
+                  filterStatus === "KENDALA"
+                    ? "bg-rose-600 text-white shadow-xs border border-rose-400/40"
+                    : "bg-white/95 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+              >
+                <span>⚠️ Kendala ({counts.kendala})</span>
               </button>
 
               <button
@@ -1545,6 +1568,22 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 </span>
               </div>
 
+              {/* Item Kendala */}
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-200 dark:border-slate-700/50">
+                <div className="flex items-center space-x-2.5">
+                  <div className="relative flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 shadow-xs text-white font-black text-xs">
+                    !
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100 text-[11px]">Meter KENDALA</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Menolak / Kosong / Dll</div>
+                  </div>
+                </div>
+                <span className="rounded bg-rose-100 dark:bg-rose-500/20 px-1.5 py-0.5 text-[9px] font-extrabold text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
+                  MERAH
+                </span>
+              </div>
+
               {/* Item 2: Prabayar Belum */}
               <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-200 dark:border-slate-700/50">
                 <div className="flex items-center space-x-2.5">
@@ -1658,10 +1697,16 @@ export const PetaLokasiMap: React.FC<Props> = ({
                   className={`rounded-md px-2 py-0.5 text-[10px] font-bold border shrink-0 ${
                     selectedMeter.status === "SELESAI"
                       ? "bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30"
+                      : selectedMeter.status === "KENDALA"
+                      ? "bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-500/30"
                       : "bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/30"
                   }`}
                 >
-                  {selectedMeter.status === "SELESAI" ? "SELESAI" : "BELUM"}
+                  {selectedMeter.status === "SELESAI"
+                    ? "SELESAI"
+                    : selectedMeter.status === "KENDALA"
+                    ? `KENDALA${selectedMeter.kendala ? `: ${selectedMeter.kendala}` : ""}`
+                    : "BELUM"}
                 </span>
               </div>
 
@@ -1865,20 +1910,49 @@ export const PetaLokasiMap: React.FC<Props> = ({
                     })}
                   </div>
 
-                  {/* Kondisi kWh Meter Selection */}
-                  <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 bg-slate-50 dark:bg-slate-950/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                      Kondisi kWh Meter:
-                    </span>
+                  {/* Dropdown Select Alternative */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">Pilihan Terpilih:</span>
                     <select
-                      value={kondisiMeter}
-                      onChange={(e) => setKondisiMeter(e.target.value)}
-                      className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-2xs cursor-pointer"
+                      value={selectedPetugasForCompletion}
+                      onChange={(e) => setSelectedPetugasForCompletion(e.target.value as PetugasName)}
+                      className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                     >
-                      <option value="Meter Dalam Rumah">Meter Dalam Rumah</option>
-                      <option value="Rumah Kosong">Rumah Kosong</option>
+                      {PETUGAS_LIST.map((p) => (
+                        <option key={p} value={p}>
+                          Petugas: {p}
+                        </option>
+                      ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Menu Kendala */}
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <AlertTriangle className={`h-3.5 w-3.5 ${selectedKendala !== "NONE" ? "text-rose-500" : "text-amber-500"}`} />
+                      Kendala (Pilih jika penggantian terkendala)
+                    </label>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Opsional</span>
+                  </div>
+
+                  <select
+                    value={selectedKendala}
+                    onChange={(e) => setSelectedKendala(e.target.value)}
+                    className={`w-full rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                      selectedKendala !== "NONE"
+                        ? "border-rose-400 dark:border-rose-500/60 bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 ring-2 ring-rose-400/30"
+                        : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                    }`}
+                  >
+                    <option value="NONE">— Tanpa Kendala (Ganti Meter Selesai) —</option>
+                    {KENDALA_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Optional inputs */}
@@ -1922,10 +1996,23 @@ export const PetaLokasiMap: React.FC<Props> = ({
                 <button
                   type="button"
                   onClick={handleConfirmMarkSelesai}
-                  className="flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 shadow-xs shadow-emerald-950 transition-all cursor-pointer"
+                  className={`flex items-center space-x-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white shadow-md transition-all cursor-pointer ${
+                    selectedKendala !== "NONE"
+                      ? "bg-rose-600 hover:bg-rose-500 shadow-rose-950/50 border border-rose-400/30"
+                      : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/50 border border-emerald-400/30"
+                  }`}
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Simpan & Tandai SELESAI ({selectedPetugasForCompletion})</span>
+                  {selectedKendala !== "NONE" ? (
+                    <>
+                      <AlertTriangle className="h-4 w-4" />
+                      <span>Simpan & Tandai KENDALA ({selectedPetugasForCompletion})</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>Simpan & Tandai SELESAI ({selectedPetugasForCompletion})</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

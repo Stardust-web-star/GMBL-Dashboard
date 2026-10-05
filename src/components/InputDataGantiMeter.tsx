@@ -53,7 +53,7 @@ export const InputDataGantiMeter: React.FC<Props> = ({
   const [gantiMeter, setGantiMeter] = useState<AlasanGanti>("METER TUA");
   const [petugas, setPetugas] = useState<PetugasName>("ABDUL");
   const [status, setStatus] = useState<StatusGanti>("BELUM");
-  const [kondisiMeter, setKondisiMeter] = useState("Meter Dalam Rumah");
+  const [kendala, setKendala] = useState<string>("Pelanggan menolak");
   const [pnj, setPnj] = useState("BAGUALA, PASSO");
   const [latitudeInput, setLatitudeInput] = useState<string>("-3.626");
   const [longitudeInput, setLongitudeInput] = useState<string>("128.25");
@@ -81,7 +81,7 @@ export const InputDataGantiMeter: React.FC<Props> = ({
       setGantiMeter(editingMeter.gantiMeter);
       setPetugas(editingMeter.petugas);
       setStatus(editingMeter.status);
-      setKondisiMeter(editingMeter.kondisiMeter || "Meter Dalam Rumah");
+      if (editingMeter.kendala) setKendala(editingMeter.kendala);
       setPnj(editingMeter.pnj);
       const latStr = String(editingMeter.latitude || -3.626).replace(/,/g, ".");
       const lngStr = String(editingMeter.longitude || 128.25).replace(/,/g, ".");
@@ -144,7 +144,7 @@ export const InputDataGantiMeter: React.FC<Props> = ({
       gantiMeter,
       petugas,
       status,
-      kondisiMeter,
+      kendala: status === "KENDALA" ? kendala : "",
       pnj,
       latitude: parsedLat,
       longitude: parsedLng,
@@ -482,28 +482,33 @@ export const InputDataGantiMeter: React.FC<Props> = ({
                 className={`w-full text-xs p-2.5 border rounded-xl font-bold focus:outline-none ${
                   status === "SELESAI"
                     ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
+                    : status === "KENDALA"
+                    ? "border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
                     : "border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300"
                 }`}
               >
                 <option value="BELUM">BELUM</option>
-                <option value="SELESAI">SELESAI</option>
+                <option value="SELESAI">SELESAI (HIJAU)</option>
+                <option value="KENDALA">KENDALA (MERAH)</option>
               </select>
             </div>
 
-            {/* KONDISI KWH METER Dropdown */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                KONDISI KWH METER
-              </label>
-              <select
-                value={kondisiMeter}
-                onChange={(e) => setKondisiMeter(e.target.value)}
-                className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-1 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-950 cursor-pointer"
-              >
-                <option value="Meter Dalam Rumah">Meter Dalam Rumah</option>
-                <option value="Rumah Kosong">Rumah Kosong</option>
-              </select>
-            </div>
+            {status === "KENDALA" && (
+              <div>
+                <label className="block text-xs font-semibold text-rose-700 dark:text-rose-300 mb-1">
+                  JENIS KENDALA *
+                </label>
+                <select
+                  value={kendala}
+                  onChange={(e) => setKendala(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-rose-300 dark:border-rose-500/50 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 font-bold focus:outline-none focus:ring-1 focus:ring-rose-500"
+                >
+                  <option value="Pelanggan menolak">Pelanggan menolak</option>
+                  <option value="Rumah kosong">Rumah kosong</option>
+                  <option value="Meter dalam bangunan">Meter dalam bangunan</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 

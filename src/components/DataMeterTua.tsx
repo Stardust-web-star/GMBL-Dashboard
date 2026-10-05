@@ -19,8 +19,9 @@ import {
   User,
   X,
   MessageSquare,
+  AlertTriangle,
 } from "lucide-react";
-import { MeterRecord, PetugasName, PETUGAS_LIST } from "../types";
+import { MeterRecord, PetugasName, PETUGAS_LIST, StatusGanti, KENDALA_OPTIONS } from "../types";
 import { exportMetersToCSV, getMasterExcelMeta } from "../utils/storage";
 import { WhatsAppBroadcastModal } from "./WhatsAppBroadcastModal";
 
@@ -28,7 +29,7 @@ interface Props {
   meters: MeterRecord[];
   onUpdateMeterStatus: (
     id: string,
-    status: "SELESAI" | "BELUM",
+    status: StatusGanti,
     petugas?: PetugasName,
     additionalData?: Partial<MeterRecord>
   ) => void;
@@ -58,19 +59,19 @@ export const DataMeterTua: React.FC<Props> = ({
   const [waInitialType, setWaInitialType] = useState<"ringkasan" | "petugas" | "analisis" | "pelanggan">("ringkasan");
   const [selectedWaMeter, setSelectedWaMeter] = useState<MeterRecord | null>(null);
 
-  // Modal for selecting Petugas when marking SELESAI
+  // Modal for selecting Petugas and Kendala when marking status
   const [meterToComplete, setMeterToComplete] = useState<MeterRecord | null>(null);
   const [selectedPetugasForCompletion, setSelectedPetugasForCompletion] = useState<PetugasName>("ABDUL");
+  const [selectedKendala, setSelectedKendala] = useState<string>("NONE");
   const [customStandBongkar, setCustomStandBongkar] = useState<string>("");
   const [customNoMeterBaru, setCustomNoMeterBaru] = useState<string>("");
-  const [kondisiMeter, setKondisiMeter] = useState<string>("Meter Dalam Rumah");
 
   const handleInitiateMarkSelesai = (meter: MeterRecord) => {
     setMeterToComplete(meter);
     setSelectedPetugasForCompletion(meter.petugas || "ABDUL");
+    setSelectedKendala(meter.status === "KENDALA" && meter.kendala ? meter.kendala : "NONE");
     setCustomStandBongkar(meter.standBongkar || "0 kWh");
     setCustomNoMeterBaru(meter.noMeterBaru || "");
-    setKondisiMeter(meter.kondisiMeter || "Meter Dalam Rumah");
   };
 
   const handleConfirmMarkSelesai = () => {
@@ -78,11 +79,14 @@ export const DataMeterTua: React.FC<Props> = ({
     const additional: Partial<MeterRecord> = {};
     if (customStandBongkar.trim()) additional.standBongkar = customStandBongkar.trim();
     if (customNoMeterBaru.trim()) additional.noMeterBaru = customNoMeterBaru.trim();
-    if (kondisiMeter) additional.kondisiMeter = kondisiMeter;
+
+    const isKendala = selectedKendala !== "NONE";
+    const targetStatus: StatusGanti = isKendala ? "KENDALA" : "SELESAI";
+    additional.kendala = isKendala ? selectedKendala : "";
 
     onUpdateMeterStatus(
       meterToComplete.id,
-      "SELESAI",
+      targetStatus,
       selectedPetugasForCompletion,
       additional
     );
@@ -287,8 +291,9 @@ export const DataMeterTua: React.FC<Props> = ({
               className="w-full text-xs p-2.5 border border-slate-200 dark:border-slate-750 rounded-xl bg-slate-50 dark:bg-slate-850 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="ALL">Semua Status</option>
-              <option value="SELESAI">SELESAI</option>
-              <option value="BELUM">BELUM</option>
+              <option value="SELESAI">✓ SELESAI (HIJAU)</option>
+              <option value="KENDALA">⚠️ KENDALA (MERAH)</option>
+              <option value="BELUM">! BELUM</option>
             </select>
           </div>
 
@@ -380,16 +385,9 @@ export const DataMeterTua: React.FC<Props> = ({
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Petugas: <strong className="text-slate-900 dark:text-white">{isDone ? m.petugas : "-"}</strong>
-                      </span>
-                      {m.kondisiMeter && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                          {m.kondisiMeter}
-                        </span>
-                      )}
-                    </div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Petugas: <strong className="text-slate-900 dark:text-white">{isDone ? m.petugas : "-"}</strong>
+                    </span>
                     <div className="flex items-center space-x-1">
                       <button
                         onClick={() => onSelectForDocument(m)}
@@ -499,17 +497,28 @@ export const DataMeterTua: React.FC<Props> = ({
                         <button
                           onClick={() => handleToggleStatus(m)}
                           className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center space-x-1 border transition-all cursor-pointer ${
-                            isDone
-                              ? "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/80"
-                              : "bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-900/80"
+                            m.status === "SELESAI"
+                              ? "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-100"
+                              : m.status === "KENDALA"
+                              ? "bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/30 hover:bg-rose-100"
+                              : "bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/30 hover:bg-amber-100"
                           }`}
+                          title={m.kendala ? `Kendala: ${m.kendala}` : `Status: ${m.status}`}
                         >
                           <span
                             className={`w-1.5 h-1.5 rounded-full ${
-                              isDone ? "bg-emerald-500" : "bg-amber-500"
+                              m.status === "SELESAI"
+                                ? "bg-emerald-500"
+                                : m.status === "KENDALA"
+                                ? "bg-rose-500"
+                                : "bg-amber-500"
                             }`}
                           />
-                          <span>{m.status}</span>
+                          <span>
+                            {m.status === "KENDALA"
+                              ? `KENDALA${m.kendala ? `: ${m.kendala}` : ""}`
+                              : m.status}
+                          </span>
                         </button>
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -671,20 +680,49 @@ export const DataMeterTua: React.FC<Props> = ({
                   })}
                 </div>
 
-                {/* Kondisi kWh Meter Selection */}
-                <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 bg-slate-50 dark:bg-slate-950/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                    Kondisi kWh Meter:
-                  </span>
+                {/* Dropdown Select Alternative */}
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">Pilihan Terpilih:</span>
                   <select
-                    value={kondisiMeter}
-                    onChange={(e) => setKondisiMeter(e.target.value)}
-                    className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-2xs cursor-pointer"
+                    value={selectedPetugasForCompletion}
+                    onChange={(e) => setSelectedPetugasForCompletion(e.target.value as PetugasName)}
+                    className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                   >
-                    <option value="Meter Dalam Rumah">Meter Dalam Rumah</option>
-                    <option value="Rumah Kosong">Rumah Kosong</option>
+                    {PETUGAS_LIST.map((p) => (
+                      <option key={p} value={p}>
+                        Petugas: {p}
+                      </option>
+                    ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Menu Kendala */}
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <AlertTriangle className={`h-3.5 w-3.5 ${selectedKendala !== "NONE" ? "text-rose-500" : "text-amber-500"}`} />
+                    Kendala (Pilih jika penggantian terkendala)
+                  </label>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Opsional</span>
+                </div>
+
+                <select
+                  value={selectedKendala}
+                  onChange={(e) => setSelectedKendala(e.target.value)}
+                  className={`w-full rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                    selectedKendala !== "NONE"
+                      ? "border-rose-400 dark:border-rose-500/60 bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 ring-2 ring-rose-400/30"
+                      : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                  }`}
+                >
+                  <option value="NONE">— Tanpa Kendala (Ganti Meter Selesai) —</option>
+                  {KENDALA_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Optional inputs */}
@@ -728,10 +766,23 @@ export const DataMeterTua: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={handleConfirmMarkSelesai}
-                className="flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 shadow-sm shadow-emerald-900/30 transition-all cursor-pointer active:scale-95"
+                className={`flex items-center space-x-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white shadow-md transition-all cursor-pointer ${
+                  selectedKendala !== "NONE"
+                    ? "bg-rose-600 hover:bg-rose-500 shadow-rose-950/50 border border-rose-400/30"
+                    : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950/50 border border-emerald-400/30"
+                }`}
               >
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Simpan & Tandai SELESAI ({selectedPetugasForCompletion})</span>
+                {selectedKendala !== "NONE" ? (
+                  <>
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>Simpan & Tandai KENDALA ({selectedPetugasForCompletion})</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>Simpan & Tandai SELESAI ({selectedPetugasForCompletion})</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

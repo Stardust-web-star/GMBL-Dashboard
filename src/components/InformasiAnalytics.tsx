@@ -48,6 +48,7 @@ export const InformasiAnalytics: React.FC<Props> = ({ meters }) => {
   // Compute Metrics
   const totalMeters = meters.length;
   const totalSelesai = meters.filter((m) => m.status === "SELESAI").length;
+  const totalKendala = meters.filter((m) => m.status === "KENDALA").length;
   const totalBelum = meters.filter((m) => m.status === "BELUM").length;
   const prabayarCount = meters.filter((m) => m.jenis === "PRA BAYAR").length;
   const paskabayarCount = meters.filter((m) => m.jenis === "PASKA BAYAR").length;
